@@ -13,4 +13,3 @@ export const categoriesRouter = router({
     return categoires;
   }),
 });
-

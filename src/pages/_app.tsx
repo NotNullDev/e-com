@@ -5,7 +5,39 @@ import { type AppType } from "next/app";
 import { trpc } from "../utils/trpc";
 
 import Image from "next/image";
+import Link from "next/link";
+import { Toaster } from "react-hot-toast";
+import create from "zustand";
 import "../styles/globals.css";
+import { getAllCategoiresAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
+
+type CategoriesStoreType = {
+  categories: string[];
+  setFilter: (filter: string) => void;
+};
+
+const categoriesStore = create<CategoriesStoreType>()(
+  (setState, getState, store) => {
+    const allCategoires = getAllCategoriesAsStrings();
+
+    const setFilter = (appliedFilter: string) => {
+      setState((oldState) => {
+        const filteredCategories = allCategoires.filter((c) =>
+          c.toLowerCase().includes(appliedFilter.toLowerCase())
+        );
+        return {
+          ...oldState,
+          categories: filteredCategories,
+        };
+      });
+    };
+
+    return {
+      categories: allCategoires,
+      setFilter,
+    };
+  }
+);
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -23,6 +55,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
 
 const Header = () => {
   const session = useSession();
+  const setFilter = categoriesStore((state) => state.setFilter);
 
   const startSignOut = () => {
     signOut({
@@ -44,7 +77,10 @@ const Header = () => {
 
   return (
     <div className="flex items-center justify-between p-6">
-      <h1 className="text-2xl">The shop</h1>
+      <Toaster />
+      <Link href="/">
+        <h1 className="text-2xl">The shop</h1>
+      </Link>
       <div className="flex gap-2">
         <input className="input" placeholder="I am looking for..." />
 
@@ -54,6 +90,9 @@ const Header = () => {
               tabIndex={0}
               className="input"
               placeholder="In category..."
+              onChange={(e) => {
+                setFilter(e.currentTarget.value ?? "");
+              }}
             />
             <button className="btn-square btn" tabIndex={-1}>
               <svg
@@ -76,12 +115,7 @@ const Header = () => {
             tabIndex={0}
             className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
           >
-            <li className="bg-base-200">
-              <a>Item 1</a>
-            </li>
-            <li className="bg-base-200">
-              <a>Item 2</a>
-            </li>
+            <CategoriesPicker />
           </ul>
         </div>
       </div>
@@ -149,6 +183,19 @@ const Header = () => {
         )}
       </div>
     </div>
+  );
+};
+
+export const CategoriesPicker = () => {
+  const categories = categoriesStore((state) => state.categories);
+  return (
+    <>
+      {categories.map((c) => (
+        <li className="bg-base-200" key={c}>
+          <a>{c}</a>
+        </li>
+      ))}
+    </>
   );
 };
 
