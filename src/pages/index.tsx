@@ -61,8 +61,8 @@ type SingleProductPreviewProps = {
 };
 const SingleProductPreview = ({ dealType }: SingleProductPreviewProps) => {
   return (
-    <div className="relative flex h-[200px] cursor-pointer flex-col rounded-xl p-6 shadow-xl">
-      <h1 className="text-3xl ">Super product </h1>
+    <div className="group relative flex h-[200px] cursor-pointer flex-col rounded-xl p-6 shadow-xl">
+      <h1 className="text-3xl group-hover:text-secondary">Super product </h1>
       <p className="flex-1">Sample description</p>
       <div>
         <div className="flex flex-col">

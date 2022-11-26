@@ -1,9 +1,10 @@
 import { type Session } from "next-auth";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
 import { type AppType } from "next/app";
 
 import { trpc } from "../utils/trpc";
 
+import Image from "next/image";
 import "../styles/globals.css";
 
 const MyApp: AppType<{ session: Session | null }> = ({
@@ -21,6 +22,26 @@ const MyApp: AppType<{ session: Session | null }> = ({
 };
 
 const Header = () => {
+  const session = useSession();
+
+  const startSignOut = () => {
+    signOut({
+      redirect: false,
+    });
+  };
+  const startSignIn = () => {
+    signIn(
+      "google",
+      {
+        redirect: false,
+      },
+      {
+        prompt: "login",
+        display: "popup",
+      }
+    );
+  };
+
   return (
     <div className="flex items-center justify-between p-6">
       <h1 className="text-2xl">The shop</h1>
@@ -28,13 +49,13 @@ const Header = () => {
         <input className="input" placeholder="I am looking for..." />
 
         <div className="dropdown">
-          <div className="input-group">
+          <div className="flex">
             <input
               tabIndex={0}
               className="input"
               placeholder="In category..."
             />
-            <button className="btn-square btn">
+            <button className="btn-square btn" tabIndex={-1}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -53,12 +74,12 @@ const Header = () => {
           </div>
           <ul
             tabIndex={0}
-            className="dropdown-content menu rounded-box mt-2 w-52 bg-base-100 p-2 shadow"
+            className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
           >
-            <li>
+            <li className="bg-base-200">
               <a>Item 1</a>
             </li>
-            <li>
+            <li className="bg-base-200">
               <a>Item 2</a>
             </li>
           </ul>
@@ -96,11 +117,36 @@ const Header = () => {
           />
         </svg>
 
-        <div className="placeholder avatar">
-          <div className="w-10 rounded-full bg-neutral-focus text-neutral-content">
-            <span className="text-3xl">J</span>
-          </div>
-        </div>
+        {session.status === "authenticated" && (
+          <>
+            <div className="dropdown dropdown-end">
+              <button className="placeholder avatar flex items-center">
+                <div className="w-8 rounded-full bg-neutral-focus text-neutral-content">
+                  <Image
+                    src={session.data.user?.image ?? ""}
+                    alt="user profile image"
+                    width={24}
+                    height={24}
+                  />
+                </div>
+              </button>
+              <ul
+                tabIndex={0}
+                className="dropdown-content menu rounded-box w-52 bg-base-100 p-2 shadow"
+              >
+                <li onClick={() => startSignOut()}>
+                  <a>Sign out</a>
+                </li>
+                <li>
+                  <a>My account</a>
+                </li>
+              </ul>
+            </div>
+          </>
+        )}
+        {session.status === "unauthenticated" && (
+          <button onClick={() => startSignIn()}>Login</button>
+        )}
       </div>
     </div>
   );
