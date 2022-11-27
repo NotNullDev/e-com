@@ -7,7 +7,7 @@ import { trpc } from "../utils/trpc";
 import type { Category } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
 import "../styles/globals.css";
@@ -18,6 +18,8 @@ type CategoriesStoreType = {
   setFilter: (filter: string) => void;
   selectedCategory: Category | null;
   setSelectedCategory: (newCategory: Category) => void;
+  categoryDropdownOpen: boolean;
+  setCategoryDropdownOpen: (newState: boolean) => void;
 };
 
 const categoriesStore = create<CategoriesStoreType>()(
@@ -40,11 +42,17 @@ const categoriesStore = create<CategoriesStoreType>()(
       setState((old) => ({ ...old, selectedCategory: newCategory }));
     };
 
+    const setCategoryDropdownOpen = (newState: boolean) => {
+      setState((old) => ({ ...old, categoryDropdownOpen: newState }));
+    };
+
     return {
       categories: allCategories,
       setFilter,
       selectedCategory: null,
       setSelectedCategory,
+      categoryDropdownOpen: false,
+      setCategoryDropdownOpen,
     };
   }
 );
@@ -76,6 +84,7 @@ const Header = () => {
       redirect: false,
     });
   };
+
   const startSignIn = () => {
     signIn(
       "google",
@@ -97,36 +106,8 @@ const Header = () => {
       </Link>
       <div className="flex gap-2">
         <input className="input" placeholder="I am looking for..." />
-
-        <div className="dropdown">
-          <div className="flex">
-            <CategorySearchInput />
-            <button className="btn-square btn" tabIndex={-1}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </button>
-          </div>
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
-          >
-            <CategoriesPicker />
-          </ul>
-        </div>
+        <CategoryDropdown />
       </div>
-
       <div className="flex items-center gap-6">
         <button>
           <svg
@@ -197,6 +178,47 @@ const Header = () => {
   );
 };
 
+const CategoryDropdown = () => {
+  const dropdownOpen = categoriesStore((state) => state.categoryDropdownOpen);
+
+  const openStyle = useMemo(() => {
+    const style = dropdownOpen ? "" : "hidden";
+    return style;
+  }, [dropdownOpen]);
+
+  return (
+    <>
+      <div className={`dropdown`}>
+        <div className="flex">
+          <CategorySearchInput />
+          <label className="btn-square btn" tabIndex={0}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </label>
+        </div>
+        <ul
+          tabIndex={0}
+          className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow ${openStyle}`}
+        >
+          <CategoriesPicker />
+        </ul>
+      </div>
+    </>
+  );
+};
+
 export const CategorySearchInput = () => {
   const setFilter = categoriesStore((state) => state.setFilter);
   const categoryInputRef = useRef<HTMLInputElement>(null);
@@ -216,6 +238,7 @@ export const CategorySearchInput = () => {
   return (
     <>
       <input
+        onFocus={() => categoriesStore.getState().setCategoryDropdownOpen(true)}
         ref={categoryInputRef}
         tabIndex={0}
         className="input"
@@ -230,21 +253,23 @@ export const CategorySearchInput = () => {
 
 export const CategoriesPicker = () => {
   const categories = categoriesStore((state) => state.categories);
+  const selectedCategory = categoriesStore((state) => state.selectedCategory);
 
   return (
-    <>
+    <div key={selectedCategory}>
       {categories.map((c) => (
         <li
           className="bg-base-200"
           key={c}
-          onClick={() =>
-            categoriesStore.getState().setSelectedCategory(c as Category)
-          }
+          onClick={() => {
+            categoriesStore.getState().setSelectedCategory(c as Category);
+            categoriesStore.getState().setCategoryDropdownOpen(false);
+          }}
         >
           <a>{c}</a>
         </li>
       ))}
-    </>
+    </div>
   );
 };
 
