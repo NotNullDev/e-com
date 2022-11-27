@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../trpc";
+import { publicProcedure, router } from "../trpc";
 
 export const productsRouter = router({
-  getHottest: protectedProcedure
+  getHottest: publicProcedure
     .input(
       z.object({
         limit: z.number().min(1),
@@ -22,7 +22,7 @@ export const productsRouter = router({
       console.log(`received ${hottestProducts?.length}`);
       return hottestProducts;
     }),
-  getHits: protectedProcedure
+  getHits: publicProcedure
     .input(
       z.object({
         limit: z.number().min(1),
@@ -40,5 +40,29 @@ export const productsRouter = router({
       });
 
       return hits;
+    }),
+  searchForProduct: publicProcedure
+    .input(
+      z.object({
+        searchQuery: z.string(),
+        limit: z.number().min(1),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { searchQuery, limit } = input;
+
+      const result = await prisma?.product.findMany({
+        where: {
+          title: {
+            contains: searchQuery,
+            mode: "insensitive",
+          },
+        },
+        take: limit,
+      });
+
+      console.log(`Found ${result?.length} entries.`);
+
+      return result;
     }),
 });

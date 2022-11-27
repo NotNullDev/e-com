@@ -7,13 +7,13 @@ import { trpc } from "../utils/trpc";
 import type { Category } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
 import "../styles/globals.css";
 import { getAllCategoiresAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
 
-type CategoriesStoreType = {
+type ProductSearchStoreType = {
   categories: string[];
   setFilter: (filter: string) => void;
   selectedCategory: Category | null;
@@ -22,7 +22,7 @@ type CategoriesStoreType = {
   setCategoryDropdownOpen: (newState: boolean) => void;
 };
 
-const categoriesStore = create<CategoriesStoreType>()(
+const productsSearchStore = create<ProductSearchStoreType>()(
   (setState, getState, store) => {
     const allCategories = getAllCategoriesAsStrings();
 
@@ -105,7 +105,7 @@ const Header = () => {
         <h1 className="text-2xl">The shop</h1>
       </Link>
       <div className="flex gap-2">
-        <input className="input" placeholder="I am looking for..." />
+        <ProductSearchDropdown />
         <CategoryDropdown />
       </div>
       <div className="flex items-center gap-6">
@@ -145,7 +145,7 @@ const Header = () => {
 
         {session.status === "authenticated" && (
           <>
-            <div className="dropdown dropdown-end">
+            <div className="dropdown-end dropdown">
               <button className="placeholder avatar flex items-center">
                 <div className="w-8 rounded-full bg-neutral-focus text-neutral-content">
                   <Image
@@ -178,8 +178,75 @@ const Header = () => {
   );
 };
 
+const ProductSearchDropdown = () => {
+  const [inputValue, setInputValue] = useState<string>("");
+  const trpcContext = trpc.useContext();
+  const products = trpc.products.searchForProduct.useQuery({
+    searchQuery: inputValue ?? "",
+    limit: 10,
+  });
+
+  return (
+    <>
+      <div className="dropdown">
+        <input
+          className="input"
+          placeholder="I am looking for..."
+          onChange={(e) => {
+            setInputValue(e.currentTarget.value ?? "");
+            trpcContext.products.searchForProduct.invalidate();
+          }}
+        />
+        <ul
+          tabIndex={0}
+          className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
+        >
+          {products.status === "loading" && (
+            <div className="flex h-[200px] h-full w-full items-center justify-center">
+              <div role="status">
+                <svg
+                  aria-hidden="true"
+                  className="mr-2 h-8 w-8 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600"
+                  viewBox="0 0 100 101"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                    fill="currentFill"
+                  />
+                </svg>
+                <span className="sr-only">Loading...</span>
+              </div>
+            </div>
+          )}
+          {products.status === "success" &&
+            (products?.data?.length ?? 0 > 0 ? (
+              products?.data?.map((p) => {
+                return (
+                  <li key={p.id}>
+                    <a>{p.title}</a>
+                  </li>
+                );
+              })
+            ) : (
+              <div>Not found</div>
+            ))}
+          {products.status === "error" && <div>ERROR</div>}
+        </ul>
+      </div>
+    </>
+  );
+};
+
 const CategoryDropdown = () => {
-  const dropdownOpen = categoriesStore((state) => state.categoryDropdownOpen);
+  const dropdownOpen = productsSearchStore(
+    (state) => state.categoryDropdownOpen
+  );
 
   const openStyle = useMemo(() => {
     const style = dropdownOpen ? "" : "hidden";
@@ -220,9 +287,11 @@ const CategoryDropdown = () => {
 };
 
 export const CategorySearchInput = () => {
-  const setFilter = categoriesStore((state) => state.setFilter);
+  const setFilter = productsSearchStore((state) => state.setFilter);
   const categoryInputRef = useRef<HTMLInputElement>(null);
-  const selectedCategory = categoriesStore((state) => state.selectedCategory);
+  const selectedCategory = productsSearchStore(
+    (state) => state.selectedCategory
+  );
 
   useEffect(() => {
     if (!categoryInputRef.current) {
@@ -238,7 +307,9 @@ export const CategorySearchInput = () => {
   return (
     <>
       <input
-        onFocus={() => categoriesStore.getState().setCategoryDropdownOpen(true)}
+        onFocus={() =>
+          productsSearchStore.getState().setCategoryDropdownOpen(true)
+        }
         ref={categoryInputRef}
         tabIndex={0}
         className="input"
@@ -252,8 +323,10 @@ export const CategorySearchInput = () => {
 };
 
 export const CategoriesPicker = () => {
-  const categories = categoriesStore((state) => state.categories);
-  const selectedCategory = categoriesStore((state) => state.selectedCategory);
+  const categories = productsSearchStore((state) => state.categories);
+  const selectedCategory = productsSearchStore(
+    (state) => state.selectedCategory
+  );
 
   return (
     <div key={selectedCategory}>
@@ -262,8 +335,8 @@ export const CategoriesPicker = () => {
           className="bg-base-200"
           key={c}
           onClick={() => {
-            categoriesStore.getState().setSelectedCategory(c as Category);
-            categoriesStore.getState().setCategoryDropdownOpen(false);
+            productsSearchStore.getState().setSelectedCategory(c as Category);
+            productsSearchStore.getState().setCategoryDropdownOpen(false);
           }}
         >
           <a>{c}</a>
