@@ -1,6 +1,6 @@
 import { Category } from "@prisma/client";
 
-export function getAllCategoiresAsString() {
+export function getAllCategoriesAsString() {
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
   ];

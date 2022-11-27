@@ -46,16 +46,25 @@ export const productsRouter = router({
       z.object({
         searchQuery: z.string(),
         limit: z.number().min(1),
+        category: z.string().nullable(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { searchQuery, limit } = input;
+      const { searchQuery, limit, category } = input;
+
+      const q =
+        searchQuery === ""
+          ? undefined
+          : searchQuery
+              .trim()
+              .split(" ")
+              .map((q) => (q += ":*"))
+              .join(" & ") ?? ":*";
 
       const result = await prisma?.product.findMany({
         where: {
           title: {
-            contains: searchQuery,
-            mode: "insensitive",
+            search: q,
           },
         },
         take: limit,

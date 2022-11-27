@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import type { Product, User } from "@prisma/client";
 import { DealType, PrismaClient } from "@prisma/client";
-import { getAllCategoiresAsString } from "../src/utils/enumParser";
+import { getAllCategoriesAsString } from "../src/utils/enumParser";
 ("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -28,7 +28,7 @@ async function main() {
     const price = Number(faker.commerce.price(10, 1500, 2, ""));
     const description = faker.commerce.productDescription();
     const categories = faker.helpers.arrayElements([
-      ...getAllCategoiresAsString().map((c) => c.replaceAll(" ", "_")),
+      ...getAllCategoriesAsString().map((c) => c.replaceAll(" ", "_")),
     ]);
     const stock = faker.datatype.number({
       min: 1,

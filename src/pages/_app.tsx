@@ -11,13 +11,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
 import "../styles/globals.css";
-import { getAllCategoiresAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
+import { getAllCategoriesAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
 
 type ProductSearchStoreType = {
   categories: string[];
   setFilter: (filter: string) => void;
   selectedCategory: Category | null;
-  setSelectedCategory: (newCategory: Category) => void;
+  setSelectedCategory: (newCategory: Category | null) => void;
   categoryDropdownOpen: boolean;
   setCategoryDropdownOpen: (newState: boolean) => void;
 };
@@ -38,7 +38,7 @@ const productsSearchStore = create<ProductSearchStoreType>()(
       });
     };
 
-    const setSelectedCategory = (newCategory: Category) => {
+    const setSelectedCategory = (newCategory: Category | null) => {
       setState((old) => ({ ...old, selectedCategory: newCategory }));
     };
 
@@ -79,8 +79,8 @@ const Footer = () => {
 const Header = () => {
   const session = useSession();
 
-  const startSignOut = () => {
-    signOut({
+  const startSignOut = async () => {
+    const resp = await signOut({
       redirect: false,
     });
   };
@@ -93,7 +93,6 @@ const Header = () => {
       },
       {
         prompt: "login",
-        display: "popup",
       }
     );
   };
@@ -157,10 +156,14 @@ const Header = () => {
                 </div>
               </button>
               <ul
-                tabIndex={0}
                 className="dropdown-content menu rounded-box w-52 bg-base-100 p-2 shadow"
+                tabIndex={0}
               >
-                <li onClick={() => startSignOut()}>
+                <li
+                  onClick={function () {
+                    startSignOut();
+                  }}
+                >
                   <a>Sign out</a>
                 </li>
                 <li>
@@ -184,6 +187,7 @@ const ProductSearchDropdown = () => {
   const products = trpc.products.searchForProduct.useQuery({
     searchQuery: inputValue ?? "",
     limit: 10,
+    category: productsSearchStore.getState().selectedCategory,
   });
 
   return (
@@ -197,10 +201,7 @@ const ProductSearchDropdown = () => {
             trpcContext.products.searchForProduct.invalidate();
           }}
         />
-        <ul
-          tabIndex={0}
-          className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
-        >
+        <ul className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow">
           {products.status === "loading" && (
             <div className="flex h-[200px] h-full w-full items-center justify-center">
               <div role="status">
@@ -228,7 +229,7 @@ const ProductSearchDropdown = () => {
             (products?.data?.length ?? 0 > 0 ? (
               products?.data?.map((p) => {
                 return (
-                  <li key={p.id}>
+                  <li key={p.id} tabIndex={0}>
                     <a>{p.title}</a>
                   </li>
                 );
@@ -256,7 +257,7 @@ const CategoryDropdown = () => {
   return (
     <>
       <div className={`dropdown`}>
-        <div className="flex">
+        <div className="flex gap-2">
           <CategorySearchInput />
           <label className="btn-square btn" tabIndex={0}>
             <svg
@@ -276,7 +277,6 @@ const CategoryDropdown = () => {
           </label>
         </div>
         <ul
-          tabIndex={0}
           className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow ${openStyle}`}
         >
           <CategoriesPicker />
@@ -300,7 +300,7 @@ export const CategorySearchInput = () => {
     if (selectedCategory) {
       categoryInputRef.current.value = selectedCategory;
     } else {
-      categoryInputRef.current.value = "";
+      categoryInputRef.current.value = "All categories";
     }
   }, [selectedCategory]);
 
@@ -330,8 +330,20 @@ export const CategoriesPicker = () => {
 
   return (
     <div key={selectedCategory}>
-      {categories.map((c) => (
+      <li
+        tabIndex={0}
+        className="bg-base-200"
+        key={"ALL_CATEGORIES"}
+        onClick={() => {
+          productsSearchStore.getState().setSelectedCategory(null);
+          productsSearchStore.getState().setCategoryDropdownOpen(false);
+        }}
+      >
+        <a>All categories</a>
+      </li>
+      {categories.map((c, idx) => (
         <li
+          tabIndex={0}
           className="bg-base-200"
           key={c}
           onClick={() => {
