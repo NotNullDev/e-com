@@ -8,6 +8,7 @@ import { trpc } from "../utils/trpc";
 const Home: NextPage = () => {
   const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
   const products = trpc.products.getHottest.useQuery({ limit: 4 });
+  const hits = trpc.products.getHits.useQuery({ limit: 4 });
 
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
@@ -28,7 +29,7 @@ const Home: NextPage = () => {
         </div>
         <div className="flex flex-[8] flex-col rounded-xl p-6">
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
-            Hot deal
+            Hot deals
           </h2>
           <div className="flex flex-wrap justify-between">
             {products.status === "success" && (
@@ -39,13 +40,13 @@ const Home: NextPage = () => {
               </>
             )}
           </div>
-          <h2 className="mt-6 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
-            Latest hits
+          <h2 className="mb-2 mt-6 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
+            Trending
           </h2>
           <div className="flex flex-wrap justify-between">
-            {products.status === "success" && (
+            {hits.status === "success" && (
               <>
-                {products.data?.map((p) => (
+                {hits.data?.map((p) => (
                   <SingleProductPreview key={p.id} product={p} />
                 ))}
               </>
@@ -68,17 +69,18 @@ const SingleProductPreview = ({ product }: SingleProductPreviewProps) => {
         alt="product preview"
         width={300}
         height={50}
+        className="rounded-xl"
       />
-      <div className="m-3 flex flex-col gap-3">
+      <div className="m-3 flex h-full flex-col gap-3">
         <h1 className="text-3xl group-hover:text-secondary">{product.title}</h1>
-        <p className="flex-1">{product.description}</p>
-        <div>
+        <p className="flex-1 line-clamp-4">{product.description}</p>
+        <div className="flex flex-col">
           <div className="flex flex-col">
             <div>
               <span>{product.stock}</span> in stock
             </div>
             <div>
-              <span>{product.price}</span> PLN / piece
+              <span>{product.price}</span> PLN
             </div>
           </div>
         </div>

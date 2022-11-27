@@ -4,8 +4,10 @@ import { type AppType } from "next/app";
 
 import { trpc } from "../utils/trpc";
 
+import type { Category } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
 import "../styles/globals.css";
@@ -14,15 +16,17 @@ import { getAllCategoiresAsString as getAllCategoriesAsStrings } from "../utils/
 type CategoriesStoreType = {
   categories: string[];
   setFilter: (filter: string) => void;
+  selectedCategory: Category | null;
+  setSelectedCategory: (newCategory: Category) => void;
 };
 
 const categoriesStore = create<CategoriesStoreType>()(
   (setState, getState, store) => {
-    const allCategoires = getAllCategoriesAsStrings();
+    const allCategories = getAllCategoriesAsStrings();
 
     const setFilter = (appliedFilter: string) => {
       setState((oldState) => {
-        const filteredCategories = allCategoires.filter((c) =>
+        const filteredCategories = allCategories.filter((c) =>
           c.toLowerCase().includes(appliedFilter.toLowerCase())
         );
         return {
@@ -32,9 +36,15 @@ const categoriesStore = create<CategoriesStoreType>()(
       });
     };
 
+    const setSelectedCategory = (newCategory: Category) => {
+      setState((old) => ({ ...old, selectedCategory: newCategory }));
+    };
+
     return {
-      categories: allCategoires,
+      categories: allCategories,
       setFilter,
+      selectedCategory: null,
+      setSelectedCategory,
     };
   }
 );
@@ -45,17 +55,21 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <div className="container mx-auto h-screen">
+      <div className="container mx-auto min-h-screen">
         <Header />
         <Component {...pageProps} />
+        <Footer />
       </div>
     </SessionProvider>
   );
 };
 
+const Footer = () => {
+  return <footer className="mt-10 p-6"></footer>;
+};
+
 const Header = () => {
   const session = useSession();
-  const setFilter = categoriesStore((state) => state.setFilter);
 
   const startSignOut = () => {
     signOut({
@@ -76,7 +90,7 @@ const Header = () => {
   };
 
   return (
-    <div className="flex items-center justify-between p-6">
+    <header className="flex items-center justify-between p-6">
       <Toaster />
       <Link href="/">
         <h1 className="text-2xl">The shop</h1>
@@ -86,14 +100,7 @@ const Header = () => {
 
         <div className="dropdown">
           <div className="flex">
-            <input
-              tabIndex={0}
-              className="input"
-              placeholder="In category..."
-              onChange={(e) => {
-                setFilter(e.currentTarget.value ?? "");
-              }}
-            />
+            <CategorySearchInput />
             <button className="btn-square btn" tabIndex={-1}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -121,35 +128,39 @@ const Header = () => {
       </div>
 
       <div className="flex items-center gap-6">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="h-8 w-8"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
-          />
-        </svg>
+        <button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-8 w-8"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+            />
+          </svg>
+        </button>
 
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="h-8 w-8"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
-          />
-        </svg>
+        <button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-8 w-8"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+            />
+          </svg>
+        </button>
 
         {session.status === "authenticated" && (
           <>
@@ -182,16 +193,54 @@ const Header = () => {
           <button onClick={() => startSignIn()}>Login</button>
         )}
       </div>
-    </div>
+    </header>
+  );
+};
+
+export const CategorySearchInput = () => {
+  const setFilter = categoriesStore((state) => state.setFilter);
+  const categoryInputRef = useRef<HTMLInputElement>(null);
+  const selectedCategory = categoriesStore((state) => state.selectedCategory);
+
+  useEffect(() => {
+    if (!categoryInputRef.current) {
+      return;
+    }
+    if (selectedCategory) {
+      categoryInputRef.current.value = selectedCategory;
+    } else {
+      categoryInputRef.current.value = "";
+    }
+  }, [selectedCategory]);
+
+  return (
+    <>
+      <input
+        ref={categoryInputRef}
+        tabIndex={0}
+        className="input"
+        placeholder="In category..."
+        onChange={(e) => {
+          setFilter(e.currentTarget.value ?? "");
+        }}
+      />
+    </>
   );
 };
 
 export const CategoriesPicker = () => {
   const categories = categoriesStore((state) => state.categories);
+
   return (
     <>
       {categories.map((c) => (
-        <li className="bg-base-200" key={c}>
+        <li
+          className="bg-base-200"
+          key={c}
+          onClick={() =>
+            categoriesStore.getState().setSelectedCategory(c as Category)
+          }
+        >
           <a>{c}</a>
         </li>
       ))}
