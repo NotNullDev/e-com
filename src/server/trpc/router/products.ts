@@ -9,7 +9,7 @@ export const productsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const hottestProducts = await prisma?.product.findMany({
+      const hottestProducts = await ctx.prisma.product.findMany({
         where: {
           dealType: "HOT",
         },
@@ -29,7 +29,7 @@ export const productsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const hits = await prisma?.product.findMany({
+      const hits = await ctx.prisma.product.findMany({
         where: {
           dealType: "HIT",
         },
@@ -61,7 +61,7 @@ export const productsRouter = router({
               .map((q) => (q += ":*"))
               .join(" & ") ?? ":*";
 
-      const result = await prisma?.product.findMany({
+      const result = await ctx.prisma.product.findMany({
         where: {
           title: {
             search: q,
