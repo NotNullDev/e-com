@@ -2,7 +2,8 @@ import type { DealType, Product } from "@prisma/client";
 import { Category } from "@prisma/client";
 import { type NextPage } from "next";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useId, useMemo, useState } from "react";
 
 import { trpc } from "../utils/trpc";
 
@@ -82,30 +83,29 @@ type SingleProductPreviewProps = {
 };
 const SingleProductPreview = ({ product }: SingleProductPreviewProps) => {
   return (
-    <div className="group relative flex h-[410px] w-[250px] cursor-pointer flex-col rounded-xl shadow-xl shadow-secondary">
-      <Image
-        src={product.previewImageUrl ?? ""}
-        alt="product preview"
-        width={300}
-        height={50}
-        className="rounded-xl"
-      />
-      <div className="m-3 flex h-full flex-col gap-3">
-        <h1 className="text-xl group-hover:text-secondary">{product.title}</h1>
-        <p className="flex-1 line-clamp-4">{product.description}</p>
-        <div className="flex flex-col">
-          <div className="flex flex-col">
-            <div>
-              <span>{product.stock}</span> in stock
-            </div>
-            <div>
-              <span>{product.price}</span> PLN
-            </div>
+    <>
+      <Link
+        href={"/details/" + product.id ?? 0}
+        className="card card-compact relative h-[300px] w-[250px] cursor-pointer bg-base-100 text-base shadow-xl hover:opacity-80"
+      >
+        <figure>
+          <Image
+            src={product.previewImageUrl}
+            alt="Shoes"
+            width={300}
+            height={150}
+          />
+        </figure>
+        <div className="card-body flex w-full flex-col justify-between">
+          <h2 className="text font-bold">{product.title}</h2>
+          <Rating rating={4} key={product.id} />
+          <div className="w-full text-xl">
+            {product.price} <span className="text-sm">zł</span>
           </div>
         </div>
-      </div>
-      <SingleProductSticker dealType={product.dealType as DealType} />
-    </div>
+        <SingleProductSticker dealType={product.dealType} />
+      </Link>
+    </>
   );
 };
 
@@ -126,6 +126,50 @@ const SingleProductSticker = ({ dealType }: SingleProductStickerProps) => {
         </span>
       )}
     </div>
+  );
+};
+
+type RatingType = {
+  rating: number;
+};
+
+export const Rating = ({ rating }: RatingType) => {
+  const uuid = useId();
+  return (
+    <>
+      <div
+        className="z-100 rating"
+        key={uuid}
+        onClick={(e) => e.preventDefault()}
+      >
+        <input
+          type="radio"
+          name="rating-2"
+          className="mask mask-star-2 bg-orange-400"
+        />
+        <input
+          type="radio"
+          name="rating-2"
+          className="mask mask-star-2 bg-orange-400"
+          checked
+        />
+        <input
+          type="radio"
+          name="rating-2"
+          className="mask mask-star-2 bg-orange-400"
+        />
+        <input
+          type="radio"
+          name="rating-2"
+          className="mask mask-star-2 bg-orange-400"
+        />
+        <input
+          type="radio"
+          name="rating-2"
+          className="mask mask-star-2 bg-orange-400"
+        />
+      </div>
+    </>
   );
 };
 

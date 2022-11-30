@@ -37,7 +37,7 @@ async function main() {
     const dealType = faker.helpers.arrayElement([
       ...Object.keys(DealType).filter((d) => isNaN(Number(d))),
     ]);
-    const previewImageUrl = faker.image.business(undefined, undefined, true);
+    const previewImageUrl = faker.image.abstract(undefined, undefined, true);
     const boughtCount = faker.datatype.bigInt({
       min: 0,
       max: 60000,
@@ -52,6 +52,11 @@ async function main() {
       min: 0,
       max: 5000000,
     });
+
+    const images = [...Array(10)].map(() =>
+      faker.image.abstract(1920, 1080, true)
+    );
+    console.log("adding " + images.length + " images.");
 
     const product = {
       id,
@@ -68,6 +73,7 @@ async function main() {
       createdAt: new Date(),
       views,
       userId: insertedInitUser.id,
+      images,
     } as Product;
 
     return product;

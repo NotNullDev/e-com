@@ -203,7 +203,7 @@ const ProductSearchDropdown = () => {
         />
         <ul className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow">
           {products.status === "loading" && (
-            <div className="flex h-[200px] h-full w-full items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center">
               <div role="status">
                 <svg
                   aria-hidden="true"
@@ -259,7 +259,7 @@ const CategoryDropdown = () => {
       <div className={`dropdown`}>
         <div className="flex gap-2">
           <CategorySearchInput />
-          <label className="btn-square btn" tabIndex={0}>
+          <label className="btn btn-square" tabIndex={0}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -277,7 +277,7 @@ const CategoryDropdown = () => {
           </label>
         </div>
         <ul
-          className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow ${openStyle}`}
+          className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100  shadow ${openStyle}`}
         >
           <CategoriesPicker />
         </ul>

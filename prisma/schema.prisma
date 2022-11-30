@@ -96,6 +96,7 @@ model Product {
   stock           Int
   price           Float
   previewImageUrl String
+  images          String[]
   dealType        DealType
   shippingTime    Int
   views           BigInt

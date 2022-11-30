@@ -7,16 +7,18 @@ services:
       - .env
     networks:
       - e-com
-  app:
-    build:
-      context: .
-    image: nnd/e-com:latest
     ports:
-      - 3000:3000
-    env_file:
-      - .env
-    networks:
-      - e-com
+      - 5432:5432
+  # app:
+  #   build:
+  #     context: .
+  #   image: nnd/e-com:latest
+  #   ports:
+  #     - 3000:3000
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - e-com
 
 
 volumes:

@@ -74,4 +74,21 @@ export const productsRouter = router({
 
       return result;
     }),
+  byId: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const itm = await ctx.prisma.product.findFirst({
+        where: {
+          id: {
+            equals: input.id,
+          },
+        },
+      });
+
+      return itm;
+    }),
 });
