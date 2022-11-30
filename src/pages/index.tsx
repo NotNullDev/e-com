@@ -4,8 +4,31 @@ import { type NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
+import create from "zustand";
 
 import { trpc } from "../utils/trpc";
+
+type ProductsFilters = {
+  nameContains: "";
+};
+
+type ProductsStoreType = {
+  filers: ProductsFilters;
+  setFilters: (filters: ProductsFilters) => void;
+};
+
+const productsStore = create<ProductsStoreType>()(
+  (setState, getState, getStore) => {
+    const setFilters = (filters: ProductsFilters) => {
+      setState((old) => ({ ...old, filers: filters }));
+    };
+
+    return {
+      filers: { nameContains: "" },
+      setFilters,
+    };
+  }
+);
 
 const Home: NextPage = () => {
   const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
@@ -136,7 +159,7 @@ type RatingType = {
 export const Rating = ({ rating }: RatingType) => {
   const uuid = useId();
   return (
-    <>
+    <div className="relative">
       <div
         className="z-100 rating"
         key={uuid}
@@ -169,7 +192,7 @@ export const Rating = ({ rating }: RatingType) => {
           className="mask mask-star-2 bg-orange-400"
         />
       </div>
-    </>
+    </div>
   );
 };
 

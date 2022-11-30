@@ -53,6 +53,7 @@ export default function ProductDetails() {
                       href={`#item${idx + 1}`}
                       className="btn btn-md bg-fuchsia-800"
                       key={idx}
+                      replace
                     >
                       {idx + 1}
                     </Link>
