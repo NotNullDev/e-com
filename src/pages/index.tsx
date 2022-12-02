@@ -3,37 +3,83 @@ import { Category } from "@prisma/client";
 import { type NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import create from "zustand";
 
 import { trpc } from "../utils/trpc";
 
 type ProductsFilters = {
-  nameContains: "";
+  titleContains: string;
+  categoriesIn: Category[];
+  limit: number;
 };
 
 type ProductsStoreType = {
-  filers: ProductsFilters;
+  filters: ProductsFilters;
   setFilters: (filters: ProductsFilters) => void;
+  removeCategory: (category: Category) => void;
+  addCategory: (category: Category) => void;
 };
 
 const productsStore = create<ProductsStoreType>()(
   (setState, getState, getStore) => {
     const setFilters = (filters: ProductsFilters) => {
-      setState((old) => ({ ...old, filers: filters }));
+      setState((old) => ({ ...old, filters: filters }));
+    };
+
+    const addCategory = (category: Category) => {
+      const exist = !!getState().filters.categoriesIn.find(
+        (c) => c === category
+      );
+      if (exist) return;
+
+      const categories = getState().filters.categoriesIn;
+
+      categories.push(category);
+
+      setState((old) => ({
+        ...old,
+        filters: {
+          ...old.filters,
+          categoriesIn: categories,
+        },
+      }));
+    };
+
+    const removeCategory = (category: Category) => {
+      const categories = getState().filters.categoriesIn;
+      const filtered = categories.filter((c) => c != category);
+      setState((old) => ({
+        ...old,
+        filters: {
+          ...old.filters,
+          categoriesIn: filtered,
+        },
+      }));
     };
 
     return {
-      filers: { nameContains: "" },
+      filters: { titleContains: "a", categoriesIn: [], limit: 30 },
       setFilters,
+      addCategory,
+      removeCategory,
     };
   }
 );
 
 const Home: NextPage = () => {
-  const hello = trpc.example.hello.useQuery({ text: "from tRPC" });
   const products = trpc.products.getHottest.useQuery({ limit: 5 });
   const hits = trpc.products.getHits.useQuery({ limit: 5 });
+  const filters = productsStore((state) => state.filters);
+  const filteredProducts = trpc.products.filtered.useQuery(filters);
+
+  useEffect(() => {
+    toast(filteredProducts.status);
+    if (filteredProducts.status === "success") {
+      toast(filteredProducts.data.length.toString());
+    }
+  }, [filteredProducts]);
 
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
@@ -83,10 +129,20 @@ type CategorySelectorProps = {
 };
 const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   const [enabled, setEnabled] = useState(false);
+  const addCategory = productsStore((state) => state.addCategory);
+  const removeCategory = productsStore((state) => state.removeCategory);
 
   const enabledStyle = "bg-primary text-primary-content";
 
   const activeStyle = useMemo(() => (enabled ? enabledStyle : ""), [enabled]);
+
+  useEffect(() => {
+    if (enabled) {
+      addCategory(c as Category);
+    } else {
+      removeCategory(c as Category);
+    }
+  }, [enabled]);
 
   return (
     <div
@@ -94,7 +150,9 @@ const CategorySelector = ({ category: c }: CategorySelectorProps) => {
         "cursor-pointer rounded-xl bg-base-200 p-2 px-4 " + ` ${activeStyle}`
       }
       key={c}
-      onClick={() => setEnabled((old) => !old)}
+      onClick={() => {
+        setEnabled((old) => !old);
+      }}
     >
       {c.replaceAll("_", " ")}
     </div>

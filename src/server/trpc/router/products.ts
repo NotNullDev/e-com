@@ -1,3 +1,4 @@
+import type { Category } from "@prisma/client";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 
@@ -22,6 +23,7 @@ export const productsRouter = router({
       console.log(`received ${hottestProducts?.length}`);
       return hottestProducts;
     }),
+
   getHits: publicProcedure
     .input(
       z.object({
@@ -41,6 +43,7 @@ export const productsRouter = router({
 
       return hits;
     }),
+
   searchForProduct: publicProcedure
     .input(
       z.object({
@@ -74,6 +77,7 @@ export const productsRouter = router({
 
       return result;
     }),
+
   byId: publicProcedure
     .input(
       z.object({
@@ -90,5 +94,43 @@ export const productsRouter = router({
       });
 
       return itm;
+    }),
+
+  filtered: publicProcedure
+    .input(
+      z.object({
+        titleContains: z.string(),
+        categoriesIn: z.array(z.string()),
+        limit: z.number().positive(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const cat =
+        input.categoriesIn.length > 0
+          ? (input.categoriesIn as Category[])
+          : undefined;
+
+      const products = await ctx.prisma.product.findMany({
+        where: {
+          title: {
+            contains: input.titleContains,
+          },
+          ...(input.categoriesIn.length > 0
+            ? {
+                AND: {
+                  categories: {
+                    equals: cat,
+                  },
+                },
+              }
+            : {}),
+        },
+        take: input.limit,
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+      return products;
     }),
 });
