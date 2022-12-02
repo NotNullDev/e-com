@@ -7,15 +7,18 @@ import { trpc } from "../utils/trpc";
 import type { Category } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
+import { productsStore } from ".";
 import "../styles/globals.css";
 import { getAllCategoriesAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
 
 type ProductSearchStoreType = {
   categories: string[];
   setFilter: (filter: string) => void;
+  filter: string;
   selectedCategory: Category | null;
   setSelectedCategory: (newCategory: Category | null) => void;
   categoryDropdownOpen: boolean;
@@ -33,6 +36,7 @@ const productsSearchStore = create<ProductSearchStoreType>()(
         );
         return {
           ...oldState,
+          filter: appliedFilter,
           categories: filteredCategories,
         };
       });
@@ -53,6 +57,7 @@ const productsSearchStore = create<ProductSearchStoreType>()(
       setSelectedCategory,
       categoryDropdownOpen: false,
       setCategoryDropdownOpen,
+      filter: "",
     };
   }
 );
@@ -189,10 +194,11 @@ const ProductSearchDropdown = () => {
     limit: 10,
     category: productsSearchStore.getState().selectedCategory,
   });
+  const router = useRouter();
 
   return (
     <>
-      <div className="dropdown">
+      <div className="dropdown" key={router.asPath}>
         <input
           className="input"
           placeholder="I am looking for..."
@@ -229,7 +235,13 @@ const ProductSearchDropdown = () => {
             (products?.data?.length ?? 0 > 0 ? (
               products?.data?.map((p) => {
                 return (
-                  <li key={p.id} tabIndex={0}>
+                  <li
+                    key={p.id}
+                    tabIndex={0}
+                    onClick={() => {
+                      router.push("/details/" + p.id);
+                    }}
+                  >
                     <a>{p.title}</a>
                   </li>
                 );
@@ -259,7 +271,18 @@ const CategoryDropdown = () => {
       <div className={`dropdown`}>
         <div className="flex gap-2">
           <CategorySearchInput />
-          <label className="btn btn-square" tabIndex={0}>
+          <label
+            className="btn-square btn"
+            tabIndex={0}
+            onClick={() => {
+              productsStore
+                .getState()
+                .addBasicFilters(
+                  productsSearchStore.getState().filter,
+                  productsSearchStore.getState().selectedCategory
+                );
+            }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"

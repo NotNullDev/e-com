@@ -20,9 +20,10 @@ type ProductsStoreType = {
   setFilters: (filters: ProductsFilters) => void;
   removeCategory: (category: Category) => void;
   addCategory: (category: Category) => void;
+  addBasicFilters: (titleContains: string, c: Category | null) => void;
 };
 
-const productsStore = create<ProductsStoreType>()(
+export const productsStore = create<ProductsStoreType>()(
   (setState, getState, getStore) => {
     const setFilters = (filters: ProductsFilters) => {
       setState((old) => ({ ...old, filters: filters }));
@@ -59,11 +60,23 @@ const productsStore = create<ProductsStoreType>()(
       }));
     };
 
+    const addBasicFilters = (titleContains: string, c: Category | null) => {
+      setState((old) => ({
+        ...old,
+        filters: {
+          ...old.filters,
+          categoriesIn: c ? [c] : [],
+          titleContains,
+        },
+      }));
+    };
+
     return {
-      filters: { titleContains: "a", categoriesIn: [], limit: 30 },
+      filters: { titleContains: "", categoriesIn: [], limit: 30 },
       setFilters,
       addCategory,
       removeCategory,
+      addBasicFilters,
     };
   }
 );
@@ -95,6 +108,18 @@ const Home: NextPage = () => {
             ))}
           </div>
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
+            Products
+          </h2>
+          <div className="grid grid-cols-5 gap-10">
+            {products.status === "success" && (
+              <>
+                {filteredProducts.data?.map((p) => (
+                  <SingleProductPreview key={p.id} product={p} />
+                ))}
+              </>
+            )}
+          </div>
+          {/* <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
             Hot deals
           </h2>
           <div className="flex flex-wrap justify-between">
@@ -105,8 +130,8 @@ const Home: NextPage = () => {
                 ))}
               </>
             )}
-          </div>
-          <h2 className="mb-2 mt-6 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
+          </div> */}
+          {/* <h2 className="mb-2 mt-6 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
             Trending
           </h2>
           <div className="flex flex-wrap justify-between">
@@ -117,7 +142,7 @@ const Home: NextPage = () => {
                 ))}
               </>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </>
