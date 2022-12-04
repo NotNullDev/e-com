@@ -104,5 +104,6 @@ model Product {
   lastBoughtAt    DateTime?  @default(now())
   seller          User       @relation(fields: [userId], references: [id])
   categories      Category[]
+  rating          Int
   userId          String
 }

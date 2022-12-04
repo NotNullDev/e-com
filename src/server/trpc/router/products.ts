@@ -1,4 +1,4 @@
-import type { Category } from "@prisma/client";
+import type { Category, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { publicProcedure, router } from "../trpc";
 
@@ -69,6 +69,13 @@ export const productsRouter = router({
           title: {
             search: q,
           },
+          ...(category
+            ? {
+                categories: {
+                  has: category as Category,
+                },
+              }
+            : {}),
         },
         take: limit,
       });
@@ -102,6 +109,7 @@ export const productsRouter = router({
         titleContains: z.string(),
         categoriesIn: z.array(z.string()),
         limit: z.number().positive(),
+        priceSort: z.string().nullable(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -109,6 +117,24 @@ export const productsRouter = router({
         input.categoriesIn.length > 0
           ? (input.categoriesIn as Category[])
           : undefined;
+
+      let sort = [
+        { createdAt: "asc" },
+      ] as Prisma.Enumerable<Prisma.ProductOrderByWithRelationAndSearchRelevanceInput>;
+
+      if (input.priceSort) {
+        sort = [{ price: input.priceSort }];
+      }
+
+      console.log();
+      console.log();
+      console.log();
+      console.log();
+      console.log(sort);
+      console.log();
+      console.log();
+      console.log();
+      console.log();
 
       const products = await ctx.prisma.product.findMany({
         where: {
@@ -126,9 +152,7 @@ export const productsRouter = router({
             : {}),
         },
         take: input.limit,
-        orderBy: {
-          createdAt: "asc",
-        },
+        orderBy: sort,
       });
 
       return products;

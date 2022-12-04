@@ -56,7 +56,11 @@ async function main() {
     const images = [...Array(10)].map(() =>
       faker.image.abstract(1920, 1080, true)
     );
-    console.log("adding " + images.length + " images.");
+
+    const rating = faker.datatype.number({
+      min: 1,
+      max: 5,
+    });
 
     const product = {
       id,
@@ -74,6 +78,7 @@ async function main() {
       views,
       userId: insertedInitUser.id,
       images,
+      rating,
     } as Product;
 
     return product;

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { trpc } from "../../utils/trpc";
 
 export default function ProductDetails() {
@@ -30,6 +31,7 @@ export default function ProductDetails() {
                         height={600}
                         width={600}
                         className="rounded-t-xl"
+                        onLoad={() => toast(`${idx} loaded!`)}
                       />
                     </div>
                   </>
@@ -51,7 +53,7 @@ export default function ProductDetails() {
                   <>
                     <Link
                       href={`#item${idx + 1}`}
-                      className="btn btn-md bg-fuchsia-800"
+                      className="btn-md btn bg-fuchsia-800"
                       key={idx}
                       replace
                     >
@@ -72,15 +74,23 @@ export default function ProductDetails() {
           {data.data?.title}
         </div>
 
-        <div className="mt-5 flex w-full flex-1 rounded-xl p-3">
+        <div className="mt-3 flex w-full items-end justify-end gap-3">
+          {data.data?.categories.map((c) => (
+            <div key={c} className="rounded-xl bg-slate-700 p-1 px-3">
+              {c}
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex w-full flex-1 rounded-xl">
           {data.data?.description}
         </div>
 
         <div className="flex h-min items-center justify-between">
           <NiceButton />
           <div className="flex gap-3 p-2">
-            <button className="btn btn-ghost">buy now</button>
-            <button className="btn btn-secondary">add to cart</button>
+            <button className="btn-ghost btn">buy now</button>
+            <button className="btn-secondary btn">add to cart</button>
           </div>
         </div>
       </div>

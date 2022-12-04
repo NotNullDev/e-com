@@ -188,11 +188,14 @@ const Header = () => {
 
 const ProductSearchDropdown = () => {
   const [inputValue, setInputValue] = useState<string>("");
+  const selectedCategory = productsSearchStore(
+    (state) => state.selectedCategory
+  );
   const trpcContext = trpc.useContext();
   const products = trpc.products.searchForProduct.useQuery({
     searchQuery: inputValue ?? "",
     limit: 10,
-    category: productsSearchStore.getState().selectedCategory,
+    category: selectedCategory,
   });
   const router = useRouter();
 
@@ -203,7 +206,7 @@ const ProductSearchDropdown = () => {
           className="input"
           placeholder="I am looking for..."
           onChange={(e) => {
-            setInputValue(e.currentTarget.value ?? "");
+            setInputValue(e?.currentTarget?.value ?? "");
             trpcContext.products.searchForProduct.invalidate();
           }}
         />
@@ -257,6 +260,7 @@ const ProductSearchDropdown = () => {
 };
 
 const CategoryDropdown = () => {
+  const router = useRouter();
   const dropdownOpen = productsSearchStore(
     (state) => state.categoryDropdownOpen
   );
@@ -274,7 +278,8 @@ const CategoryDropdown = () => {
           <label
             className="btn-square btn"
             tabIndex={0}
-            onClick={() => {
+            onClick={async () => {
+              await router.push("/");
               productsStore
                 .getState()
                 .addBasicFilters(

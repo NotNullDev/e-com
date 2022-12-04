@@ -1,10 +1,10 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { DealType, Product } from "@prisma/client";
 import { Category } from "@prisma/client";
 import { type NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useId, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import create from "zustand";
 
 import { trpc } from "../utils/trpc";
@@ -13,6 +13,11 @@ type ProductsFilters = {
   titleContains: string;
   categoriesIn: Category[];
   limit: number;
+  priceSort: string | null;
+};
+
+type Sorting = {
+  price: "asc" | "desc" | undefined;
 };
 
 type ProductsStoreType = {
@@ -21,6 +26,8 @@ type ProductsStoreType = {
   removeCategory: (category: Category) => void;
   addCategory: (category: Category) => void;
   addBasicFilters: (titleContains: string, c: Category | null) => void;
+  sorting: Sorting;
+  setSorting: (sorting: Sorting) => void;
 };
 
 export const productsStore = create<ProductsStoreType>()(
@@ -71,28 +78,36 @@ export const productsStore = create<ProductsStoreType>()(
       }));
     };
 
+    const setSorting = (sorting: Sorting) => {
+      setState((old) => ({ ...old, sorting }));
+      setFilters({
+        ...getState().filters,
+        priceSort: (sorting.price as string) ?? null,
+      });
+    };
+
     return {
-      filters: { titleContains: "", categoriesIn: [], limit: 30 },
+      filters: {
+        titleContains: "",
+        categoriesIn: [],
+        limit: 30,
+        priceSort: null,
+      },
       setFilters,
       addCategory,
       removeCategory,
       addBasicFilters,
+      sorting: { price: undefined },
+      setSorting,
     };
   }
 );
 
 const Home: NextPage = () => {
   const products = trpc.products.getHottest.useQuery({ limit: 5 });
-  const hits = trpc.products.getHits.useQuery({ limit: 5 });
   const filters = productsStore((state) => state.filters);
   const filteredProducts = trpc.products.filtered.useQuery(filters);
-
-  useEffect(() => {
-    toast(filteredProducts.status);
-    if (filteredProducts.status === "success") {
-      toast(filteredProducts.data.length.toString());
-    }
-  }, [filteredProducts]);
+  const [parent] = useAutoAnimate();
 
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
@@ -103,14 +118,20 @@ const Home: NextPage = () => {
       <div className="mb-10 flex h-full w-full">
         <div className="flex flex-[8] flex-col rounded-xl p-6">
           <div className="mb-5 flex gap-1">
-            {allCategories.map((c) => (
-              <CategorySelector category={c} key={c} />
-            ))}
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-2">
+                {allCategories.map((c) => (
+                  <CategorySelector category={c} key={c} />
+                ))}
+              </div>
+              <div className="ml-3 h-[2px] w-10 bg-indigo-500"></div>
+              <SortComponent />
+            </div>
           </div>
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
             Products
           </h2>
-          <div className="grid grid-cols-5 gap-10">
+          <div className="grid grid-cols-5 gap-10" ref={parent}>
             {products.status === "success" && (
               <>
                 {filteredProducts.data?.map((p) => (
@@ -119,30 +140,6 @@ const Home: NextPage = () => {
               </>
             )}
           </div>
-          {/* <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
-            Hot deals
-          </h2>
-          <div className="flex flex-wrap justify-between">
-            {products.status === "success" && (
-              <>
-                {products.data?.map((p) => (
-                  <SingleProductPreview key={p.id} product={p} />
-                ))}
-              </>
-            )}
-          </div> */}
-          {/* <h2 className="mb-2 mt-6 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
-            Trending
-          </h2>
-          <div className="flex flex-wrap justify-between">
-            {hits.status === "success" && (
-              <>
-                {hits.data?.map((p) => (
-                  <SingleProductPreview key={p.id} product={p} />
-                ))}
-              </>
-            )}
-          </div> */}
         </div>
       </div>
     </>
@@ -157,9 +154,21 @@ const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   const addCategory = productsStore((state) => state.addCategory);
   const removeCategory = productsStore((state) => state.removeCategory);
 
+  const selectedCategories = productsStore(
+    (state) => state.filters.categoriesIn
+  );
+
   const enabledStyle = "bg-primary text-primary-content";
 
   const activeStyle = useMemo(() => (enabled ? enabledStyle : ""), [enabled]);
+
+  useEffect(() => {
+    if (selectedCategories.includes(c as Category)) {
+      setEnabled(true);
+    } else {
+      setEnabled(false);
+    }
+  }, [selectedCategories]);
 
   useEffect(() => {
     if (enabled) {
@@ -204,7 +213,9 @@ const SingleProductPreview = ({ product }: SingleProductPreviewProps) => {
         </figure>
         <div className="card-body flex w-full flex-col justify-between">
           <h2 className="text font-bold">{product.title}</h2>
-          <Rating rating={4} key={product.id} />
+          <div className="relative">
+            <Rating rating={product.rating} key={product.id} />
+          </div>
           <div className="w-full text-xl">
             {product.price} <span className="text-sm">zł</span>
           </div>
@@ -248,33 +259,78 @@ export const Rating = ({ rating }: RatingType) => {
         key={uuid}
         onClick={(e) => e.preventDefault()}
       >
-        <input
-          type="radio"
-          name="rating-2"
-          className="mask mask-star-2 bg-orange-400"
-        />
-        <input
-          type="radio"
-          name="rating-2"
-          className="mask mask-star-2 bg-orange-400"
-          checked
-        />
-        <input
-          type="radio"
-          name="rating-2"
-          className="mask mask-star-2 bg-orange-400"
-        />
-        <input
-          type="radio"
-          name="rating-2"
-          className="mask mask-star-2 bg-orange-400"
-        />
-        <input
-          type="radio"
-          name="rating-2"
-          className="mask mask-star-2 bg-orange-400"
-        />
+        {[...Array(5)].map((_, idx) => {
+          return (
+            <input
+              key={idx}
+              type="radio"
+              name={"rating" + uuid}
+              className="mask mask-star-2 bg-orange-400"
+              checked={idx === rating - 1}
+            />
+          );
+        })}
       </div>
+    </div>
+  );
+};
+
+const SortComponent = () => {
+  const [sort, setSort] = useState<Sorting>({
+    price: undefined,
+  });
+  const ascRef = useRef<HTMLDivElement>(null);
+  const descRef = useRef<HTMLDivElement>(null);
+
+  const setSorting = productsStore((state) => state.setSorting);
+
+  const handlePriceSortingChange = (s: "asc" | "desc") => {
+    if (s === "asc") {
+      if (sort.price === "asc") {
+        setSort((old) => ({ ...old, price: undefined }));
+        ascRef.current?.classList.remove("bg-slate-700");
+        descRef.current?.classList.remove("bg-slate-700");
+      } else {
+        setSort((old) => ({ ...old, price: "asc" }));
+        ascRef.current?.classList.add("bg-slate-700");
+        descRef.current?.classList.remove("bg-slate-700");
+      }
+    }
+
+    if (s === "desc") {
+      if (sort.price === "desc") {
+        setSort((old) => ({ ...old, price: undefined }));
+        ascRef.current?.classList.remove("bg-slate-700");
+        descRef.current?.classList.remove("bg-slate-700");
+      } else {
+        setSort((old) => ({ ...old, price: "desc" }));
+        descRef.current?.classList.add("bg-slate-700");
+        ascRef.current?.classList.remove("bg-slate-700");
+      }
+    }
+  };
+
+  useEffect(() => {
+    setSorting({ ...sort });
+  }, [sort]);
+
+  return (
+    <div className="flex gap-3 rounded-xl">
+      <div
+        ref={ascRef}
+        className="cursor-pointer  rounded-xl p-1 px-5"
+        onClick={() => handlePriceSortingChange("asc")}
+      >
+        Cheapest
+      </div>
+      <div
+        ref={descRef}
+        className="cursor-pointer rounded-xl p-1 px-5"
+        onClick={() => handlePriceSortingChange("desc")}
+      >
+        Most expensive
+      </div>
+      <Rating rating={5} />
     </div>
   );
 };
