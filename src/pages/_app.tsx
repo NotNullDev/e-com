@@ -200,7 +200,6 @@ const ProductSearchDropdown = () => {
     category: selectedCategory,
   });
   const router = useRouter();
-  const currentElement = useRef(inputRef.current);
 
   const focusInput = (e: KeyboardEvent) => {
     if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
