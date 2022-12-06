@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 type SearchWithNavigationProps = {
-  searchListRef: ReturnType<typeof useRef<HTMLElement>>;
+  searchListRef: ReturnType<typeof useRef<HTMLElement | null>>;
 } & React.HTMLProps<HTMLInputElement>;
 
 const SearchWithNavigation = ({

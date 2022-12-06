@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
 import { productsStore } from ".";
+import SearchWithNavigation from "../components/SearchWithNavigation";
 import "../styles/globals.css";
 import { getAllCategoriesAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
 
@@ -188,8 +189,7 @@ const Header = () => {
 
 const ProductSearchDropdown = () => {
   const [inputValue, setInputValue] = useState<string>("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const foundProductDivRef = useRef<HTMLUListElement>(null);
+  const searchListElement = useRef<HTMLUListElement>(null);
   const selectedCategory = productsSearchStore(
     (state) => state.selectedCategory
   );
@@ -201,72 +201,13 @@ const ProductSearchDropdown = () => {
   });
   const router = useRouter();
 
-  const focusInput = (e: KeyboardEvent) => {
-    if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
-      inputRef.current?.focus();
-      e.preventDefault();
-    }
-    if (document.activeElement === inputRef.current) {
-      if (e.key === "Escape") {
-        inputRef.current?.blur();
-      }
-      if (e.key === "ArrowDown") {
-        (foundProductDivRef.current?.firstChild as HTMLElement)?.focus();
-        e.preventDefault();
-        return;
-      }
-      if (e.key === "ArrowUp") {
-        (foundProductDivRef.current?.lastChild as HTMLElement)?.focus();
-        e.preventDefault();
-        return;
-      }
-    }
-
-    if (
-      foundProductDivRef.current?.children &&
-      document.activeElement &&
-      [...foundProductDivRef.current.children].includes(document.activeElement)
-    ) {
-      if (e.key === "ArrowDown") {
-        if (document.activeElement?.nextElementSibling as HTMLElement) {
-          (document.activeElement?.nextElementSibling as HTMLElement).focus();
-        } else {
-          inputRef.current?.focus();
-        }
-        e.preventDefault();
-      }
-      if (e.key === "ArrowUp") {
-        if (document.activeElement?.previousElementSibling as HTMLElement) {
-          (
-            document.activeElement?.previousElementSibling as HTMLElement
-          ).focus();
-        } else {
-          inputRef.current?.focus();
-        }
-
-        e.preventDefault();
-      }
-      if (e.key === "Escape") {
-        (document.activeElement as HTMLElement).blur();
-      }
-      if (e.key === "Enter") {
-        (document.activeElement as HTMLElement)?.click();
-      }
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("keydown", focusInput);
-    return () => document.removeEventListener("keydown", focusInput);
-  }, []);
-
   return (
     <>
       <div className="dropdown" key={router.asPath}>
         <div className="relative">
-          <input
+          <SearchWithNavigation
+            searchListRef={searchListElement}
             className="input"
-            ref={inputRef}
             placeholder="I am looking for..."
             onChange={(e) => {
               setInputValue(e?.currentTarget?.value ?? "");
@@ -284,7 +225,7 @@ const ProductSearchDropdown = () => {
         </div>
         <ul
           className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
-          ref={foundProductDivRef}
+          ref={searchListElement}
         >
           {products.status === "loading" && (
             <div className="flex h-full w-full items-center justify-center">
