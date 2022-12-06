@@ -32,6 +32,7 @@ export default function ProductDetails() {
                         width={600}
                         className="rounded-t-xl"
                         onLoad={() => toast(`${idx} loaded!`)}
+                        placeholder="empty"
                       />
                     </div>
                   </>
@@ -43,6 +44,7 @@ export default function ProductDetails() {
                     alt="hello!"
                     height={400}
                     width={200}
+                    placeholder="blur"
                   />
                 )}
               </div>

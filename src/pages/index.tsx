@@ -104,10 +104,10 @@ export const productsStore = create<ProductsStoreType>()(
 );
 
 const Home: NextPage = () => {
-  const products = trpc.products.getHottest.useQuery({ limit: 5 });
   const filters = productsStore((state) => state.filters);
   const filteredProducts = trpc.products.filtered.useQuery(filters);
-  const [parent] = useAutoAnimate();
+  const titleContains = productsStore((state) => state.filters.titleContains);
+  const [parent] = useAutoAnimate<HTMLDivElement>();
 
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
@@ -129,10 +129,15 @@ const Home: NextPage = () => {
             </div>
           </div>
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
-            Products
+            {titleContains &&
+              titleContains.trim().length !== 0 &&
+              'Products contains "' + filters.titleContains + '"'}
+            {(!filters.titleContains ||
+              filters.titleContains.trim().length === 0) &&
+              "All products"}
           </h2>
           <div className="grid grid-cols-5 gap-10" ref={parent}>
-            {products.status === "success" && (
+            {filteredProducts.status === "success" && (
               <>
                 {filteredProducts.data?.map((p) => (
                   <SingleProductPreview key={p.id} product={p} />

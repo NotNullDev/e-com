@@ -140,6 +140,7 @@ export const productsRouter = router({
         where: {
           title: {
             contains: input.titleContains,
+            mode: "insensitive"
           },
           ...(input.categoriesIn.length > 0
             ? {

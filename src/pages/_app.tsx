@@ -108,10 +108,10 @@ const Header = () => {
       <Link href="/">
         <h1 className="text-2xl">The shop</h1>
       </Link>
-      <div className="flex gap-2">
+      <form className="flex gap-2">
         <ProductSearchDropdown />
         <CategoryDropdown />
-      </div>
+      </form>
       <div className="flex items-center gap-6">
         <button>
           <svg
@@ -188,6 +188,7 @@ const Header = () => {
 
 const ProductSearchDropdown = () => {
   const [inputValue, setInputValue] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const selectedCategory = productsSearchStore(
     (state) => state.selectedCategory
   );
@@ -199,17 +200,43 @@ const ProductSearchDropdown = () => {
   });
   const router = useRouter();
 
+  const focusInput = (e: KeyboardEvent) => {
+    if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+      inputRef.current?.focus();
+      e.preventDefault();
+    }
+    if (document.activeElement === inputRef.current && e.key === "Escape") {
+      inputRef.current?.blur();
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", focusInput);
+    return () => document.removeEventListener("keydown", focusInput);
+  }, []);
+
   return (
     <>
       <div className="dropdown" key={router.asPath}>
-        <input
-          className="input"
-          placeholder="I am looking for..."
-          onChange={(e) => {
-            setInputValue(e?.currentTarget?.value ?? "");
-            trpcContext.products.searchForProduct.invalidate();
-          }}
-        />
+        <div className="relative">
+          <input
+            className="input"
+            ref={inputRef}
+            placeholder="I am looking for..."
+            onChange={(e) => {
+              setInputValue(e?.currentTarget?.value ?? "");
+              productsSearchStore.setState((old) => ({
+                ...old,
+                filter: e.currentTarget?.value ?? "",
+              }));
+              trpcContext.products.searchForProduct.invalidate();
+            }}
+          />
+          <div className="absolute top-1/2 right-3 -translate-y-1/2">
+            <kbd className="kbd kbd-sm">ctrl</kbd>+
+            <kbd className="kbd kbd-sm">k</kbd>
+          </div>
+        </div>
         <ul className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow">
           {products.status === "loading" && (
             <div className="flex h-full w-full items-center justify-center">
@@ -261,6 +288,7 @@ const ProductSearchDropdown = () => {
 
 const CategoryDropdown = () => {
   const router = useRouter();
+  const [resetMe, setResetMe] = useState(1);
   const dropdownOpen = productsSearchStore(
     (state) => state.categoryDropdownOpen
   );
@@ -274,11 +302,14 @@ const CategoryDropdown = () => {
     <>
       <div className={`dropdown`}>
         <div className="flex gap-2">
-          <CategorySearchInput />
-          <label
+          <CategorySearchInput key={resetMe} />
+          <button
             className="btn-square btn"
             tabIndex={0}
-            onClick={async () => {
+            onClick={async (e) => {
+              e.preventDefault();
+              e.currentTarget.focus();
+              e.currentTarget.blur();
               await router.push("/");
               productsStore
                 .getState()
@@ -302,7 +333,7 @@ const CategoryDropdown = () => {
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-          </label>
+          </button>
         </div>
         <ul
           className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100  shadow ${openStyle}`}
