@@ -2,16 +2,18 @@ import { useEffect, useRef } from "react";
 
 type SearchWithNavigationProps = {
   searchListRef: ReturnType<typeof useRef<HTMLElement | null>>;
+  focusOnCtrlK?: boolean;
 } & React.HTMLProps<HTMLInputElement>;
 
 const SearchWithNavigation = ({
   searchListRef,
+  focusOnCtrlK,
   ...inputProps
 }: SearchWithNavigationProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const focusInput = (e: KeyboardEvent) => {
-    if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+    if (focusOnCtrlK && e.key === "k" && (e.ctrlKey || e.metaKey)) {
       inputRef.current?.focus();
       e.preventDefault();
     }

@@ -45,6 +45,7 @@ const productsSearchStore = create<ProductSearchStoreType>()(
 
     const setSelectedCategory = (newCategory: Category | null) => {
       setState((old) => ({ ...old, selectedCategory: newCategory }));
+      productsStore.getState().addBasicFilters(getState().filter, newCategory);
     };
 
     const setCategoryDropdownOpen = (newState: boolean) => {
@@ -208,6 +209,7 @@ const ProductSearchDropdown = () => {
           <SearchWithNavigation
             searchListRef={searchListElement}
             className="input"
+            focusOnCtrlK
             placeholder="I am looking for..."
             onChange={(e) => {
               setInputValue(e?.currentTarget?.value ?? "");
@@ -278,6 +280,13 @@ const ProductSearchDropdown = () => {
 const CategoryDropdown = () => {
   const router = useRouter();
   const [resetMe, setResetMe] = useState(1);
+  const setFilter = productsSearchStore((state) => state.setFilter);
+  const selectedCategory = productsSearchStore(
+    (state) => state.selectedCategory
+  );
+  const categories = productsSearchStore((state) => state.categories);
+  const categoriesRef = useRef<HTMLUListElement>(null);
+
   const dropdownOpen = productsSearchStore(
     (state) => state.categoryDropdownOpen
   );
@@ -291,7 +300,19 @@ const CategoryDropdown = () => {
     <>
       <div className={`dropdown`}>
         <div className="flex gap-2">
-          <CategorySearchInput key={resetMe} />
+          <SearchWithNavigation
+            searchListRef={categoriesRef}
+            key={resetMe}
+            onFocus={() =>
+              productsSearchStore.getState().setCategoryDropdownOpen(true)
+            }
+            tabIndex={0}
+            className="input"
+            placeholder="In category..."
+            onChange={(e) => {
+              setFilter(e.currentTarget.value ?? "");
+            }}
+          />
           <button
             className="btn-square btn"
             tabIndex={0}
@@ -325,9 +346,36 @@ const CategoryDropdown = () => {
           </button>
         </div>
         <ul
-          className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100  shadow ${openStyle}`}
+          className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow`}
+          ref={categoriesRef}
+          key={selectedCategory}
         >
-          <CategoriesPicker />
+          <li
+            tabIndex={0}
+            className=""
+            key={"ALL_CATEGORIES"}
+            onClick={() => {
+              productsSearchStore.getState().setSelectedCategory(null);
+              productsSearchStore.getState().setCategoryDropdownOpen(false);
+            }}
+          >
+            <a>All categories</a>
+          </li>
+          {categories.map((c, idx) => (
+            <li
+              tabIndex={0}
+              className=""
+              key={c}
+              onClick={() => {
+                productsSearchStore
+                  .getState()
+                  .setSelectedCategory(c.replaceAll(" ", "_") as Category);
+                productsSearchStore.getState().setCategoryDropdownOpen(false);
+              }}
+            >
+              <a>{c}</a>
+            </li>
+          ))}
         </ul>
       </div>
     </>
