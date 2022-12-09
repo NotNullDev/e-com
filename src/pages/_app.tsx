@@ -8,7 +8,7 @@ import type { Category } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
 import { productsStore } from ".";
@@ -278,9 +278,11 @@ const ProductSearchDropdown = () => {
 };
 
 const CategoryDropdown = () => {
+  const id = useId();
   const router = useRouter();
-  const [resetMe, setResetMe] = useState(1);
   const setFilter = productsSearchStore((state) => state.setFilter);
+  const filter = productsSearchStore((state) => state.filter);
+  const [val, setVal] = useState<string>("");
   const selectedCategory = productsSearchStore(
     (state) => state.selectedCategory
   );
@@ -296,13 +298,18 @@ const CategoryDropdown = () => {
     return style;
   }, [dropdownOpen]);
 
+  useEffect(() => {
+    setVal(selectedCategory?.replaceAll("_", " ") ?? "");
+  }, [selectedCategory]);
+
   return (
     <>
       <div className={`dropdown`}>
         <div className="flex gap-2">
           <SearchWithNavigation
+            key={id}
             searchListRef={categoriesRef}
-            key={resetMe}
+            value={val}
             onFocus={() =>
               productsSearchStore.getState().setCategoryDropdownOpen(true)
             }
@@ -310,7 +317,8 @@ const CategoryDropdown = () => {
             className="input"
             placeholder="In category..."
             onChange={(e) => {
-              setFilter(e.currentTarget.value ?? "");
+              setVal(e.currentTarget.value);
+              setFilter(e.currentTarget.value);
             }}
           />
           <button
@@ -378,42 +386,6 @@ const CategoryDropdown = () => {
           ))}
         </ul>
       </div>
-    </>
-  );
-};
-
-export const CategorySearchInput = () => {
-  const setFilter = productsSearchStore((state) => state.setFilter);
-  const categoryInputRef = useRef<HTMLInputElement>(null);
-  const selectedCategory = productsSearchStore(
-    (state) => state.selectedCategory
-  );
-
-  useEffect(() => {
-    if (!categoryInputRef.current) {
-      return;
-    }
-    if (selectedCategory) {
-      categoryInputRef.current.value = selectedCategory;
-    } else {
-      categoryInputRef.current.value = "All categories";
-    }
-  }, [selectedCategory]);
-
-  return (
-    <>
-      <input
-        onFocus={() =>
-          productsSearchStore.getState().setCategoryDropdownOpen(true)
-        }
-        ref={categoryInputRef}
-        tabIndex={0}
-        className="input"
-        placeholder="In category..."
-        onChange={(e) => {
-          setFilter(e.currentTarget.value ?? "");
-        }}
-      />
     </>
   );
 };
