@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import toast from "react-hot-toast";
 import { trpc } from "../../utils/trpc";
+import { NiceButton } from "../../components/NiceButton";
 
 export default function ProductDetails() {
   const router = useRouter();
@@ -101,43 +101,3 @@ export default function ProductDetails() {
     </div>
   );
 }
-
-type NiceButtonProps = {
-  className?: string;
-  callback?: (currentValue: number) => void;
-};
-
-export const NiceButton = ({}: NiceButtonProps) => {
-  const [currentVal, setCurrentVal] = useState(1);
-
-  return (
-    <>
-      <div>
-        <button
-          className="btm btn-sm text-xl font-bold"
-          onClick={() => {
-            if (currentVal > 0) {
-              setCurrentVal((c) => --c);
-            }
-          }}
-        >
-          -
-        </button>
-        <input
-          className="input w-[60px] text-center"
-          placeholder="1"
-          value={currentVal}
-          onFocus={(e) => e.currentTarget.select()}
-        />
-        <button
-          className="btm btn-sm text-xl font-bold"
-          onClick={() => {
-            setCurrentVal((c) => ++c);
-          }}
-        >
-          +
-        </button>
-      </div>
-    </>
-  );
-};
