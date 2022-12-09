@@ -110,6 +110,7 @@ export const productsRouter = router({
         categoriesIn: z.array(z.string()),
         limit: z.number().positive(),
         priceSort: z.string().nullable(),
+        rating: z.number(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -140,7 +141,7 @@ export const productsRouter = router({
         where: {
           title: {
             contains: input.titleContains,
-            mode: "insensitive"
+            mode: "insensitive",
           },
           ...(input.categoriesIn.length > 0
             ? {
@@ -151,6 +152,11 @@ export const productsRouter = router({
                 },
               }
             : {}),
+          AND: {
+            rating: {
+              gte: input.rating,
+            },
+          },
         },
         take: input.limit,
         orderBy: sort,

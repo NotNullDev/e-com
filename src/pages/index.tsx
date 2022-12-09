@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import create from "zustand";
+import { immer } from "zustand/middleware/immer";
 
 import { trpc } from "../utils/trpc";
 
@@ -14,6 +15,7 @@ type ProductsFilters = {
   categoriesIn: Category[];
   limit: number;
   priceSort: string | null;
+  rating: number; // 1-5 , 0 = no rating
 };
 
 type Sorting = {
@@ -31,7 +33,7 @@ type ProductsStoreType = {
 };
 
 export const productsStore = create<ProductsStoreType>()(
-  (setState, getState, getStore) => {
+  immer((setState, getState, getStore) => {
     const setFilters = (filters: ProductsFilters) => {
       setState((old) => ({ ...old, filters: filters }));
     };
@@ -51,6 +53,7 @@ export const productsStore = create<ProductsStoreType>()(
         filters: {
           ...old.filters,
           categoriesIn: categories,
+          rating: 0,
         },
       }));
     };
@@ -92,6 +95,7 @@ export const productsStore = create<ProductsStoreType>()(
         categoriesIn: [],
         limit: 30,
         priceSort: null,
+        rating: 0,
       },
       setFilters,
       addCategory,
@@ -100,7 +104,7 @@ export const productsStore = create<ProductsStoreType>()(
       sorting: { price: undefined },
       setSorting,
     };
-  }
+  })
 );
 
 const Home: NextPage = () => {
@@ -253,25 +257,48 @@ const SingleProductSticker = ({ dealType }: SingleProductStickerProps) => {
 
 type RatingType = {
   rating: number;
+  onClick?: (rating: number) => void;
+  editable?: boolean;
 };
 
-export const Rating = ({ rating }: RatingType) => {
+export const Rating = ({ rating, editable, onClick: callback }: RatingType) => {
+  const [currentRating, setCurrentRating] = useState(rating);
+
   const uuid = useId();
   return (
-    <div className="relative">
+    <div className="relative" key={currentRating}>
       <div
         className="z-100 rating"
         key={uuid}
         onClick={(e) => e.preventDefault()}
       >
+        <input
+          name={"rating" + uuid}
+          className="hidden"
+          checked={currentRating === 0}
+        />
         {[...Array(5)].map((_, idx) => {
           return (
             <input
               key={idx}
               type="radio"
               name={"rating" + uuid}
-              className="mask mask-star-2 bg-orange-400"
-              checked={idx === rating - 1}
+              className={
+                "mask mask-star-2 " +
+                `${currentRating === 0 ? "" : "bg-orange-400"}`
+              }
+              checked={idx === currentRating - 1}
+              onClick={() => {
+                if (editable && callback) {
+                  if (idx === currentRating - 1) {
+                    setCurrentRating(0);
+                    callback(0);
+                    return;
+                  }
+                  setCurrentRating(idx + 1);
+                  callback(idx + 1);
+                }
+              }}
             />
           );
         })}
@@ -335,7 +362,15 @@ const SortComponent = () => {
       >
         Most expensive
       </div>
-      <Rating rating={5} />
+      <Rating
+        rating={0}
+        editable
+        onClick={(a) => {
+          productsStore.setState((old) => {
+            old.filters.rating = a;
+          });
+        }}
+      />
     </div>
   );
 };
