@@ -1,37 +1,57 @@
 # Table of contents
 
 - [Table of contents](#table-of-contents)
-- [Features](#features)
+- [Overview](#overview)
+  - [Pages](#pages)
   - [Filtering](#filtering)
   - [Sorting](#sorting)
-  - [hehe](#hehe)
-- [haha](#haha)
+  - [3rd party API](#3rd-party-api)
+    - [Md playground](#md-playground)
   - [Example table](#example-table)
 
 
-# Features
+# Overview
+
+## Pages
+
+Design file: [Excalidraw file](pages.excalidraw)
+
+- [x] Products page (main page)
+- [x] Product details page
+- [ ] Cart page
+- [ ] Checkout page
 
 ## Filtering
 
-- Product name
-- Product price
-- Product category
-- Rating 2.
+- [x] Product name
+- [x] Product price
+- [x] Product category
+- [x] Rating
 
 ## Sorting
 
-- Price
+- [x] Price
 
-## hehe
+## 3rd party API
+- [ ] Stripe
 
-# haha
 
+### Md playground
+
+```json
+{
+    "haha": "hehe"
+}
+```
+
+haha :joy:
 
 ## Example table
 | h1                  | h2   |
 | ------------------- | ---- |
 | haha                | hehe |
 | xdddfdsfsdafasfadsf | asds |
+
 
 [Excalidraw file](pages.excalidraw)
 ![Image](stats.excalidraw.png)

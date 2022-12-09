@@ -124,19 +124,8 @@ export const productsRouter = router({
       ] as Prisma.Enumerable<Prisma.ProductOrderByWithRelationAndSearchRelevanceInput>;
 
       if (input.priceSort) {
-        sort = [{ price: input.priceSort }];
+        sort = [{ price: input.priceSort as Prisma.SortOrder }];
       }
-
-      console.log();
-      console.log();
-      console.log();
-      console.log();
-      console.log(sort);
-      console.log();
-      console.log();
-      console.log();
-      console.log();
-
       const categoriesFilter = {
         ...(input.categoriesIn.length > 0
           ? {

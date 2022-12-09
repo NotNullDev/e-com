@@ -31,7 +31,9 @@ export default function ProductDetails() {
                         height={600}
                         width={600}
                         className="rounded-t-xl"
-                        onLoad={() => toast(`${idx} loaded!`)}
+                        onLoad={() =>
+                          toast(`image ${idx} loaded! [TODO image loaders]`)
+                        }
                         placeholder="empty"
                       />
                     </div>
