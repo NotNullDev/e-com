@@ -137,30 +137,38 @@ export const productsRouter = router({
       console.log();
       console.log();
 
-      const products = await ctx.prisma.product.findMany({
+      const categoriesFilter = {
+        ...(input.categoriesIn.length > 0
+          ? {
+              AND: {
+                categories: {
+                  equals: cat,
+                },
+              },
+            }
+          : {}),
+      };
+
+      const q = {
         where: {
           title: {
             contains: input.titleContains,
             mode: "insensitive",
           },
-          ...(input.categoriesIn.length > 0
-            ? {
-                AND: {
-                  categories: {
-                    equals: cat,
-                  },
-                },
-              }
-            : {}),
-          AND: {
-            rating: {
-              gte: input.rating,
+          AND: [
+            {
+              rating: {
+                gte: input.rating,
+              },
             },
-          },
+            { ...categoriesFilter },
+          ],
         },
         take: input.limit,
         orderBy: sort,
-      });
+      } as Parameters<typeof ctx.prisma.product.findMany>[0];
+
+      const products = await ctx.prisma.product.findMany(q);
 
       return products;
     }),

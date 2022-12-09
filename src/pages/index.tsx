@@ -44,30 +44,18 @@ export const productsStore = create<ProductsStoreType>()(
       );
       if (exist) return;
 
-      const categories = getState().filters.categoriesIn;
-
-      categories.push(category);
-
-      setState((old) => ({
-        ...old,
-        filters: {
-          ...old.filters,
-          categoriesIn: categories,
-          rating: 0,
-        },
-      }));
+      setState((old) => {
+        old.filters.categoriesIn = [...old.filters.categoriesIn, category];
+      });
     };
 
     const removeCategory = (category: Category) => {
       const categories = getState().filters.categoriesIn;
       const filtered = categories.filter((c) => c != category);
-      setState((old) => ({
-        ...old,
-        filters: {
-          ...old.filters,
-          categoriesIn: filtered,
-        },
-      }));
+
+      setState((old) => {
+        old.filters.categoriesIn = filtered;
+      });
     };
 
     const addBasicFilters = (titleContains: string, c: Category | null) => {
