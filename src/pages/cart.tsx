@@ -28,6 +28,16 @@ const CartPage: NextPage = () => {
     cart.map((c) => ({ productId: c.productId, quantity: c.quantity }))
   );
 
+  const { success, canceled } = router.query;
+
+  if (success) {
+    return <div>Payment succeed</div>;
+  }
+
+  if (canceled) {
+    return <div>Payment canceled</div>;
+  }
+
   return (
     <div className="flex flex-1">
       <div className="flex flex-[2]">
@@ -76,12 +86,9 @@ const CartPage: NextPage = () => {
             ) ?? 0
           }
         />
-        <button
-          className="btn-primary btn mt-4"
-          onClick={() => router.push("/checkout")}
-        >
-          Checkout
-        </button>
+        <form action="/api/checkout-session" method="POST" className="w-full">
+          <button className="btn-primary btn mt-4 w-full">Checkout</button>
+        </form>
       </div>
     </div>
   );
