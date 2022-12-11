@@ -43,6 +43,14 @@ const CartPage: NextPage = () => {
       <div className="flex flex-[2]">
         <div className="flex w-full flex-col gap-4  px-12">
           <h1 className="mb-4 text-3xl">Your cart</h1>
+          <button
+            className="btn-primary btn"
+            onClick={() => {
+              cartStore.persist.clearStorage();
+            }}
+          >
+            clear local storage
+          </button>
           {status === "success" &&
             data.map((p) => {
               return (
@@ -87,7 +95,14 @@ const CartPage: NextPage = () => {
           }
         />
         <form action="/api/checkout-session" method="POST" className="w-full">
-          <button className="btn-primary btn mt-4 w-full">Checkout</button>
+          <input hidden={true} name="data" value={JSON.stringify(cart)} />
+          <button
+            name="data"
+            className="btn-primary btn mt-4 w-full"
+            type="submit"
+          >
+            Checkout
+          </button>
         </form>
       </div>
     </div>

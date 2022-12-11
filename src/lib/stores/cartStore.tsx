@@ -19,6 +19,21 @@ export const cartStore = create<CartStoreType>()(
   persist(
     immer((set, get, store) => {
       const addItem = (item: CartItem) => {
+        const existingItem = get().items.find(
+          (i) => i.productId === item.productId
+        );
+        if (existingItem) {
+          set((state) => {
+            const existing = state.items.find(
+              (i) => i.productId === item.productId
+            );
+            if (existing) {
+              existing.quantity = item.quantity;
+            }
+            return state;
+          });
+          return;
+        }
         set((state) => {
           state.items.push(item);
           return state;

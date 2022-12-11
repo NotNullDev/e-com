@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Stripe } from "stripe";
+import type { CartItem } from "../../lib/stores/cartStore";
 import { getServerAuthSession } from "../../server/common/get-server-auth-session";
+import { getCartData } from "../../server/trpc/router/cart";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2022-11-15",
@@ -16,7 +18,7 @@ export type ProductCheckoutBaseInfo = {
 };
 
 export type CheckoutSessionRequest = {
-  quantity: number;
+  data: any;
 };
 
 export default async function handler(
@@ -29,37 +31,79 @@ export default async function handler(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const body = req.body as CheckoutSessionRequest;
+  if (!prisma) {
+    return res.status(500).json({ error: "Prisma not initialized" });
+  }
+
+  const raw = req.body?.data[0];
+
+  if (!raw) {
+    return res.status(400).json({ error: "No items to buy" });
+  }
+
+  let boughtItems: CartItem[];
+
+  try {
+    boughtItems = (await JSON.parse(raw)) as CartItem[];
+  } catch (e) {
+    return res.status(400).json({ error: "No items to buy" });
+  }
+
+  if (!boughtItems || boughtItems.length === 0) {
+    return res.status(400).json({ error: "No items to buy" });
+  }
 
   const user = session.user;
+
+  const r = await getCartData(boughtItems, prisma);
+
+  console.log("boughtItems: ", boughtItems);
+  console.log("CART DATA: ", r);
+
+  const items = [
+    ...r
+      .flatMap((item) => item.products)
+      .map((item) => {
+        const transformedItem = {
+          price_data: {
+            currency: "PLN",
+            unit_amount: item.price * 100,
+            product_data: {
+              name: item.title,
+            },
+            tax_behavior: "inclusive",
+          },
+          quantity: item.quantity,
+        } as Stripe.Checkout.SessionCreateParams.LineItem;
+
+        return transformedItem;
+      }),
+  ] as Stripe.Checkout.SessionCreateParams.LineItem[];
 
   if (req.method === "POST") {
     try {
       // Create Checkout Sessions from body params.
       const session = await stripe.checkout.sessions.create({
         line_items: [
-          {
-            // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-            quantity: 1,
-            adjustable_quantity: {
-              enabled: true,
-              maximum: 100,
-              minimum: 1,
-            },
-            price_data: {
-              currency: "PLN",
-              product_data: {
-                name: "Example Product",
-                description: "Example Product Description",
-                images: ["https://example.com/example.png"],
-              },
-              unit_amount: 1000,
-            },
-          },
+          //   {
+          //     price_data: {
+          //       unit_amount: 500,
+          //       currency: "PLN",
+          //       product_data: {
+          //         name: "T-shirt",
+          //         description: "Comfortable cotton t-shirt",
+          //       },
+          //     },
+          //     quantity: 5,
+          //   },
+          ...items,
         ],
         mode: "payment",
         success_url: `${req.headers.origin}/cart?success=true`,
         cancel_url: `${req.headers.origin}/cart?canceled=true`,
+        payment_method_options: {
+          p24: { tos_shown_and_accepted: true },
+        },
       });
       res.redirect(303, session.url ?? "/");
     } catch (err: any) {
