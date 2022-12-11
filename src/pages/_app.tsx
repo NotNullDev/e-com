@@ -12,6 +12,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
 import SearchWithNavigation from "../components/SearchWithNavigation";
+import { cartStore } from "../lib/stores/cartStore";
 import { productsStore } from "../lib/stores/productsStore";
 import "../styles/globals.css";
 import { getAllCategoriesAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
@@ -84,6 +85,7 @@ const Footer = () => {
 };
 
 const Header = () => {
+  const cartItems = cartStore((state) => state.items);
   const session = useSession();
 
   const startSignOut = async () => {
@@ -119,7 +121,7 @@ const Header = () => {
           <span className="badge-primary badge badge-sm indicator-item">
             10+
           </span>
-          <Link href="/cart">
+          <Link href="/">
             <button>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -140,8 +142,13 @@ const Header = () => {
         </div>
 
         <div className="indicator">
-          <span className="badge-primary badge badge-sm indicator-item">
-            10
+          <span
+            className={
+              "badge-primary badge badge-sm indicator-item " +
+              (cartItems.length === 0 ? "invisible" : "")
+            }
+          >
+            {cartItems.length}
           </span>
           <Link href="/cart">
             <button>

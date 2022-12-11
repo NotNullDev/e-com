@@ -6,13 +6,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { trpc } from "../utils/trpc";
 import type { Sorting } from "../lib/stores/productsStore";
 import { productsStore } from "../lib/stores/productsStore";
+import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
   const filters = productsStore((state) => state.filters);
-  const filteredProducts = trpc.products.filtered.useQuery(filters);
+  const filteredProducts = trpc.products.filtered.useQuery(filters, {
+    onSuccess: (data) => {
+      productsStore.setState((old) => {
+        if (filteredProducts.data) {
+          old.products = data;
+        } else {
+          old.products = [];
+        }
+      });
+    },
+  });
   const titleContains = productsStore((state) => state.filters.titleContains);
   const [parent] = useAutoAnimate<HTMLDivElement>();
 

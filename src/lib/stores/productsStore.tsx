@@ -1,4 +1,4 @@
-import type { Category } from "@prisma/client";
+import type { Category, Product } from "@prisma/client";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 
@@ -20,6 +20,7 @@ export type ProductsStoreType = {
   addBasicFilters: (titleContains: string, c: Category | null) => void;
   sorting: Sorting;
   setSorting: (sorting: Sorting) => void;
+  products: Product[];
 };
 
 export const productsStore = create<ProductsStoreType>()(
@@ -81,6 +82,7 @@ export const productsStore = create<ProductsStoreType>()(
       addBasicFilters,
       sorting: { price: undefined },
       setSorting,
+      products: [],
     };
   })
 );

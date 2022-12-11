@@ -1,11 +1,17 @@
 import type { NextPage } from "next";
 import { NiceButton } from "../components/NiceButton";
+import { cartStore } from "../lib/stores/cartStore";
+import { trpc } from "../utils/trpc";
 
 const CartPage: NextPage = () => {
+  const cartContent = cartStore((state) => state.items);
+  const cartProducts = trpc.products.filtered.useQuery()
+
   return (
     <div className="flex flex-1 ">
       <div className="flex flex-[2]">
-        <div className="flex w-full flex-col px-6">
+        <div className="flex w-full flex-col gap-4  px-12">
+          <h1 className="mb-4 text-3xl">Your cart</h1>
           <SellerProducts />
           <SellerProducts />
           <SellerProducts />
@@ -46,7 +52,7 @@ const AllProductsCostSummary = () => {
 
 const SellerProducts = () => {
   return (
-    <div className=" w-full">
+    <div className=" w-full rounded-xl bg-base-200 p-4">
       <h1 className="mb-4 text-3xl">Seller 1</h1>
       <div className="flex w-full flex-col gap-2">
         <Product />

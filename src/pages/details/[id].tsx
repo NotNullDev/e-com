@@ -1,9 +1,12 @@
+import type { Product } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import toast from "react-hot-toast";
-import { trpc } from "../../utils/trpc";
 import { NiceButton } from "../../components/NiceButton";
+import { cartStore } from "../../lib/stores/cartStore";
+import { trpc } from "../../utils/trpc";
 
 export default function ProductDetails() {
   const router = useRouter();
@@ -13,6 +16,10 @@ export default function ProductDetails() {
   const idASString = id as string;
 
   const data = trpc.products.byId.useQuery({ id: idASString });
+
+  if (!data.data) {
+    return <div></div>;
+  }
 
   return (
     <div className="flex w-full gap-3">
@@ -69,7 +76,6 @@ export default function ProductDetails() {
             </div>
           </>
         )}
-        {data.status === "loading" && <div>loading...</div>}
         {data.status === "error" && <div>error...</div>}
       </div>
 
@@ -90,14 +96,41 @@ export default function ProductDetails() {
           {data.data?.description}
         </div>
 
-        <div className="flex h-min items-center justify-between">
-          <NiceButton />
-          <div className="flex gap-3 p-2">
-            <button className="btn-ghost btn">buy now</button>
-            <button className="btn-secondary btn">add to cart</button>
-          </div>
-        </div>
+        <CartFooter item={data.data} />
       </div>
     </div>
   );
 }
+type CartFooterProps = {
+  item: Product;
+};
+const CartFooter = ({ item }: CartFooterProps) => {
+  const [amount, setAmount] = useState(1);
+  return (
+    <div className="flex h-min items-center justify-between">
+      <NiceButton
+        min={1}
+        max={15}
+        callback={(u) => {
+          setAmount(u);
+        }}
+      />
+      <div className="flex gap-3 p-2">
+        <button className="btn-ghost btn">buy now</button>
+        <button
+          className="btn-secondary btn"
+          onClick={() => {
+            if (item) {
+              cartStore.getState().addItem({
+                productId: item.id,
+                quantity: amount,
+              });
+            }
+          }}
+        >
+          add to cart
+        </button>
+      </div>
+    </div>
+  );
+};
