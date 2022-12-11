@@ -6,7 +6,9 @@
   - [Filtering](#filtering)
   - [Sorting](#sorting)
   - [3rd party API](#3rd-party-api)
+  - [TODO](#todo)
   - [Optimalization](#optimalization)
+  - [Bugs](#bugs)
     - [Md playground](#md-playground)
   - [Example table](#example-table)
 
@@ -20,7 +22,6 @@ Design file: [Excalidraw file](pages.excalidraw)
 - [x] Products page (main page)
 - [x] Product details page
 - [x] Cart page
-- [ ] Checkout page
 
 ## Filtering
 
@@ -34,10 +35,16 @@ Design file: [Excalidraw file](pages.excalidraw)
 - [x] Price
 
 ## 3rd party API
-- [ ] Stripe
+- [x] Stripe
+
+## TODO
+- [ ] remove items from cart
 
 ## Optimalization
 - [ ] Rerendering optimization
+
+## Bugs
+- [ ] Fix bug with cart items count in header (it's not updating when you remove item from cart)
 
 ### Md playground
 
