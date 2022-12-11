@@ -15,7 +15,12 @@ const getSellersFromCartProducts = (cartProducts: Product[]) => {
 };
 
 const CartPage: NextPage = () => {
-  const cart = cartStore((state) => state.items);
+  const cart = cartStore(
+    (state) => state.items,
+    (a, b) => {
+      return a.length === b.length;
+    }
+  );
   const { data, status } = trpc.cart.getCartData.useQuery(
     cart.map((c) => ({ productId: c.productId, quantity: c.quantity }))
   );
@@ -45,20 +50,17 @@ const CartPage: NextPage = () => {
           {status === "success" &&
             data.map((p) => {
               const sellerName = p.seller.name ?? "???";
-              const productsCost = p.products.reduce(
-                (sum, p) => sum + p.price * p.quantity,
-                0
-              );
               return (
                 <SellerSummary
                   key={p.seller.id}
                   sellerName={sellerName}
-                  productsCost={productsCost}
+                  products={p.products}
                 />
               );
             })}
         </>
         <AllProductsCostSummary
+          products={data?.flatMap((c) => c.products) ?? []}
           productsCost={
             data?.reduce(
               (sum, c) =>
@@ -79,10 +81,17 @@ const CartPage: NextPage = () => {
 
 export type SellerSummaryProps = {
   sellerName: string;
-  productsCost: number;
+  products: FullCartItem[];
 };
 
-const SellerSummary = ({ sellerName, productsCost }: SellerSummaryProps) => {
+const SellerSummary = ({ sellerName, products }: SellerSummaryProps) => {
+  const items = cartStore((state) => state.items);
+  const getQuantity = cartStore((state) => state.getQuantity);
+  const productsCost = products.reduce(
+    (sum, p) => sum + p.price * getQuantity(p.id),
+    0
+  );
+
   return (
     <div className="flex w-full justify-between text-2xl">
       <h2 className="">{sellerName}</h2>
@@ -93,11 +102,16 @@ const SellerSummary = ({ sellerName, productsCost }: SellerSummaryProps) => {
 
 type AllProductsCostSummaryProps = {
   productsCost: number;
+  products: FullCartItem[];
 };
 
-const AllProductsCostSummary = ({
-  productsCost,
-}: AllProductsCostSummaryProps) => {
+const AllProductsCostSummary = ({ products }: AllProductsCostSummaryProps) => {
+  const items = cartStore((state) => state.items);
+  const getQuantity = cartStore((state) => state.getQuantity);
+  const productsCost = products.reduce(
+    (sum, p) => sum + p.price * getQuantity(p.id),
+    0
+  );
   return (
     <div className="mt-4 flex justify-end text-3xl">
       <div className="w-min whitespace-nowrap border-t pt-4">
@@ -165,10 +179,12 @@ type SellerProductsCostSummaryProps = {
 const SellerProductsCostSummary = ({
   products,
 }: SellerProductsCostSummaryProps) => {
+  const items = cartStore((state) => state.items);
+  const getQuantity = cartStore((state) => state.getQuantity);
   return (
     <div className="mx-4 mt-4 flex justify-end text-right text-3xl">
       <div className="w-min w-[100px] whitespace-nowrap border-t pt-4 ">
-        {products.reduce((sum, p) => sum + p.price * p.quantity, 0)} zl
+        {products.reduce((sum, p) => sum + p.price * getQuantity(p.id), 0)} zl
       </div>
     </div>
   );

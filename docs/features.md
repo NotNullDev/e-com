@@ -6,6 +6,7 @@
   - [Filtering](#filtering)
   - [Sorting](#sorting)
   - [3rd party API](#3rd-party-api)
+  - [Optimalization](#optimalization)
     - [Md playground](#md-playground)
   - [Example table](#example-table)
 
@@ -18,7 +19,7 @@ Design file: [Excalidraw file](pages.excalidraw)
 
 - [x] Products page (main page)
 - [x] Product details page
-- [ ] Cart page
+- [x] Cart page
 - [ ] Checkout page
 
 ## Filtering
@@ -35,6 +36,8 @@ Design file: [Excalidraw file](pages.excalidraw)
 ## 3rd party API
 - [ ] Stripe
 
+## Optimalization
+- [ ] Rerendering optimization
 
 ### Md playground
 

@@ -1,5 +1,6 @@
 import type { Product } from "@prisma/client";
 import create from "zustand";
+import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { productsStore } from "./productsStore";
 
@@ -11,22 +12,32 @@ export type CartItem = {
 export type CartStoreType = {
   items: CartItem[];
   addItem: (items: CartItem) => void;
+  getQuantity: (productId: string) => number;
 };
 
 export const cartStore = create<CartStoreType>()(
-  immer((set, get, store) => {
-    const addItem = (item: CartItem) => {
-      set((state) => {
-        state.items.push(item);
-        return state;
-      });
-    };
+  persist(
+    immer((set, get, store) => {
+      const addItem = (item: CartItem) => {
+        set((state) => {
+          state.items.push(item);
+          return state;
+        });
+      };
 
-    return {
-      items: [],
-      addItem,
-    };
-  })
+      const getQuantity = (productId: string) => {
+        const item = get().items.find((i) => i.productId === productId);
+        if (!item) return 0;
+        return item.quantity;
+      };
+
+      return {
+        items: [],
+        addItem,
+        getQuantity,
+      };
+    })
+  )
 );
 
 export type FullCartItem = CartItem & Product;
