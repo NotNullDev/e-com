@@ -1,10 +1,9 @@
 import { Product } from "@prisma/client";
 import type { NextPage } from "next";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NiceButton } from "../components/NiceButton";
 import type { FullCartItem } from "../lib/stores/cartStore";
 import { cartStore } from "../lib/stores/cartStore";
-import { getEmptyFilters } from "../lib/stores/productsStore";
 import { trpc } from "../utils/trpc";
 
 const getSellersFromCartProducts = (cartProducts: Product[]) => {
@@ -16,110 +15,107 @@ const getSellersFromCartProducts = (cartProducts: Product[]) => {
 };
 
 const CartPage: NextPage = () => {
-  const trpcContext = trpc.useContext();
-  const cartContent = cartStore((state) => state.items);
-
-  const cartProductsReq = trpc.products.filtered.useQuery(
-    {
-      ...getEmptyFilters(),
-      productIds: cartContent.map((item) => item.productId),
-    },
-    {
-      enabled: cartContent.length > 0,
-      initialData: [],
-    }
+  const cart = cartStore((state) => state.items);
+  const { data, status } = trpc.cart.getCartData.useQuery(
+    cart.map((c) => ({ productId: c.productId, quantity: c.quantity }))
   );
-
-  const sellerIds = getSellersFromCartProducts(cartProductsReq.data ?? []);
-
-  const sellers = trpc.users.getById.useQuery(
-    {
-      ids: sellerIds,
-    },
-    {
-      enabled: sellerIds.length > 0,
-    }
-  );
-
-  useEffect(() => {
-    trpcContext.products.filtered.invalidate();
-  }, []);
-
-  useEffect(() => {
-    trpcContext.users.getById.invalidate();
-  }, [sellerIds]);
 
   return (
-    <div className="flex flex-1 ">
+    <div className="flex flex-1">
       <div className="flex flex-[2]">
         <div className="flex w-full flex-col gap-4  px-12">
           <h1 className="mb-4 text-3xl">Your cart</h1>
-          {!cartProductsReq?.data && <div>Loading...</div>}
-          {sellers.data?.map((s) => {
-            return (
-              <SellerProducts
-                sellerEmail={s.email ?? ""}
-                productsInfo={
-                  cartProductsReq.data
-                    ?.filter(
-                      (p) =>
-                        p.userId === s.id &&
-                        cartContent.find((i) => i.productId == p.id)
-                    )
-                    .map((t) => ({
-                      ...t,
-                      productId: t.id,
-                      quantity:
-                        cartContent.find((c) => c.productId === t.id)
-                          ?.quantity ?? 0,
-                    })) ?? []
-                }
-                key={s.id}
-              />
-            );
-          })}
+          {status === "success" &&
+            data.map((p) => {
+              return (
+                <SellerProducts
+                  sellerName={p.seller.name ?? "???"}
+                  productsInfo={p.products}
+                  key={p.seller.id}
+                />
+              );
+            })}
         </div>
       </div>
+
       <div className="flex flex-1 flex-col ">
         <h1 className="mb-4 text-3xl">Summary</h1>
-        <div className="flex flex-col gap-2">
-          {sellers.data?.map((s) => {
-            return <SellerSummary key={s.id} />;
-          })}
-        </div>
-        <AllProductsCostSummary />
+        <div className="flex flex-col gap-2"> </div>
+        <>
+          {status === "success" &&
+            data.map((p) => {
+              const sellerName = p.seller.name ?? "???";
+              const productsCost = p.products.reduce(
+                (sum, p) => sum + p.price * p.quantity,
+                0
+              );
+              return (
+                <SellerSummary
+                  key={p.seller.id}
+                  sellerName={sellerName}
+                  productsCost={productsCost}
+                />
+              );
+            })}
+        </>
+        <AllProductsCostSummary
+          productsCost={
+            data?.reduce(
+              (sum, c) =>
+                sum +
+                c.products.reduce(
+                  (sum1, c1) => sum1 + c1.price * c1.quantity,
+                  0
+                ),
+              0
+            ) ?? 0
+          }
+        />
         <button className="btn-primary btn mt-4">Checkout</button>
       </div>
     </div>
   );
 };
 
-const SellerSummary = () => {
+export type SellerSummaryProps = {
+  sellerName: string;
+  productsCost: number;
+};
+
+const SellerSummary = ({ sellerName, productsCost }: SellerSummaryProps) => {
   return (
     <div className="flex w-full justify-between text-2xl">
-      <h2 className="">Seller 1</h2>
-      <div className="">500 zl</div>
+      <h2 className="">{sellerName}</h2>
+      <div className="">{productsCost} zl</div>
     </div>
   );
 };
 
-const AllProductsCostSummary = () => {
+type AllProductsCostSummaryProps = {
+  productsCost: number;
+};
+
+const AllProductsCostSummary = ({
+  productsCost,
+}: AllProductsCostSummaryProps) => {
   return (
     <div className="mt-4 flex justify-end text-3xl">
-      <div className="w-min whitespace-nowrap border-t pt-4">500 zl</div>
+      <div className="w-min whitespace-nowrap border-t pt-4">
+        {productsCost} zl
+      </div>
     </div>
   );
 };
 
 type SellerProductsProps = {
-  sellerEmail: string;
+  sellerName: string;
   productsInfo: FullCartItem[];
 };
 
-const SellerProducts = ({ sellerEmail, productsInfo }: SellerProductsProps) => {
+const SellerProducts = ({ sellerName, productsInfo }: SellerProductsProps) => {
   return (
     <div className=" w-full rounded-xl bg-base-200 p-4">
-      <h1 className="mb-4 text-3xl">{sellerEmail}</h1>
+      <h1 className="mb-4 text-3xl">{sellerName}</h1>
       <div className="flex w-full flex-col gap-2">
         {productsInfo.map((p) => (
           <Product productInfo={p} key={p.id} />
@@ -156,7 +152,7 @@ const Product = ({ productInfo }: ProductProps) => {
             });
           }}
         />
-        <div className="">{productInfo.price * q}</div>
+        <div className="w-[100px] text-right">{productInfo.price * q}</div>
       </div>
     </div>
   );
@@ -170,8 +166,8 @@ const SellerProductsCostSummary = ({
   products,
 }: SellerProductsCostSummaryProps) => {
   return (
-    <div className="mx-4 mt-4 flex justify-end text-3xl">
-      <div className="w-min whitespace-nowrap border-t pt-4">
+    <div className="mx-4 mt-4 flex justify-end text-right text-3xl">
+      <div className="w-min w-[100px] whitespace-nowrap border-t pt-4 ">
         {products.reduce((sum, p) => sum + p.price * p.quantity, 0)} zl
       </div>
     </div>
