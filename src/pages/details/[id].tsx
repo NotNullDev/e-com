@@ -95,7 +95,6 @@ export default function ProductDetails() {
         <div className="mt-5 flex w-full flex-1 rounded-xl">
           {data.data?.description}
         </div>
-
         <CartFooter item={data.data} />
       </div>
     </div>

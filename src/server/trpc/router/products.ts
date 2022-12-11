@@ -111,6 +111,7 @@ export const productsRouter = router({
         limit: z.number().positive(),
         priceSort: z.string().nullable(),
         rating: z.number(),
+        productIds: z.string().array(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -126,13 +127,22 @@ export const productsRouter = router({
       if (input.priceSort) {
         sort = [{ price: input.priceSort as Prisma.SortOrder }];
       }
+
       const categoriesFilter = {
         ...(input.categoriesIn.length > 0
           ? {
-              AND: {
-                categories: {
-                  equals: cat,
-                },
+              categories: {
+                equals: cat,
+              },
+            }
+          : {}),
+      };
+
+      const pIds = {
+        ...(input?.productIds?.length > 0
+          ? {
+              id: {
+                in: input.productIds,
               },
             }
           : {}),
@@ -151,6 +161,7 @@ export const productsRouter = router({
               },
             },
             { ...categoriesFilter },
+            { ...pIds },
           ],
         },
         take: input.limit,

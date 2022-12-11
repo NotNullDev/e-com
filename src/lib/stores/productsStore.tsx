@@ -8,6 +8,7 @@ export type ProductsFilters = {
   limit: number;
   priceSort: string | null;
   rating: number; // 1-5 , 0 = no rating
+  productIds: string[];
 };
 export type Sorting = {
   price: "asc" | "desc" | undefined;
@@ -22,6 +23,15 @@ export type ProductsStoreType = {
   setSorting: (sorting: Sorting) => void;
   products: Product[];
 };
+
+export const getEmptyFilters = (): ProductsFilters => ({
+  titleContains: "",
+  categoriesIn: [],
+  limit: 30,
+  priceSort: null,
+  rating: 0,
+  productIds: [],
+});
 
 export const productsStore = create<ProductsStoreType>()(
   immer((setState, getState, getStore) => {
@@ -69,13 +79,7 @@ export const productsStore = create<ProductsStoreType>()(
     };
 
     return {
-      filters: {
-        titleContains: "",
-        categoriesIn: [],
-        limit: 30,
-        priceSort: null,
-        rating: 0,
-      },
+      filters: getEmptyFilters(),
       setFilters,
       addCategory,
       removeCategory,

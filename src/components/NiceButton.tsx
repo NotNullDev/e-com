@@ -5,10 +5,16 @@ export type NiceButtonProps = {
   callback?: (currentValue: number) => void;
   min?: number;
   max?: number;
+  initial?: number;
 };
 
-export const NiceButton = ({ callback, min, max }: NiceButtonProps) => {
-  const [currentVal, setCurrentVal] = useState(1);
+export const NiceButton = ({
+  callback,
+  min,
+  max,
+  initial,
+}: NiceButtonProps) => {
+  const [currentVal, setCurrentVal] = useState(initial ?? 1);
 
   return (
     <>
