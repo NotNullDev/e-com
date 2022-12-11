@@ -1,5 +1,6 @@
 import { Product } from "@prisma/client";
 import type { NextPage } from "next";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { NiceButton } from "../components/NiceButton";
 import type { FullCartItem } from "../lib/stores/cartStore";
@@ -21,6 +22,8 @@ const CartPage: NextPage = () => {
       return a.length === b.length;
     }
   );
+  const router = useRouter();
+
   const { data, status } = trpc.cart.getCartData.useQuery(
     cart.map((c) => ({ productId: c.productId, quantity: c.quantity }))
   );
@@ -73,7 +76,12 @@ const CartPage: NextPage = () => {
             ) ?? 0
           }
         />
-        <button className="btn-primary btn mt-4">Checkout</button>
+        <button
+          className="btn-primary btn mt-4"
+          onClick={() => router.push("/checkout")}
+        >
+          Checkout
+        </button>
       </div>
     </div>
   );

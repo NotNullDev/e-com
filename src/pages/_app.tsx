@@ -87,6 +87,7 @@ const Footer = () => {
 const Header = () => {
   const cartItems = cartStore((state) => state.items);
   const session = useSession();
+  const [cartCount, setCartCount] = useState(0);
 
   const startSignOut = async () => {
     const resp = await signOut({
@@ -105,6 +106,10 @@ const Header = () => {
       }
     );
   };
+
+  useEffect(() => {
+    setCartCount(cartItems.length);
+  }, [cartItems.length]);
 
   return (
     <header className="flex items-center justify-between p-6">
@@ -145,10 +150,10 @@ const Header = () => {
           <span
             className={
               "badge-primary badge badge-sm indicator-item " +
-              (cartItems.length === 0 ? "invisible" : "")
+              (cartCount === 0 ? "invisible" : "")
             }
           >
-            {cartItems.length}
+            {cartCount}
           </span>
           <Link href="/cart">
             <button>
