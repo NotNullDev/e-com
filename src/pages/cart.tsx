@@ -1,6 +1,6 @@
 import { Product } from "@prisma/client";
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NiceButton } from "../components/NiceButton";
 import type { FullCartItem } from "../lib/stores/cartStore";
 import { cartStore } from "../lib/stores/cartStore";
@@ -16,6 +16,7 @@ const getSellersFromCartProducts = (cartProducts: Product[]) => {
 };
 
 const CartPage: NextPage = () => {
+  const trpcContext = trpc.useContext();
   const cartContent = cartStore((state) => state.items);
 
   const cartProductsReq = trpc.products.filtered.useQuery(
@@ -32,11 +33,21 @@ const CartPage: NextPage = () => {
   const sellerIds = getSellersFromCartProducts(cartProductsReq.data ?? []);
 
   const sellers = trpc.users.getById.useQuery(
-    { ids: sellerIds },
+    {
+      ids: sellerIds,
+    },
     {
       enabled: sellerIds.length > 0,
     }
   );
+
+  useEffect(() => {
+    trpcContext.products.filtered.invalidate();
+  }, []);
+
+  useEffect(() => {
+    trpcContext.users.getById.invalidate();
+  }, [sellerIds]);
 
   return (
     <div className="flex flex-1 ">
@@ -50,7 +61,11 @@ const CartPage: NextPage = () => {
                 sellerEmail={s.email ?? ""}
                 productsInfo={
                   cartProductsReq.data
-                    ?.filter((p) => p.userId === s.id)
+                    ?.filter(
+                      (p) =>
+                        p.userId === s.id &&
+                        cartContent.find((i) => i.productId == p.id)
+                    )
                     .map((t) => ({
                       ...t,
                       productId: t.id,
@@ -68,10 +83,9 @@ const CartPage: NextPage = () => {
       <div className="flex flex-1 flex-col ">
         <h1 className="mb-4 text-3xl">Summary</h1>
         <div className="flex flex-col gap-2">
-          <SellerSummary />
-          <SellerSummary />
-          <SellerSummary />
-          <SellerSummary />
+          {sellers.data?.map((s) => {
+            return <SellerSummary key={s.id} />;
+          })}
         </div>
         <AllProductsCostSummary />
         <button className="btn-primary btn mt-4">Checkout</button>
@@ -151,6 +165,7 @@ const Product = ({ productInfo }: ProductProps) => {
 type SellerProductsCostSummaryProps = {
   products: FullCartItem[];
 };
+
 const SellerProductsCostSummary = ({
   products,
 }: SellerProductsCostSummaryProps) => {
