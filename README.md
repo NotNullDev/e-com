@@ -1,9 +1,7 @@
-# ROADMAP
+# Sample online shop
 
-- mock ui in excalidraw
-- learn about stripe and add it with blik integration
+Made with Next.js, TailwindCSS, DaisyUI, TRPC and Stripe.
 
-```bash
-gcloud secrets create e-com-env --data-file .env
-# gcloud secrets versions access latest --secret e-com-env > .env
-```
+Bootstrapped with create-t3-app.
+
+Work in progress.
