@@ -20,6 +20,30 @@ async function main() {
     update: initUser,
   });
 
+  const createdUsers = await Promise.all(
+    [...Array(500)].map(async (idx) => {
+      const userEmail = faker.internet.email();
+      const userName = faker.name.fullName();
+      const roles = faker.helpers.arrayElements(["USER", "SELLER"]);
+
+      const user = {
+        email: userEmail,
+        name: userName,
+        roles,
+      } as User;
+
+      const resp = await prisma.user.upsert({
+        where: { email: initUser.email ?? "" },
+        create: user,
+        update: user,
+      });
+
+      console.log("created user with id " + resp.id);
+
+      return resp;
+    })
+  );
+
   console.log(`created user with id ${insertedInitUser.id}`);
 
   const products = [...Array(100)].map((idx) => {
@@ -62,6 +86,9 @@ async function main() {
       max: 5,
     });
 
+    // get random user from created users
+    const user = faker.helpers.arrayElement(createdUsers);
+
     const product = {
       id,
       categories,
@@ -76,7 +103,7 @@ async function main() {
       lastBoughtAt: new Date(),
       createdAt: new Date(),
       views,
-      userId: insertedInitUser.id,
+      userId: user.id,
       images,
       rating,
     } as Product;
