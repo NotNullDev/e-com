@@ -1,7 +1,9 @@
 import { Product } from "@prisma/client";
 import type { NextPage } from "next";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { NiceButton } from "../components/NiceButton";
 import type { FullCartItem } from "../lib/stores/cartStore";
 import { cartStore } from "../lib/stores/cartStore";
@@ -16,6 +18,7 @@ const getSellersFromCartProducts = (cartProducts: Product[]) => {
 };
 
 const CartPage: NextPage = () => {
+  const session = useSession();
   const cart = cartStore(
     (state) => state.items,
     (a, b) => {
@@ -43,16 +46,41 @@ const CartPage: NextPage = () => {
       <div className="flex flex-[2]">
         <div className="flex w-full flex-col gap-4  px-12">
           <h1 className="mb-4 text-3xl">Your cart</h1>
-          <button
+          {/* <button
             className="btn-primary btn"
             onClick={() => {
               cartStore.persist.clearStorage();
             }}
           >
             clear local storage
-          </button>
+          </button> */}
+          {status === "loading" && (
+            <>
+              {[...Array(3)].map((i) => {
+                return (
+                  <div
+                    className="flex h-[300px] w-full animate-pulse flex-col gap-3 rounded-xl bg-base-300 p-4"
+                    key={i}
+                  >
+                    <div className="mb-1 h-[30px] w-1/3 rounded-xl bg-base-100"></div>
+                    <div className="flex justify-between">
+                      <div className="m-3 h-[30px] w-1/2 rounded-xl bg-base-100"></div>
+                      <div className="m-3 h-[30px] w-1/4 rounded-xl bg-base-100"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="m-3 h-[30px] w-1/2 rounded-xl bg-base-100"></div>
+                      <div className="m-3 h-[30px] w-1/4 rounded-xl bg-base-100"></div>
+                    </div>
+                    <div className="flex justify-end">
+                      <div className="m-3 h-[30px] w-1/4 rounded-xl bg-base-100"></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
           {status === "success" &&
-            data.map((p) => {
+            data?.map((p) => {
               return (
                 <SellerProducts
                   sellerName={p.seller.name ?? "???"}
@@ -63,47 +91,90 @@ const CartPage: NextPage = () => {
             })}
         </div>
       </div>
-
       <div className="flex flex-1 flex-col ">
-        <h1 className="mb-4 text-3xl">Summary</h1>
-        <div className="flex flex-col gap-2"> </div>
-        <>
-          {status === "success" &&
-            data.map((p) => {
-              const sellerName = p.seller.name ?? "???";
-              return (
-                <SellerSummary
-                  key={p.seller.id}
-                  sellerName={sellerName}
-                  products={p.products}
-                />
-              );
-            })}
-        </>
-        <AllProductsCostSummary
-          products={data?.flatMap((c) => c.products) ?? []}
-          productsCost={
-            data?.reduce(
-              (sum, c) =>
-                sum +
-                c.products.reduce(
-                  (sum1, c1) => sum1 + c1.price * c1.quantity,
+        {true && (
+          <>
+            <h1 className="mb-4 text-3xl">Summary</h1>
+            <div className="flex flex-col gap-2"> </div>
+            <>
+              {status === "success" &&
+                data?.map((p) => {
+                  const sellerName = p.seller.name ?? "???";
+                  return (
+                    <SellerSummary
+                      key={p.seller.id}
+                      sellerName={sellerName}
+                      products={p.products}
+                    />
+                  );
+                })}
+            </>
+            <AllProductsCostSummary
+              products={data?.flatMap((c) => c.products) ?? []}
+              productsCost={
+                data?.reduce(
+                  (sum, c) =>
+                    sum +
+                    c.products.reduce(
+                      (sum1, c1) => sum1 + c1.price * c1.quantity,
+                      0
+                    ),
                   0
-                ),
-              0
-            ) ?? 0
-          }
-        />
+                ) ?? 0
+              }
+            />
+          </>
+        )}
+        {status === "loading" && <AllProductsSummarySkeleton />}
         <form action="/api/checkout-session" method="POST" className="w-full">
           <input hidden={true} name="data" value={JSON.stringify(cart)} />
           <button
             name="data"
             className="btn-primary btn mt-4 w-full"
             type="submit"
+            onClick={(e) => {
+              if (session.status !== "authenticated") {
+                e.preventDefault();
+                toast("You need to be logged in to checkout your cart");
+              }
+            }}
           >
             Checkout
           </button>
         </form>
+      </div>
+    </div>
+  );
+};
+
+const AllProductsSummarySkeleton = () => {
+  return (
+    <div className="h-[200px]">
+      <h1 className="mb-4 text-3xl">Summary</h1>
+      <div className="flex flex-col gap-2"> </div>
+      <div className="animate-pulse">
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex w-full justify-between text-2xl">
+            <div className="h-[20px] w-1/2 rounded-xl bg-gray-700"></div>
+            <div className="h-[20px] w-1/4 rounded-xl bg-gray-700"></div>
+          </div>
+          <div className="flex w-full justify-between text-2xl">
+            <div className="h-[20px] w-1/3 rounded-xl bg-gray-700"></div>
+            <div className="h-[20px] w-1/4 rounded-xl bg-gray-700"></div>
+          </div>
+          <div className="flex w-full justify-between text-2xl">
+            <div className="h-[20px] w-1/4 rounded-xl bg-gray-700"></div>
+            <div className="h-[20px] w-1/4 rounded-xl bg-gray-700"></div>
+          </div>
+        </div>
+        <div className="mt-3 flex w-full flex-col items-end">
+          <div className="flex w-1/4 flex-col">
+            <div className="h-[2px] w-full animate-none bg-base-content"></div>
+            <div className="mt-4 flex w-full justify-end text-3xl">
+              <div className="h-[20px] w-full animate-pulse whitespace-nowrap rounded-xl bg-gray-700 pt-4"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

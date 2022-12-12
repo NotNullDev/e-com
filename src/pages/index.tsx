@@ -62,7 +62,7 @@ const Home: NextPage = () => {
               </>
             )}
             {filteredProducts.status === "loading" &&
-              [...Array(20)].map((i) => <SingleProductSkeletion key={i} />)}
+              [...Array(20)].map((i) => <SingleProductSkeleton key={i} />)}
           </div>
         </div>
       </div>
@@ -150,7 +150,7 @@ const SingleProductPreview = ({ product }: SingleProductPreviewProps) => {
   );
 };
 
-const SingleProductSkeletion = () => {
+const SingleProductSkeleton = () => {
   return (
     <div className="flex h-[300px] w-[250px] animate-pulse flex-col rounded shadow-md">
       <div className="h-48 rounded-t bg-base-100"></div>
