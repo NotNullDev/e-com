@@ -38,7 +38,7 @@ Design file: [Excalidraw file](pages.excalidraw)
 - [x] Stripe
 
 ## TODO
-- [ ] remove items from cart
+- [x] remove items from cart
 
 ## Optimalization
 - [ ] Rerendering optimization

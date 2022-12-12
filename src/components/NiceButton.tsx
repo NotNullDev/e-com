@@ -25,6 +25,7 @@ export const NiceButton = ({
             if (currentVal > 0) {
               setCurrentVal((c) => {
                 if (c === 0 || (min && c === min)) {
+                  callback && callback(c);
                   return c;
                 }
                 const newValue = --c;
