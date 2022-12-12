@@ -260,7 +260,9 @@ const Product = ({ productInfo }: ProductProps) => {
             callback={(u) => {
               if (u === 1 && q === 1) {
                 setDeletePopupOpen(true);
+                return;
               }
+              setDeletePopupOpen(false);
               setQ(u);
               cartStore.setState((state) => {
                 const p = state.items.find(

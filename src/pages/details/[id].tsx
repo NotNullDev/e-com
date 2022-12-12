@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { NiceButton } from "../../components/NiceButton";
 import { cartStore } from "../../lib/stores/cartStore";
 import { trpc } from "../../utils/trpc";
@@ -38,9 +37,9 @@ export default function ProductDetails() {
                         height={600}
                         width={600}
                         className="rounded-t-xl"
-                        onLoad={() =>
-                          toast(`image ${idx} loaded! [TODO image loaders]`)
-                        }
+                        priority={true} // onLoad={() =>
+                        //   toast(`image ${idx} loaded! [TODO image loaders]`)
+                        // }
                         placeholder="empty"
                       />
                     </div>
