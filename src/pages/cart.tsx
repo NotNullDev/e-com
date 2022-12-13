@@ -2,7 +2,7 @@ import { Product } from "@prisma/client";
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { NiceButton } from "../components/NiceButton";
 import type { FullCartItem } from "../lib/stores/cartStore";
@@ -19,6 +19,7 @@ const getSellersFromCartProducts = (cartProducts: Product[]) => {
 
 const CartPage: NextPage = () => {
   const session = useSession();
+  const cartInputRef = useRef<HTMLInputElement>(null);
   const cart = cartStore(
     (state) => state.items,
     (a, b) => {
@@ -127,12 +128,24 @@ const CartPage: NextPage = () => {
         )}
         {status === "loading" && <AllProductsSummarySkeleton />}
         <form action="/api/checkout-session" method="POST" className="w-full">
-          <input hidden={true} name="data" value={JSON.stringify(cart)} />
+          <input
+            hidden={true}
+            name="data"
+            value={JSON.stringify(cartStore.getState().items)}
+            ref={cartInputRef}
+          />
           <button
             name="data"
             className="btn-primary btn mt-4 w-full"
             type="submit"
             onClick={(e) => {
+              const recentCartValue = JSON.stringify(
+                cartStore.getState().items
+              );
+              // put recent cart value into input above
+              if (cartInputRef.current) {
+                cartInputRef.current.value = recentCartValue;
+              }
               if (session.status !== "authenticated") {
                 e.preventDefault();
                 toast("You need to be logged in to checkout your cart");

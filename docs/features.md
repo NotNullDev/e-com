@@ -39,12 +39,14 @@ Design file: [Excalidraw file](pages.excalidraw)
 
 ## TODO
 - [x] remove items from cart
+- [ ] redesign cart page
+- [ ]
 
 ## Optimalization
 - [ ] Rerendering optimization
 
 ## Bugs
-- [ ] Fix bug with cart items count in header (it's not updating when you remove item from cart)
+- [x] Fix bug with cart items count in header (it's not updating when you remove item from cart)
 
 ### Md playground
 

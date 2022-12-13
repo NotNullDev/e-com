@@ -131,8 +131,9 @@ const SingleProductPreview = ({ product }: SingleProductPreviewProps) => {
           <Image
             src={product.previewImageUrl}
             alt="Shoes"
-            width={300}
-            height={150}
+            width={280}
+            height={190}
+            priority={true}
           />
         </figure>
         <div className="card-body flex w-full flex-col justify-between">
