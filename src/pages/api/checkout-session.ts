@@ -100,8 +100,8 @@ export default async function handler(
           ...items,
         ],
         mode: "payment",
-        success_url: `${req.headers.origin}/cart?success=true`,
-        cancel_url: `${req.headers.origin}/cart?canceled=true`,
+        success_url: `${req.headers.origin}/cart?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.origin}/cart?canceled=true&session_id={CHECKOUT_SESSION_ID}`,
         payment_method_options: {
           p24: { tos_shown_and_accepted: true },
         },

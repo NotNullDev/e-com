@@ -1,24 +1,25 @@
 
 name: "e-com"
 services:
-  db:
-    image: postgres
-    env_file:
-      - .env
-    networks:
-      - e-com
-    ports:
-      - 5444:5432
-  # app:
-  #   build:
-  #     context: .
-  #   image: nnd/e-com:latest
-  #   ports:
-  #     - 3000:3000
+  # db:
+  #   image: postgres
   #   env_file:
   #     - .env
   #   networks:
   #     - e-com
+  #   ports:
+  #     - 5444:5432
+  app:
+    build:
+      context: .
+    image: nnd/e-com:latest
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+      - .env.production.local
+    networks:
+      - e-com
 
 
 volumes:

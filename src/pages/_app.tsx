@@ -200,7 +200,9 @@ const Header = () => {
                   <a>Sign out</a>
                 </li>
                 <li>
-                  <a>My account</a>
+                  <Link href="/account">
+                    <div>My account</div>
+                  </Link>
                 </li>
               </ul>
             </div>

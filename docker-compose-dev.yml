@@ -1,0 +1,19 @@
+name: "e-com"
+services:
+  db:
+    image: postgres
+    env_file:
+      - .env
+    networks:
+      - e-com
+    ports:
+      - 5444:5432
+
+
+volumes:
+  e-com-db:
+    name: e-com-db
+
+networks:
+  e-com:
+    name: e-com

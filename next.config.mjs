@@ -15,7 +15,11 @@ const config = {
   },
   output: "standalone",
   images: {
-    domains: ["lh3.googleusercontent.com", "source.unsplash.com", "loremflickr.com"],
+    domains: [
+      "lh3.googleusercontent.com",
+      "source.unsplash.com",
+      "loremflickr.com",
+    ],
   },
 };
 export default config;

@@ -2,7 +2,7 @@ import { Product } from "@prisma/client";
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { NiceButton } from "../components/NiceButton";
 import type { FullCartItem } from "../lib/stores/cartStore";
@@ -32,6 +32,23 @@ const CartPage: NextPage = () => {
     cart.map((c) => ({ productId: c.productId, quantity: c.quantity }))
   );
 
+  useEffect(() => {
+    if (status === "success" && data?.length !== cart.length) {
+      // remove items from cart that are not in data
+      const cartProductIds = cart.map((c) => c.productId);
+      const dataProductIds =
+        data?.flatMap((d) => d.products).map((p) => p.id) ?? [];
+      const productIdsToRemove = cartProductIds.filter(
+        (id) => !dataProductIds.includes(id)
+      );
+      cartStore.setState((state) => {
+        state.items = state.items.filter(
+          (item) => !productIdsToRemove.includes(item.productId)
+        );
+      });
+    }
+  }, [data, cart]);
+
   const { success, canceled } = router.query;
 
   if (success) {
@@ -47,14 +64,6 @@ const CartPage: NextPage = () => {
       <div className="flex flex-[2]">
         <div className="flex w-full flex-col gap-4  px-12">
           <h1 className="mb-4 text-3xl">Your cart</h1>
-          {/* <button
-            className="btn-primary btn"
-            onClick={() => {
-              cartStore.persist.clearStorage();
-            }}
-          >
-            clear local storage
-          </button> */}
           {status === "loading" && (
             <>
               {[...Array(3)].map((i) => {

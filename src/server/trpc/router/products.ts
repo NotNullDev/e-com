@@ -172,4 +172,33 @@ export const productsRouter = router({
 
       return products;
     }),
+
+  getOwnProducts: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1),
+        offset: z.number().min(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session?.user?.id;
+
+      if (!userId) {
+        throw new Error("User is not logged in.");
+      }
+
+      const products = await ctx.prisma.product.findMany({
+        where: {
+          seller: {
+            id: {
+              equals: ctx.session?.user?.id,
+            },
+          },
+        },
+        take: input.limit,
+        skip: input.offset,
+      });
+
+      return products;
+    }),
 });
