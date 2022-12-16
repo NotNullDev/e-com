@@ -1,10 +1,13 @@
 import { MantineProvider } from "@mantine/core";
+import type { Category } from "@prisma/client";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { NiceButton } from "../components/NiceButton";
+import { getAllCategoriesAsString } from "../utils/enumParser";
 
 const RichTextEditor = dynamic(() => import("@mantine/rte"), {
   ssr: false,
@@ -13,7 +16,11 @@ const RichTextEditor = dynamic(() => import("@mantine/rte"), {
 type ProductModel = {
   title: string;
   description: string;
+  shippingTime: number;
+  price: number;
+  stock: number;
   files: File[];
+  categories: Category[];
 };
 
 type CreateProductPageStoreType = {
@@ -60,6 +67,10 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
         title: "",
         description: "",
         files: [],
+        price: 0,
+        shippingTime: 0,
+        stock: 1,
+        categories: [],
       },
       createProduct,
     };
@@ -74,6 +85,30 @@ const CreateProductPage = () => {
         className="input-bordered input text-3xl"
       />
       <FilesSelection />
+      <div className="flex flex-col gap-2 p-2">
+        <div className="flex gap-3">
+          <div className="flex items-center gap-3  p-2 shadow-xl">
+            <div className="w-[100px]">Price</div>
+            <NiceButton min={1} max={9999} />
+          </div>
+          <div className="flex items-center gap-3  p-2 shadow-xl">
+            <div className="w-[100px]">Stock</div>
+            <NiceButton min={0} />
+          </div>
+          <div className="flex items-center gap-3  p-2 shadow-xl">
+            <div className="w-[100px] whitespace-nowrap">Shipping Time</div>
+            <NiceButton min={0} />
+          </div>
+        </div>
+        <div className="flex flex-col items-start gap-3 p-4">
+          <div className="w-[100px] whitespace-nowrap">Categories</div>
+          <div className="ml-4 flex gap-3">
+            {getAllCategoriesAsString().map((c) => (
+              <CategorySelector key={c} category={c} />
+            ))}
+          </div>
+        </div>
+      </div>
       <ProductEditor />
       <div className="mt-3 flex w-full justify-end">
         <div
@@ -104,6 +139,7 @@ const ProductEditor = () => {
         value={val}
         onChange={setVal}
         id="rte"
+        h={600}
         className="h-[600px] overflow-y-auto"
         placeholder="Product description"
       />
@@ -121,17 +157,37 @@ const FilesSelection = () => {
   }, [files]);
 
   return (
-    <div className="w-full p-4">
-      <div className="grid columns-3 grid-cols-4 gap-4">
+    <div className="relative w-full p-4">
+      <div className="group grid columns-3 grid-cols-4 gap-4">
         {files.map((u, idx) => (
-          <Image
-            src={URL.createObjectURL(u)}
-            width={400}
-            height={200}
-            alt="haha"
-            key={idx}
-            className="col-span-1 h-[200px] w-[400px]"
-          />
+          <div key={idx} className="relative ">
+            <Image
+              src={URL.createObjectURL(u)}
+              width={400}
+              height={200}
+              alt="haha"
+              className="col-span-1 h-[200px] w-[400px]"
+            />
+            <div className="invisible absolute right-10 top-0 m-4 h-[24px] w-[24px] gap-2 rounded group-hover:visible">
+              <div className="flex w-[100px] flex-nowrap gap-3">
+                <input className="checkbox-primary checkbox" type="checkbox" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-6 w-6 text-error hover:cursor-pointer"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
         ))}
         {files.length <= 7 && (
           <>
@@ -164,6 +220,67 @@ const FilesSelection = () => {
           </>
         )}
       </div>
+    </div>
+  );
+};
+
+type CategorySelectorProps = {
+  category: string;
+};
+const CategorySelector = ({ category: c }: CategorySelectorProps) => {
+  const [enabled, setEnabled] = useState(false);
+  // const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const selectedCategories = createProductPageStore(
+    (state) => state.product.categories
+  );
+
+  const addCategory = (category: Category) => {
+    createProductPageStore.setState((old) => {
+      old.product.categories = [
+        ...new Set([...old.product.categories, category]),
+      ];
+    });
+  };
+
+  const removeCategory = (category: Category) => {
+    createProductPageStore.setState((state) => {
+      state.product.categories = state.product.categories.filter(
+        (c) => c !== category
+      );
+    });
+  };
+
+  const enabledStyle = "bg-primary text-primary-content";
+
+  const activeStyle = useMemo(() => (enabled ? enabledStyle : ""), [enabled]);
+
+  useEffect(() => {
+    if (selectedCategories.includes(c as Category)) {
+      setEnabled(true);
+    } else {
+      setEnabled(false);
+    }
+  }, [selectedCategories]);
+
+  useEffect(() => {
+    if (enabled) {
+      addCategory(c as Category);
+    } else {
+      removeCategory(c as Category);
+    }
+  }, [enabled]);
+
+  return (
+    <div
+      className={
+        "cursor-pointer rounded-xl bg-base-200 p-2 px-4 " + ` ${activeStyle}`
+      }
+      key={c}
+      onClick={() => {
+        setEnabled((old) => !old);
+      }}
+    >
+      {c.replaceAll("_", " ")}
     </div>
   );
 };
