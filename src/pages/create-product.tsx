@@ -28,15 +28,13 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
       const form = new FormData();
       form.append("title", product.title);
       form.append("description", product.description);
+      toast("uploading " + product.files.length + " files.");
       const filesToSend = product.files.forEach((f) => {
-        form.append("files", new Blob([f]));
-
-        //   const buff = await f.arrayBuffer();
-        //   const idk = new Uint8Array(buff);
+        form.append("files", f);
       });
 
       const headers = new Headers();
-      headers.append("Content-Type", "application/json");
+      headers.append("Content-Type", "multipart/form-data");
 
       const respBody = JSON.stringify({
         title: product.title,
@@ -46,8 +44,7 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
 
       const resp = await fetch("/api/file-test", {
         method: "POST",
-        headers,
-        body: respBody,
+        body: form,
       });
 
       if (!resp.ok) {
