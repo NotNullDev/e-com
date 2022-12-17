@@ -43,6 +43,20 @@ export const NiceButton = ({
           className="input w-[60px] text-center"
           placeholder="1"
           value={currentVal}
+          onChange={(e) => {
+            let newVal: number | string = e.currentTarget.value;
+            if (newVal === "") {
+              newVal = 0;
+            }
+            newVal = Number(newVal);
+            if ((!newVal && newVal !== 0) || newVal === NaN) {
+              return;
+            }
+            setCurrentVal(newVal);
+            if (callback) {
+              callback(newVal);
+            }
+          }}
           onFocus={(e) => e.currentTarget.select()}
         />
         <button

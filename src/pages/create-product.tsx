@@ -18,10 +18,6 @@ import { immer } from "zustand/middleware/immer";
 import { NiceButton } from "../components/NiceButton";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 
-// const RichTextEditor = dynamic(() => import("@mantine/rte"), {
-//   ssr: false,
-// });
-
 type ProductModel = {
   title: string;
   description: string;
@@ -118,7 +114,7 @@ const CreateProductPage = () => {
       <FilesSelection />
       <div className="flex flex-col gap-2 p-2">
         <div className="flex gap-3">
-          <div className="flex items-center gap-3  p-2 shadow-xl">
+          <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
             <div className="w-[100px]">Price</div>
             <NiceButton
               min={1}
@@ -130,7 +126,8 @@ const CreateProductPage = () => {
               }}
             />
           </div>
-          <div className="flex items-center gap-3  p-2 shadow-xl">
+
+          <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
             <div className="w-[100px]">Stock</div>
             <NiceButton
               min={0}
@@ -141,7 +138,7 @@ const CreateProductPage = () => {
               }}
             />
           </div>
-          <div className="flex items-center gap-3  p-2 shadow-xl">
+          <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
             <div className="w-[100px] whitespace-nowrap">Shipping Time</div>
             <NiceButton
               min={0}
