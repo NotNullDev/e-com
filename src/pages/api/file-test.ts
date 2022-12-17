@@ -127,9 +127,9 @@ async function saveFiles({
     data: {
       title,
       description,
-      images: files.map((f) => f.filepath),
+      images: files.map((f) => `/images/${f.newFilename}`),
       boughtCount: 0,
-      previewImageUrl: previewImage.filepath,
+      previewImageUrl: `/images/${previewImage.newFilename}`,
       price,
       stock,
       dealType: "NONE",

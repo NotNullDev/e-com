@@ -91,9 +91,10 @@ export default function ProductDetails() {
           ))}
         </div>
 
-        <div className="mt-5 flex w-full flex-1 rounded-xl">
-          {data.data?.description}
-        </div>
+        <div
+          className="mt-5 flex w-full flex-1 rounded-xl"
+          dangerouslySetInnerHTML={{ __html: data.data?.description ?? "" }}
+        ></div>
         <CartFooter item={data.data} />
       </div>
     </div>
