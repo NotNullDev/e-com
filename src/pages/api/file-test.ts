@@ -1,6 +1,7 @@
 import type { Category } from "@prisma/client";
 import formidable from "formidable";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerAuthSession } from "../../server/common/get-server-auth-session";
 import { prisma } from "../../server/db/client";
 
 //set bodyparser
@@ -11,6 +12,7 @@ export const config = {
 };
 
 const a = async (req: NextApiRequest, res: NextApiResponse) => {
+  const session = await getServerAuthSession({ req, res });
   const files: formidable.File[] = [];
   const form = formidable({
     uploadDir: "./public/images",
@@ -20,14 +22,14 @@ const a = async (req: NextApiRequest, res: NextApiResponse) => {
     files.push(file);
   });
 
-  form.once("end", () => {
-    files.forEach((file) => {
-      console.log(`${file.originalFilename} ${file.mimetype}`);
-      res.status(200).json({
-        status: "ok",
-      });
-    });
-  });
+  // form.once("end", () => {
+  //   files.forEach((file) => {
+  //     console.log(`${file.originalFilename} ${file.mimetype}`);
+  //     res.status(200).json({
+  //       status: "ok",
+  //     });
+  //   });
+  // });
 
   form.once("error", (err) => {
     console.log(err);
@@ -36,8 +38,10 @@ const a = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   });
 
-  form.parse(req, async (err, field, _files) => {
-    const { title, description } = field;
+  form.parse(req, async (err, fields, _files) => {
+    console.log("fields:");
+    console.dir(fields);
+    const { title, description, price, stock, shoppingTime } = fields;
     if (title === "" || description === "") {
       throw new Error("Title and description are required fields.");
     }

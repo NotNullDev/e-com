@@ -1,6 +1,15 @@
 import { MantineProvider } from "@mantine/core";
+import { Link as MantineTiptapLink, RichTextEditor } from "@mantine/tiptap";
 import type { Category } from "@prisma/client";
-import dynamic from "next/dynamic";
+import TipTapHightlight from "@tiptap/extension-highlight";
+import Placeholder from "@tiptap/extension-placeholder";
+import SubScript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
+import TextAlign from "@tiptap/extension-text-align";
+import Underline from "@tiptap/extension-underline";
+import type { AnyExtension } from "@tiptap/react";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -9,9 +18,9 @@ import { immer } from "zustand/middleware/immer";
 import { NiceButton } from "../components/NiceButton";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 
-const RichTextEditor = dynamic(() => import("@mantine/rte"), {
-  ssr: false,
-});
+// const RichTextEditor = dynamic(() => import("@mantine/rte"), {
+//   ssr: false,
+// });
 
 type ProductModel = {
   title: string;
@@ -35,6 +44,9 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
       const form = new FormData();
       form.append("title", product.title);
       form.append("description", product.description);
+      form.append("shippingTime", `${product.shippingTime}`);
+      form.append("stock", `${product.stock}`);
+      form.append("price", `${product.price}`);
       toast("uploading " + product.files.length + " files.");
       const filesToSend = product.files.forEach((f) => {
         form.append("files", f);
@@ -83,21 +95,48 @@ const CreateProductPage = () => {
       <input
         placeholder="Product title"
         className="input-bordered input text-3xl"
+        onChange={(e) => {
+          createProductPageStore.setState((state) => {
+            state.product.title = e.currentTarget.value;
+          });
+        }}
       />
       <FilesSelection />
       <div className="flex flex-col gap-2 p-2">
         <div className="flex gap-3">
           <div className="flex items-center gap-3  p-2 shadow-xl">
             <div className="w-[100px]">Price</div>
-            <NiceButton min={1} max={9999} />
+            <NiceButton
+              min={1}
+              max={9999}
+              callback={(p) => {
+                createProductPageStore.setState((state) => {
+                  state.product.price = p;
+                });
+              }}
+            />
           </div>
           <div className="flex items-center gap-3  p-2 shadow-xl">
             <div className="w-[100px]">Stock</div>
-            <NiceButton min={0} />
+            <NiceButton
+              min={0}
+              callback={(p) => {
+                createProductPageStore.setState((state) => {
+                  state.product.stock = p;
+                });
+              }}
+            />
           </div>
           <div className="flex items-center gap-3  p-2 shadow-xl">
             <div className="w-[100px] whitespace-nowrap">Shipping Time</div>
-            <NiceButton min={0} />
+            <NiceButton
+              min={0}
+              callback={(p) => {
+                createProductPageStore.setState((state) => {
+                  state.product.shippingTime = p;
+                });
+              }}
+            />
           </div>
         </div>
         <div className="flex flex-col items-start gap-3 p-4">
@@ -125,24 +164,72 @@ const CreateProductPage = () => {
 };
 
 const ProductEditor = () => {
-  const [val, setVal] = useState("");
-
-  useEffect(() => {
-    createProductPageStore.setState((state) => {
-      state.product.description = val;
-    });
-  }, [val]);
+  const editor = useEditor({
+    extensions: [
+      StarterKit as AnyExtension,
+      Underline,
+      Placeholder.configure({
+        placeholder: "Item description",
+      }),
+      MantineTiptapLink,
+      Superscript,
+      SubScript,
+      TipTapHightlight,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+    ],
+    editorProps: { attributes: { class: "min-h-[300px]" } },
+    onUpdate: ({ editor, transaction }) => {
+      createProductPageStore.setState((state) => {
+        state.product.description = editor?.getHTML() ?? "";
+      });
+    },
+  });
 
   return (
     <MantineProvider theme={{ colorScheme: "dark" }}>
-      <RichTextEditor
-        value={val}
-        onChange={setVal}
-        id="rte"
-        h={600}
-        className="h-[600px] overflow-y-auto"
-        placeholder="Product description"
-      />
+      <RichTextEditor editor={editor}>
+        <RichTextEditor.Toolbar sticky stickyOffset={60}>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Bold />
+            <RichTextEditor.Italic />
+            <RichTextEditor.Underline />
+            <RichTextEditor.Strikethrough />
+            <RichTextEditor.ClearFormatting />
+            <RichTextEditor.Highlight />
+            <RichTextEditor.Code />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.H1 />
+            <RichTextEditor.H2 />
+            <RichTextEditor.H3 />
+            <RichTextEditor.H4 />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Blockquote />
+            <RichTextEditor.Hr />
+            <RichTextEditor.BulletList />
+            <RichTextEditor.OrderedList />
+            <RichTextEditor.Subscript />
+            <RichTextEditor.Superscript />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Link />
+            <RichTextEditor.Unlink />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.AlignLeft />
+            <RichTextEditor.AlignCenter />
+            <RichTextEditor.AlignJustify />
+            <RichTextEditor.AlignRight />
+          </RichTextEditor.ControlsGroup>
+        </RichTextEditor.Toolbar>
+
+        <RichTextEditor.Content />
+      </RichTextEditor>
     </MantineProvider>
   );
 };
@@ -166,7 +253,7 @@ const FilesSelection = () => {
               width={400}
               height={200}
               alt="haha"
-              className="col-span-1 h-[200px] w-[400px]"
+              className="col-span-1 h-[200px] w-[400px] bg-cover bg-center"
             />
             <div className="invisible absolute right-10 top-0 m-4 h-[24px] w-[24px] gap-2 rounded group-hover:visible">
               <div className="flex w-[100px] flex-nowrap gap-3">
