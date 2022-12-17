@@ -11,8 +11,28 @@ export const config = {
   },
 };
 
+type ProductWriteModel = {
+  title: string;
+  description: string;
+  files: formidable.File[];
+  previewImage: formidable.File;
+  price: number;
+  stock: number;
+  shippingTimeDays: number;
+  categories: Category[];
+  userId: string;
+};
+
 const a = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await getServerAuthSession({ req, res });
+
+  if (!session?.user) {
+    res.status(401).json({
+      error: "Unauthorized",
+    });
+    return;
+  }
+
   const files: formidable.File[] = [];
   const form = formidable({
     uploadDir: "./public/images",
@@ -39,29 +59,71 @@ const a = async (req: NextApiRequest, res: NextApiResponse) => {
   });
 
   form.parse(req, async (err, fields, _files) => {
+    if (!session.user?.id) {
+      throw new Error("User not found.");
+    }
+
     console.log("fields:");
     console.dir(fields);
-    const { title, description, price, stock, shoppingTime } = fields;
+
+    const { title, description, price, stock, shippingTime, categories } =
+      fields;
+
+    const previewImageIdentificator: {
+      name: string;
+      size: number;
+    } = JSON.parse(fields.previewImageIdentificator as string);
+
+    if (previewImageIdentificator.name.length === 0) {
+      throw new Error("Preview image is required");
+    }
+
+    const previewImage = files.find(
+      (f) =>
+        f.originalFilename === previewImageIdentificator.name &&
+        f.size === previewImageIdentificator.size
+    );
+
+    if (!previewImage) {
+      throw new Error("Could not find preview image.");
+    }
+
+    console.log(previewImage.originalFilename);
+
     if (title === "" || description === "") {
       throw new Error("Title and description are required fields.");
     }
-    saveFiles(title, description, files);
+
+    saveFiles({
+      categories: categories as Category[],
+      description: description as string,
+      files,
+      previewImage,
+      price: Number(price),
+      shippingTimeDays: Number(shippingTime),
+      stock: Number(stock),
+      title: title as string,
+      userId: session.user.id,
+    });
   });
-  res.assignSocket;
+
+  res.status(200).json({
+    status: "ok",
+  });
 };
 
-function saveFiles(
-  title: string,
-  description: string,
-  files: formidable.File[],
-  previewImage: formidable.File,
-  price: number,
-  stock: number,
-  shippingTimeDays: number,
-  categories: Category[],
-  userId: string
-) {
-  prisma.product.create({
+async function saveFiles({
+  categories,
+  description,
+  files,
+  previewImage,
+  price,
+  shippingTimeDays,
+  stock,
+  title,
+  userId,
+}: ProductWriteModel) {
+  const created = await prisma.product.create({
     data: {
       title,
       description,
@@ -78,6 +140,8 @@ function saveFiles(
       userId,
     },
   });
+
+  console.log(`Created product with id ${created.id}`);
 }
 
 export default a;

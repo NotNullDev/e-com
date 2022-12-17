@@ -30,6 +30,10 @@ type ProductModel = {
   stock: number;
   files: File[];
   categories: Category[];
+  previewImageIdentificator: {
+    name: string;
+    size: number;
+  };
 };
 
 type CreateProductPageStoreType = {
@@ -47,7 +51,13 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
       form.append("shippingTime", `${product.shippingTime}`);
       form.append("stock", `${product.stock}`);
       form.append("price", `${product.price}`);
+      form.append(
+        "previewImageIdentificator",
+        JSON.stringify(product.previewImageIdentificator)
+      );
+
       toast("uploading " + product.files.length + " files.");
+
       const filesToSend = product.files.forEach((f) => {
         form.append("files", f);
       });
@@ -83,6 +93,10 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
         shippingTime: 0,
         stock: 1,
         categories: [],
+        previewImageIdentificator: {
+          name: "",
+          size: 0,
+        },
       },
       createProduct,
     };
@@ -257,7 +271,20 @@ const FilesSelection = () => {
             />
             <div className="invisible absolute right-10 top-0 m-4 h-[24px] w-[24px] gap-2 rounded group-hover:visible">
               <div className="flex w-[100px] flex-nowrap gap-3">
-                <input className="checkbox-primary checkbox" type="checkbox" />
+                <input
+                  className="checkbox-primary checkbox"
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.currentTarget.checked) {
+                      createProductPageStore.setState((state) => {
+                        state.product.previewImageIdentificator = {
+                          name: u.name,
+                          size: u.size,
+                        };
+                      });
+                    }
+                  }}
+                />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
