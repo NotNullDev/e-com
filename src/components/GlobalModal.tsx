@@ -1,6 +1,7 @@
 import type { ReactNode, ReactPortal } from "react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 
@@ -80,17 +81,38 @@ const emitter = new GlobalModalEventEmmiter();
 const GlobalModalController = new GlobalModelController(emitter);
 
 const GlobalModal = () => {
+  const modalRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const modalStatus = globalModalStore((state) => state.modalStatus);
   const body = globalModalStore((state) => state.body);
 
+  const listener = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      GlobalModalController.close();
+      toast("haha");
+    }
+  };
+
   useEffect(() => {
     setOpen(modalStatus ?? false);
+    if (modalStatus) {
+      document.addEventListener("keydown", listener);
+    } else {
+      document.removeEventListener("keydown", listener);
+    }
+    return () => {
+      document.removeEventListener("keydown", listener);
+    };
   }, [modalStatus]);
 
   return (
-    <div hidden={!open}>
-      <div className="absolute top-0 left-0 z-[499] h-[100vh] w-[100vw] bg-base-300 opacity-50"></div>
+    <div hidden={!open} ref={modalRef}>
+      <div
+        className="absolute top-0 left-0 z-[499] h-[100vh] w-[100vw] overflow-hidden bg-base-300 opacity-50"
+        onClick={() => {
+          GlobalModalController.close();
+        }}
+      ></div>
       <div
         className="absolute top-1/2 left-1/2 z-[500] -translate-x-1/2 -translate-y-1/2"
         key={"global-portal"}
