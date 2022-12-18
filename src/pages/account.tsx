@@ -6,6 +6,7 @@ import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 import ButtonEdit from "../components/ButtonEdit";
 import ButtonTrash from "../components/ButtonTrash";
+import { GlobalModalController } from "../components/GlobalModal";
 import { trpc } from "../utils/trpc";
 
 type AccountPageStoreType = {
@@ -42,6 +43,15 @@ const AccountPage = () => {
         <label htmlFor="global-modal" className="btn">
           open modal
         </label>
+        <button
+          onClick={() => {
+            GlobalModalController.setBody(<ModalBody />);
+            GlobalModalController.open();
+          }}
+          className="btn-primary btn"
+        >
+          Open modal using js
+        </button>
         <Link href="/create-product">
           <button className="btn-primary btn">Add product</button>
         </Link>
@@ -53,6 +63,22 @@ const AccountPage = () => {
         })}
       </div>
     </div>
+  );
+};
+
+const ModalBody = () => {
+  return (
+    <div className="h-[500px] w-[800px] rounded-xl bg-base-100 shadow shadow-gray-900">
+      <div>modal body!!</div>
+    </div>
+  );
+};
+
+const ModalHeader = () => {
+  return (
+    <>
+      <div>modal header!!</div>
+    </>
   );
 };
 

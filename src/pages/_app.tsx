@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import create from "zustand";
+import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
 import { cartStore } from "../lib/stores/cartStore";
 import { productsStore } from "../lib/stores/productsStore";
@@ -76,6 +77,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         <Component {...pageProps} />
         <Footer />
       </div>
+      <GlobalModalPortal />
     </SessionProvider>
   );
 };
