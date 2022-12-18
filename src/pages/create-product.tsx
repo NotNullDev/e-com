@@ -11,6 +11,7 @@ import type { AnyExtension } from "@tiptap/react";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import create from "zustand";
@@ -18,163 +19,119 @@ import { immer } from "zustand/middleware/immer";
 import { NiceButton } from "../components/NiceButton";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 
-type ProductModel = {
-  title: string;
-  description: string;
-  shippingTime: number;
-  price: number;
-  stock: number;
-  files: File[];
-  categories: Category[];
-  previewImageIdentificator: {
-    name: string;
-    size: number;
-  };
-};
-
-type CreateProductPageStoreType = {
-  product: ProductModel;
-  createProduct: () => void;
-};
-
-const createProductPageStore = create<CreateProductPageStoreType>()(
-  immer((set, get, _) => {
-    const createProduct = async () => {
-      const product = get().product;
-      const form = new FormData();
-      form.append("title", product.title);
-      form.append("description", product.description);
-      form.append("shippingTime", `${product.shippingTime}`);
-      form.append("stock", `${product.stock}`);
-      form.append("price", `${product.price}`);
-      form.append(
-        "previewImageIdentificator",
-        JSON.stringify(product.previewImageIdentificator)
-      );
-
-      toast("uploading " + product.files.length + " files.");
-
-      const filesToSend = product.files.forEach((f) => {
-        form.append("files", f);
-      });
-
-      const headers = new Headers();
-      headers.append("Content-Type", "multipart/form-data");
-
-      const respBody = JSON.stringify({
-        title: product.title,
-        description: product.description,
-        files: form,
-      });
-
-      const resp = await fetch("/api/file-test", {
-        method: "POST",
-        body: form,
-      });
-
-      if (!resp.ok) {
-        toast.error("File upload failed!");
-        return;
-      }
-
-      toast.success("Product created.");
-    };
-
-    return {
-      product: {
-        title: "",
-        description: "",
-        files: [],
-        price: 0,
-        shippingTime: 0,
-        stock: 1,
-        categories: [],
-        previewImageIdentificator: {
-          name: "",
-          size: 0,
-        },
-      },
-      createProduct,
-    };
-  })
-);
-
 const CreateProductPage = () => {
   return (
     <div className="flex-1">
-      <input
-        placeholder="Product title"
-        className="input-bordered input text-3xl"
-        onChange={(e) => {
-          createProductPageStore.setState((state) => {
-            state.product.title = e.currentTarget.value;
-          });
-        }}
-      />
+      <ProductTitle />
       <FilesSelection />
       <div className="flex flex-col gap-2 p-2">
-        <div className="flex gap-3">
-          <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
-            <div className="w-[100px]">Price</div>
-            <NiceButton
-              min={1}
-              max={9999}
-              callback={(p) => {
-                createProductPageStore.setState((state) => {
-                  state.product.price = p;
-                });
-              }}
-            />
-          </div>
-
-          <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
-            <div className="w-[100px]">Stock</div>
-            <NiceButton
-              min={0}
-              callback={(p) => {
-                createProductPageStore.setState((state) => {
-                  state.product.stock = p;
-                });
-              }}
-            />
-          </div>
-          <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
-            <div className="w-[100px] whitespace-nowrap">Shipping Time</div>
-            <NiceButton
-              min={0}
-              callback={(p) => {
-                createProductPageStore.setState((state) => {
-                  state.product.shippingTime = p;
-                });
-              }}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col items-start gap-3 p-4">
-          <div className="w-[100px] whitespace-nowrap">Categories</div>
-          <div className="ml-4 flex gap-3">
-            {getAllCategoriesAsString().map((c) => (
-              <CategorySelector key={c} category={c} />
-            ))}
-          </div>
-        </div>
+        <ProductMetadata />
+        <ProductCategories />
       </div>
-      <ProductEditor />
+      <ProductDescriptionEditor />
+      <CreateProductButton />
+    </div>
+  );
+};
+
+const CreateProductButton = () => {
+  const router = useRouter();
+
+  return (
+    <>
       <div className="mt-3 flex w-full justify-end">
         <div
           className="btn-primary btn"
-          onClick={() => {
-            createProductPageStore.getState().createProduct();
+          onClick={async () => {
+            const created = await createProductPageStore
+              .getState()
+              .createProduct();
+            if (created) {
+              createProductPageStore.getState().resetStore();
+              router.push("/account");
+            }
           }}
         >
           Create
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
-const ProductEditor = () => {
+const ProductCategories = () => {
+  return (
+    <>
+      <div className="flex flex-col items-start gap-3 p-4">
+        <div className="w-[100px] whitespace-nowrap">Categories</div>
+        <div className="ml-4 flex gap-3">
+          {getAllCategoriesAsString().map((c) => (
+            <CategorySelector key={c} category={c} />
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
+const ProductMetadata = () => {
+  return (
+    <>
+      <div className="flex gap-3">
+        <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
+          <div className="w-[100px]">Price</div>
+          <NiceButton
+            min={1}
+            max={9999}
+            callback={(p) => {
+              createProductPageStore.setState((state) => {
+                state.product.price = p;
+              });
+            }}
+          />
+        </div>
+
+        <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
+          <div className="w-[100px]">Stock</div>
+          <NiceButton
+            min={0}
+            callback={(p) => {
+              createProductPageStore.setState((state) => {
+                state.product.stock = p;
+              });
+            }}
+          />
+        </div>
+        <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
+          <div className="w-[100px] whitespace-nowrap">Shipping Time</div>
+          <NiceButton
+            min={0}
+            callback={(p) => {
+              createProductPageStore.setState((state) => {
+                state.product.shippingTime = p;
+              });
+            }}
+          />
+        </div>
+      </div>
+    </>
+  );
+};
+
+const ProductTitle = () => {
+  return (
+    <input
+      placeholder="Product title"
+      className="input-bordered input text-3xl"
+      onChange={(e) => {
+        createProductPageStore.setState((state) => {
+          state.product.title = e.currentTarget.value;
+        });
+      }}
+    />
+  );
+};
+const ProductDescriptionEditor = () => {
   const editor = useEditor({
     extensions: [
       StarterKit as AnyExtension,
@@ -335,9 +292,6 @@ const FilesSelection = () => {
   );
 };
 
-type CategorySelectorProps = {
-  category: string;
-};
 const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   const [enabled, setEnabled] = useState(false);
   // const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
@@ -394,6 +348,159 @@ const CategorySelector = ({ category: c }: CategorySelectorProps) => {
       {c.replaceAll("_", " ")}
     </div>
   );
+};
+
+const createProductPageStore = create<CreateProductPageStoreType>()(
+  immer((set, get, _) => {
+    const createProduct = async (): Promise<boolean> => {
+      const product = get().product;
+      const form = new FormData();
+      form.append("title", product.title);
+      form.append("description", product.description);
+      form.append("shippingTime", `${product.shippingTime}`);
+      form.append("stock", `${product.stock}`);
+      form.append("price", `${product.price}`);
+      form.append(
+        "previewImageIdentificator",
+        JSON.stringify(product.previewImageIdentificator)
+      );
+
+      const filesToSend = product.files.forEach((f) => {
+        form.append("files", f);
+      });
+
+      const headers = new Headers();
+      headers.append("Content-Type", "multipart/form-data");
+
+      const respBody = JSON.stringify({
+        title: product.title,
+        description: product.description,
+        files: form,
+      });
+
+      const resp = await fetch("/api/file-test", {
+        method: "POST",
+        body: form,
+      });
+
+      if (!resp.ok) {
+        try {
+          const errMsg = await resp.json();
+          if (errMsg.error) {
+            toast.error(errMsg.error, {
+              duration: 5000,
+              position: "bottom-left",
+            });
+            return false;
+          }
+        } catch (e) {}
+        toast.error("File upload failed!");
+        return false;
+      }
+
+      toast.success("Product created.");
+      return true;
+    };
+
+    const resetStore = () => {
+      set(emptyProductPageStore);
+    };
+
+    return {
+      product: {
+        title: "",
+        description: "",
+        files: [],
+        price: 0,
+        shippingTime: 0,
+        stock: 1,
+        categories: [],
+        previewImageIdentificator: {
+          name: "",
+          size: 0,
+        },
+      },
+      createProduct,
+      resetStore,
+    };
+  })
+);
+
+const emptyProductPageStore = {
+  product: {
+    title: "",
+    description: "",
+    files: [],
+    price: 0,
+    shippingTime: 0,
+    stock: 1,
+    categories: [],
+    previewImageIdentificator: {
+      name: "",
+      size: 0,
+    },
+  },
+};
+
+const emptyUpdateProductPageStore = {
+  categories: [],
+  description: "",
+  filesUrl: [],
+  previewImageIdentificator: {
+    name: "",
+    size: 0,
+  },
+  price: 0,
+  shippingTime: 0,
+  stock: 0,
+  title: "",
+};
+
+const updateProductPageStore = create<UpdatePruoductPageStoreType>()(
+  immer((set, get, store) => {
+    return {
+      ...emptyUpdateProductPageStore,
+    };
+  })
+);
+
+type ProductModel = {
+  title: string;
+  description: string;
+  shippingTime: number;
+  price: number;
+  stock: number;
+  files: File[];
+  categories: Category[];
+  previewImageIdentificator: {
+    name: string;
+    size: number;
+  };
+};
+type CategorySelectorProps = {
+  category: string;
+};
+type UpdatePruoductPageStoreType = {
+  title: string;
+  description: string;
+  shippingTime: number;
+  price: number;
+  stock: number;
+  filesUrl: string[];
+  categories: Category[];
+  previewImageIdentificator: {
+    name: string;
+    size: number;
+  };
+};
+type CreateProductPageStoreType = {
+  product: ProductModel;
+  createProduct: () => Promise<boolean>;
+  resetStore: () => void;
+};
+
+const initializeProductForUpdate = () => {
+  return;
 };
 
 export default CreateProductPage;

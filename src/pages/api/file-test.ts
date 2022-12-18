@@ -58,52 +58,68 @@ const a = async (req: NextApiRequest, res: NextApiResponse) => {
     });
   });
 
-  form.parse(req, async (err, fields, _files) => {
-    if (!session.user?.id) {
-      throw new Error("User not found.");
-    }
+  await new Promise<void>(function (resolve, reject) {
+    form.parse(req, async (err, fields, _files) => {
+      try {
+        if (err) {
+          reject(err);
+        }
 
-    console.log("fields:");
-    console.dir(fields);
+        if (!session.user?.id) {
+          throw new Error("User not found.");
+        }
 
-    const { title, description, price, stock, shippingTime, categories } =
-      fields;
+        console.log("fields:");
+        console.dir(fields);
 
-    const previewImageIdentificator: {
-      name: string;
-      size: number;
-    } = JSON.parse(fields.previewImageIdentificator as string);
+        const { title, description, price, stock, shippingTime, categories } =
+          fields;
 
-    if (previewImageIdentificator.name.length === 0) {
-      throw new Error("Preview image is required");
-    }
+        const previewImageIdentificator: {
+          name: string;
+          size: number;
+        } = JSON.parse(fields.previewImageIdentificator as string);
 
-    const previewImage = files.find(
-      (f) =>
-        f.originalFilename === previewImageIdentificator.name &&
-        f.size === previewImageIdentificator.size
-    );
+        if (previewImageIdentificator.name.length === 0) {
+          throw new Error("Preview image is required");
+        }
 
-    if (!previewImage) {
-      throw new Error("Could not find preview image.");
-    }
+        const previewImage = files.find(
+          (f) =>
+            f.originalFilename === previewImageIdentificator.name &&
+            f.size === previewImageIdentificator.size
+        );
 
-    console.log(previewImage.originalFilename);
+        if (!previewImage) {
+          throw new Error("Could not find preview image.");
+        }
 
-    if (title === "" || description === "") {
-      throw new Error("Title and description are required fields.");
-    }
+        console.log(previewImage.originalFilename);
 
-    saveFiles({
-      categories: categories as Category[],
-      description: description as string,
-      files,
-      previewImage,
-      price: Number(price),
-      shippingTimeDays: Number(shippingTime),
-      stock: Number(stock),
-      title: title as string,
-      userId: session.user.id,
+        if (title === "" || description === "") {
+          throw new Error("Title and description are required fields.");
+        }
+
+        saveFiles({
+          categories: categories as Category[],
+          description: description as string,
+          files,
+          previewImage,
+          price: Number(price),
+          shippingTimeDays: Number(shippingTime),
+          stock: Number(stock),
+          title: title as string,
+          userId: session.user.id,
+        });
+        resolve();
+        return;
+      } catch (e: any) {
+        console.log(`sending error: ${e}`);
+        res.status(400).json({
+          error: e.toString(),
+        });
+        reject(e);
+      }
     });
   });
 

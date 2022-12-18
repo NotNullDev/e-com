@@ -101,7 +101,7 @@ const CartPage: NextPage = () => {
             })}
         </div>
       </div>
-      <div className="flex flex-1 flex-col ">
+      <div className="flex flex-1 flex-col p-6 shadow shadow-gray-900">
         {true && (
           <>
             <h1 className="mb-4 text-3xl">Summary</h1>
@@ -251,9 +251,9 @@ type SellerProductsProps = {
 
 const SellerProducts = ({ sellerName, productsInfo }: SellerProductsProps) => {
   return (
-    <div className=" w-full rounded-xl bg-base-200 p-4">
+    <div className=" w-full rounded-xl p-6 shadow shadow-gray-900">
       <h1 className="mb-4 text-3xl">{sellerName}</h1>
-      <div className="flex w-full flex-col gap-2">
+      <div className="flex w-full flex-col gap-2 shadow shadow-gray-900">
         {productsInfo.map((p) => (
           <Product productInfo={p} key={p.id} />
         ))}

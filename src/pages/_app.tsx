@@ -90,6 +90,7 @@ const Header = () => {
   const cartItems = cartStore((state) => state.items);
   const session = useSession();
   const [cartCount, setCartCount] = useState(0);
+  const [resettDropdownKey, setResettDropdownKey] = useState(0);
 
   const startSignOut = async () => {
     const resp = await signOut({
@@ -179,7 +180,7 @@ const Header = () => {
 
         {session.status === "authenticated" && (
           <>
-            <div className="dropdown-end dropdown">
+            <div className="dropdown-end dropdown" key={resettDropdownKey}>
               <button className="placeholder avatar flex items-center">
                 <div className="w-8 rounded-full bg-neutral-focus text-neutral-content">
                   <Image
@@ -194,17 +195,22 @@ const Header = () => {
                 className="dropdown-content menu rounded-box w-52 bg-base-100 p-2 shadow"
                 tabIndex={0}
               >
+                <li>
+                  <Link
+                    href="/account"
+                    onClick={() => {
+                      setResettDropdownKey(resettDropdownKey + 1);
+                    }}
+                  >
+                    <div>My account</div>
+                  </Link>
+                </li>
                 <li
                   onClick={function () {
                     startSignOut();
                   }}
                 >
                   <a>Sign out</a>
-                </li>
-                <li>
-                  <Link href="/account">
-                    <div>My account</div>
-                  </Link>
                 </li>
               </ul>
             </div>

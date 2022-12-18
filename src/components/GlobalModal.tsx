@@ -1,7 +1,6 @@
 import type { ReactNode, ReactPortal } from "react";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 
@@ -89,7 +88,6 @@ const GlobalModal = () => {
   const listener = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       GlobalModalController.close();
-      toast("haha");
     }
   };
 

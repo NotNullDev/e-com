@@ -1,6 +1,7 @@
 import type { Product } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 import ButtonEdit from "../components/ButtonEdit";
@@ -55,8 +56,12 @@ const AccountPage = () => {
 
 type ModalBodyProps = {
   productName: string;
+  productId: string;
 };
-const ModalBody = ({ productName }: ModalBodyProps) => {
+const ModalBody = ({ productName, productId }: ModalBodyProps) => {
+  const deleteProductMutation = trpc.products.deleteProduct.useMutation();
+  const trpcContext = trpc.useContext();
+
   return (
     <div className="flex h-[200px] w-[300px] flex-col rounded-xl bg-base-100 p-3 shadow shadow-gray-900">
       <div className="flex flex-1 flex-col justify-center text-center">
@@ -68,8 +73,13 @@ const ModalBody = ({ productName }: ModalBodyProps) => {
       <div className="flex justify-end gap-2">
         <button
           className="btn-ghost btn-sm btn"
-          onClick={() => {
+          onClick={async () => {
             GlobalModalController.close();
+            await deleteProductMutation.mutateAsync({
+              id: productId,
+            });
+            await trpcContext.products.getOwnProducts.invalidate();
+            toast.success(`Item ${productName} has been successfully deleted.`);
           }}
         >
           delete
@@ -78,6 +88,7 @@ const ModalBody = ({ productName }: ModalBodyProps) => {
           className="btn-primary btn-sm btn"
           onClick={() => {
             GlobalModalController.close();
+            toast.error("Operation cancelled.");
           }}
         >
           Cancel
@@ -107,13 +118,19 @@ const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
         </div>
       </Link>
       <div className="ml-6 flex gap-4 p-4">
-        <Link href="/create-product">
+        <Link
+          href="/create-product"
+          onClick={(e) => {
+            toast("hm");
+            e.preventDefault();
+          }}
+        >
           <ButtonEdit />
         </Link>
         <ButtonTrash
           onClick={(e) => {
             GlobalModalController.setBody(
-              <ModalBody productName={product.title} />
+              <ModalBody productName={product.title} productId={product.id} />
             );
             GlobalModalController.open();
           }}

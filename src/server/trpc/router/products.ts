@@ -1,6 +1,7 @@
 import type { Category, Prisma } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { publicProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const productsRouter = router({
   getHottest: publicProcedure
@@ -200,5 +201,47 @@ export const productsRouter = router({
       });
 
       return products;
+    }),
+
+  deleteProduct: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id } = input;
+
+      const { prisma, session } = ctx;
+
+      const productToDelete = await prisma.product.findFirst({
+        where: {
+          id: {
+            equals: id,
+          },
+        },
+      });
+
+      if (!productToDelete) {
+        throw new TRPCError({
+          message: "Invalid product id.",
+          code: "NOT_FOUND",
+        });
+      }
+
+      if (productToDelete.userId !== session.user.id) {
+        throw new TRPCError({
+          message: "You cannot delete product that is not yours.",
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const a = await prisma.product.delete({
+        where: {
+          id: id,
+        },
+      });
+
+      return a;
     }),
 });
