@@ -1,7 +1,6 @@
 import type { Product } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 import ButtonEdit from "../components/ButtonEdit";
@@ -40,18 +39,6 @@ const AccountPage = () => {
     <div className="flex flex-1 flex-col gap-6 p-8 text-3xl">
       <div className="flex w-full justify-between">
         <h1 className="flex ">My products</h1>
-        <label htmlFor="global-modal" className="btn">
-          open modal
-        </label>
-        <button
-          onClick={() => {
-            GlobalModalController.setBody(<ModalBody />);
-            GlobalModalController.open();
-          }}
-          className="btn-primary btn"
-        >
-          Open modal using js
-        </button>
         <Link href="/create-product">
           <button className="btn-primary btn">Add product</button>
         </Link>
@@ -66,19 +53,37 @@ const AccountPage = () => {
   );
 };
 
-const ModalBody = () => {
-  return (
-    <div className="h-[500px] w-[800px] rounded-xl bg-base-100 shadow shadow-gray-900">
-      <div>modal body!!</div>
-    </div>
-  );
+type ModalBodyProps = {
+  productName: string;
 };
-
-const ModalHeader = () => {
+const ModalBody = ({ productName }: ModalBodyProps) => {
   return (
-    <>
-      <div>modal header!!</div>
-    </>
+    <div className="flex h-[200px] w-[300px] flex-col rounded-xl bg-base-100 p-3 shadow shadow-gray-900">
+      <div className="flex flex-1 flex-col justify-center text-center">
+        <div className="text-xl">
+          Delete <strong className="font-bold">{productName}</strong>?{" "}
+        </div>
+        <div className="text text-red-900">Operation cannot be undone</div>
+      </div>
+      <div className="flex justify-end gap-2">
+        <button
+          className="btn-ghost btn-sm btn"
+          onClick={() => {
+            GlobalModalController.close();
+          }}
+        >
+          delete
+        </button>
+        <button
+          className="btn-primary btn-sm btn"
+          onClick={() => {
+            GlobalModalController.close();
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
   );
 };
 
@@ -107,8 +112,10 @@ const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
         </Link>
         <ButtonTrash
           onClick={(e) => {
-            toast("hello!");
-            e.preventDefault();
+            GlobalModalController.setBody(
+              <ModalBody productName={product.title} />
+            );
+            GlobalModalController.open();
           }}
         />
       </div>
