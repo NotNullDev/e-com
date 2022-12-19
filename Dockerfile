@@ -14,7 +14,7 @@ RUN \
     fi
 
 COPY . .
-RUN npx primsa generate
+RUN yarn postinstall
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
