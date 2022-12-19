@@ -13,11 +13,8 @@ RUN \
     else echo "Lockfile not found." && exit 1; \
     fi
 
-
-# Rebuild the source code only when needed
-FROM node:16-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY /app/node_modules ./node_modules
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
@@ -26,6 +23,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV=production
 ARG NODE_ENV=production
+RUN ls
 RUN yarn build
 # If using npm comment out above and use below instead
 # RUN npm run build
