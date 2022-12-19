@@ -28,12 +28,11 @@ ENV NODE_ENV=production
 ARG NODE_ENV=production
 RUN npx prisma generate
 RUN yarn build
-
 # If using npm comment out above and use below instead
 # RUN npm run build
 
 # Production image, copy all the files and run next
-FROM node:16-alpine AS runner
+FROM node:18.12-alpine3.16 AS runnera
 WORKDIR /app
 
 ENV NODE_ENV production

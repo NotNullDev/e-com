@@ -271,7 +271,7 @@ const Product = ({ productInfo }: ProductProps) => {
   const [q, setQ] = useState(productInfo.quantity);
   const [deletePopupOpen, setDeletePopupOpen] = useState(false);
   return (
-    <div className="flex w-full items-center justify-between rounded-xl p-3 px-6 text-2xl">
+    <div className="flex w-full items-center justify-between rounded-xl p-3 px-6 text-xl">
       <h2 className="">{productInfo.title}</h2>
       <div className="flex items-center gap-4">
         <div className="relative">

@@ -49,7 +49,7 @@ export const NiceButton = ({
               newVal = 0;
             }
             newVal = Number(newVal);
-            if ((!newVal && newVal !== 0) || newVal === NaN) {
+            if (!newVal && newVal !== 0) {
               return;
             }
             setCurrentVal(newVal);
