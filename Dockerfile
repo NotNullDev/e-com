@@ -13,8 +13,6 @@ RUN \
     else echo "Lockfile not found." && exit 1; \
     fi
 
-WORKDIR /app
-COPY /app/node_modules ./node_modules
 COPY . .
 
 # Next.js collects completely anonymous telemetry data about general usage.
