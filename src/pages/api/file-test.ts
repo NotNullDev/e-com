@@ -184,7 +184,10 @@ async function saveFiles({
 const bucketName = process.env.GCLOUD_BUCKET_NAME || "";
 
 // Creates a client
-const storage = new Storage();
+const storage = new Storage({
+  token: process.env.GCLOUD_API_KEY,
+  projectId: process.env.GCLOUD_PROJECT_ID,
+});
 
 async function uploadFromMemory(file: formidable.File) {
   const fileContent = readFileSync(file.filepath);

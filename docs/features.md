@@ -9,6 +9,7 @@
   - [TODO](#todo)
   - [Optimalization](#optimalization)
   - [Bugs](#bugs)
+  - [API KEY](#api-key)
     - [Md playground](#md-playground)
   - [Example table](#example-table)
 
@@ -48,6 +49,10 @@ Design file: [Excalidraw file](pages.excalidraw)
 ## Bugs
 - [x] Fix bug with cart items count in header (it's not updating when you remove item from cart)
 
+## API KEY
+```bash
+gcloud auth print-access-token
+```
 ### Md playground
 
 ```json
