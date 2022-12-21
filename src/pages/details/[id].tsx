@@ -42,6 +42,17 @@ export default function ProductDetails() {
                         // }
                         placeholder="empty"
                       />
+                      {/* <img
+                        id={`item${idx + 1}`}
+                        src={i ?? ""}
+                        alt="hello!"
+                        height={600}
+                        width={600}
+                        className="rounded-t-xl"
+                        //   toast(`image ${idx} loaded! [TODO image loaders]`)
+                        // }
+                        placeholder="empty"
+                      /> */}
                     </div>
                   </>
                 ))}

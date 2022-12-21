@@ -19,7 +19,9 @@ const config = {
       "lh3.googleusercontent.com",
       "source.unsplash.com",
       "loremflickr.com",
+      "storage.cloud.google.com",
     ],
+    unoptimized: true,
   },
 };
 export default config;

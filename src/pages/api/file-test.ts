@@ -1,8 +1,11 @@
+import { Storage } from "@google-cloud/storage";
 import type { Category } from "@prisma/client";
 import formidable from "formidable";
+import { readFileSync } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerAuthSession } from "../../server/common/get-server-auth-session";
 import { prisma } from "../../server/db/client";
+import { IMAGE_URL_PREFIX } from "../../utils/CONST";
 
 //set bodyparser
 export const config = {
@@ -35,11 +38,13 @@ const a = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const files: formidable.File[] = [];
   const form = formidable({
-    uploadDir: "./public/images",
+    maxFileSize: 10 * 1024 * 1024,
   });
 
-  form.on("file", (field, file) => {
-    files.push(file);
+  form.on("file", async (field, file) => {
+    if (file.mimetype?.startsWith("image/")) {
+      files.push(file);
+    }
   });
 
   // form.once("end", () => {
@@ -96,11 +101,15 @@ const a = async (req: NextApiRequest, res: NextApiResponse) => {
 
         console.log(previewImage.originalFilename);
 
-        if (title === "" || description === "") {
-          throw new Error("Title and description are required fields.");
+        if (title === "") {
+          throw new Error("Title is required field.");
         }
 
-        saveFiles({
+        if (description === "") {
+          throw new Error("Description is required field.");
+        }
+
+        await saveFiles({
           categories: categories as Category[],
           description: description as string,
           files,
@@ -139,13 +148,21 @@ async function saveFiles({
   title,
   userId,
 }: ProductWriteModel) {
+  const fileUploadPromises: Promise<void>[] = [];
+
+  for (const f of files) {
+    fileUploadPromises.push(uploadFromMemory(f));
+  }
+
+  await Promise.all(fileUploadPromises);
+
   const created = await prisma.product.create({
     data: {
       title,
       description,
-      images: files.map((f) => `/images/${f.newFilename}`),
+      images: files.map((f) => `${IMAGE_URL_PREFIX}/${f.newFilename}`),
       boughtCount: 0,
-      previewImageUrl: `/images/${previewImage.newFilename}`,
+      previewImageUrl: `${IMAGE_URL_PREFIX}/${previewImage.newFilename}`,
       price,
       stock,
       dealType: "NONE",
@@ -158,6 +175,22 @@ async function saveFiles({
   });
 
   console.log(`Created product with id ${created.id}`);
+}
+
+/**
+ * TODO(developer): Uncomment the following lines before running the sample.
+ */
+// The ID of your GCS bucket
+const bucketName = process.env.GCLOUD_BUCKET_NAME || "";
+
+// Creates a client
+const storage = new Storage();
+
+async function uploadFromMemory(file: formidable.File) {
+  const fileContent = readFileSync(file.filepath);
+  const gCloudFile = storage.bucket(bucketName).file(file.newFilename);
+  await gCloudFile.save(fileContent);
+  // await gCloudFile.setMetadata({ contentType: file.mimetype });
 }
 
 export default a;
