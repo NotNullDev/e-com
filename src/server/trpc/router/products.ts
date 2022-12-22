@@ -244,4 +244,54 @@ export const productsRouter = router({
 
       return a;
     }),
+
+  createProduct: protectedProcedure
+    .input(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        fileUrls: z.array(z.string()),
+        previewImageUrl: z.string(),
+        price: z.number(),
+        stock: z.number(),
+        shippingTimeDays: z.number(),
+        categories: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const createdProduct = await ctx.prisma.product.create({
+        data: {
+          title: input.title,
+          description: input.description,
+          images: input.fileUrls,
+          previewImageUrl: input.previewImageUrl,
+          price: input.price,
+          stock: input.stock,
+          shippingTime: input.shippingTimeDays,
+          categories: input.categories as Category[],
+          userId: ctx.session?.user?.id,
+          dealType: "NONE",
+          boughtCount: 0,
+          rating: 0,
+          views: 0,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return createdProduct.id;
+    }),
 });
+
+export type CreateProductModel = {
+  title: string;
+  description: string;
+  fileUrls: string;
+  previewImageUrl: string;
+  price: number;
+  stock: number;
+  shippingTimeDays: number;
+  categories: Category[];
+  userId: string;
+};

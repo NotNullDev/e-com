@@ -12,6 +12,7 @@ import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
   const filters = productsStore((state) => state.filters);
+  const resetId = productsStore((state) => state.resetId);
   const filteredProducts = trpc.products.filtered.useQuery(filters, {
     onSuccess: (data) => {
       productsStore.setState((old) => {
@@ -42,7 +43,7 @@ const Home: NextPage = () => {
                 ))}
               </div>
               <div className="ml-3 h-[2px] w-10 bg-indigo-500"></div>
-              <SortComponent />
+              <SortComponent key={resetId} />
             </div>
           </div>
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">

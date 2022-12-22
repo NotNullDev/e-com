@@ -22,6 +22,8 @@ export type ProductsStoreType = {
   sorting: Sorting;
   setSorting: (sorting: Sorting) => void;
   products: Product[];
+  resetStore: () => void;
+  resetId: number;
 };
 
 export const getEmptyFilters = (): ProductsFilters => ({
@@ -78,6 +80,16 @@ export const productsStore = create<ProductsStoreType>()(
       });
     };
 
+    const resetStore = () => {
+      setState((old) => {
+        old.filters = getEmptyFilters();
+        old.products = [];
+        old.sorting = { price: undefined };
+        old.resetId = old.resetId + 1;
+        return old;
+      });
+    };
+
     return {
       filters: getEmptyFilters(),
       setFilters,
@@ -87,6 +99,8 @@ export const productsStore = create<ProductsStoreType>()(
       sorting: { price: undefined },
       setSorting,
       products: [],
+      resetStore,
+      resetId: 0,
     };
   })
 );

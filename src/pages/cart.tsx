@@ -51,13 +51,18 @@ const CartPage: NextPage = () => {
 
   const { success, canceled } = router.query;
 
-  if (success) {
-    return <div>Payment succeed</div>;
-  }
-
-  if (canceled) {
-    return <div>Payment canceled</div>;
-  }
+  useEffect(() => {
+    if (success) {
+      toast.success("Payment succeed", {
+        duration: 10000,
+      });
+    }
+    if (canceled) {
+      toast.error("Payment canceled", {
+        duration: 10000,
+      });
+    }
+  }, [success, canceled]);
 
   return (
     <div className="flex flex-1">

@@ -48,7 +48,7 @@ Design file: [Excalidraw file](pages.excalidraw)
 
 ## Bugs
 - [x] Fix bug with cart items count in header (it's not updating when you remove item from cart)
-
+- [x] State is not reseted and if search input is empty
 ## API KEY
 ```bash
 gcloud auth print-access-token

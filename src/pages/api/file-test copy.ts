@@ -29,7 +29,6 @@ type ProductWriteModel = {
 const apiKey = process.env.FILE_SERVER_API_KEY || "";
 
 const a = async (req: NextApiRequest, res: NextApiResponse) => {
-  if (1 === 1) throw "haha";
   const session = await getServerAuthSession({ req, res });
 
   if (!session?.user) {

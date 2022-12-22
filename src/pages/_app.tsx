@@ -117,7 +117,12 @@ const Header = () => {
   return (
     <header className="flex items-center justify-between p-6">
       <Toaster />
-      <Link href="/">
+      <Link
+        href="/"
+        onClick={() => {
+          productsStore.getState().resetStore();
+        }}
+      >
         <h1 className="text-2xl">The shop</h1>
       </Link>
       <form className="flex gap-2">

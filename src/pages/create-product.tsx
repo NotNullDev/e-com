@@ -1,6 +1,7 @@
 import { MantineProvider } from "@mantine/core";
 import { Link as MantineTiptapLink, RichTextEditor } from "@mantine/tiptap";
 import type { Category } from "@prisma/client";
+import { useMutation } from "@tanstack/react-query";
 import TipTapHightlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import SubScript from "@tiptap/extension-subscript";
@@ -18,6 +19,10 @@ import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { NiceButton } from "../components/NiceButton";
 import { getAllCategoriesAsString } from "../utils/enumParser";
+import { trpc } from "../utils/trpc";
+
+const NEXT_PUBLIC_IMAGE_SERVER_URL =
+  process.env.NEXT_PUBLIC_IMAGE_SERVER_URL || "";
 
 const CreateProductPage = () => {
   return (
@@ -34,8 +39,34 @@ const CreateProductPage = () => {
   );
 };
 
+const useUploadImagesMutation = () => {
+  const upload = async (images: File[]) => {
+    const form = new FormData();
+    for (const image of images) {
+      form.append("files", image);
+    }
+
+    const uploadFilesResponse = await fetch(NEXT_PUBLIC_IMAGE_SERVER_URL, {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
+
+    const uploadedFilesMapping: SavedFilesMapping[] =
+      await uploadFilesResponse.json();
+
+    return uploadedFilesMapping;
+  };
+  const uploadMutation = useMutation(["uploadImage"], upload);
+
+  return uploadMutation;
+};
+
 const CreateProductButton = () => {
   const router = useRouter();
+  const trpcContext = trpc.useContext();
+  const createProductMutation = trpc.products.createProduct.useMutation();
+  const uploadImagesMutation = useUploadImagesMutation();
 
   return (
     <>
@@ -43,11 +74,46 @@ const CreateProductButton = () => {
         <div
           className="btn-primary btn"
           onClick={async () => {
-            const created = await createProductPageStore
-              .getState()
-              .createProduct();
-            if (created) {
+            const mapping = await uploadImagesMutation.mutateAsync(
+              createProductPageStore.getState().product.files ?? [],
+              {
+                onError: (err) => {
+                  toast("Could not upload images to the file server.");
+                },
+              }
+            );
+
+            const previewImageUrl =
+              NEXT_PUBLIC_IMAGE_SERVER_URL +
+              "/" +
+              mapping.find(
+                (img) =>
+                  img.originalFileName ===
+                  createProductPageStore.getState().product
+                    .previewImageIdentificator.name
+              )?.newFileName;
+
+            const newFileNames = mapping.map(
+              (m) => NEXT_PUBLIC_IMAGE_SERVER_URL + "/" + m.newFileName
+            );
+
+            const mutationResult = await createProductMutation.mutateAsync({
+              title: createProductPageStore.getState().product.title,
+              description:
+                createProductPageStore.getState().product.description,
+              price: createProductPageStore.getState().product.price,
+              stock: createProductPageStore.getState().product.stock,
+              shippingTimeDays:
+                createProductPageStore.getState().product.shippingTime,
+              categories: createProductPageStore.getState().product.categories,
+              fileUrls: newFileNames ?? [],
+              previewImageUrl: previewImageUrl,
+            });
+
+            if (mutationResult) {
+              await trpcContext.products.getOwnProducts.invalidate();
               createProductPageStore.getState().resetStore();
+              toast("Product has been created successfully.");
               router.push("/account");
             }
           }}
@@ -378,6 +444,15 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
         files: form,
       });
 
+      const uploadFilesResponse = await fetch("http://localhost:4500", {
+        method: "POST",
+        body: form,
+        credentials: "include",
+      });
+
+      const uploadedFilesMapping: SavedFilesMapping =
+        await uploadFilesResponse.json();
+
       const resp = await fetch("/api/file-test", {
         method: "POST",
         body: form,
@@ -397,6 +472,8 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
         toast.error("File upload failed!");
         return false;
       }
+      const r = await resp.json();
+      toast(JSON.stringify(r));
 
       toast.success("Product created.");
       return true;
@@ -497,6 +574,11 @@ type CreateProductPageStoreType = {
   product: ProductModel;
   createProduct: () => Promise<boolean>;
   resetStore: () => void;
+};
+
+type SavedFilesMapping = {
+  originalFileName: string;
+  newFileName: string;
 };
 
 const initializeProductForUpdate = () => {
