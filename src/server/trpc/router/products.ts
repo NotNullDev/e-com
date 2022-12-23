@@ -107,7 +107,7 @@ export const productsRouter = router({
   filtered: publicProcedure
     .input(
       z.object({
-        titleContains: z.string(),
+        searchFilter: z.string(),
         categoriesIn: z.array(z.string()),
         limit: z.number().positive(),
         priceSort: z.string().nullable(),
@@ -152,7 +152,7 @@ export const productsRouter = router({
       const q = {
         where: {
           title: {
-            contains: input.titleContains,
+            contains: input.searchFilter,
             mode: "insensitive",
           },
           AND: [

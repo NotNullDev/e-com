@@ -24,7 +24,7 @@ const Home: NextPage = () => {
       });
     },
   });
-  const titleContains = productsStore((state) => state.filters.titleContains);
+  const searchFilter = productsStore((state) => state.filters.searchFilter);
   const [parent] = useAutoAnimate<HTMLDivElement>();
 
   const allCategories = [
@@ -47,11 +47,11 @@ const Home: NextPage = () => {
             </div>
           </div>
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
-            {titleContains &&
-              titleContains.trim().length !== 0 &&
-              'Products contains "' + filters.titleContains + '"'}
-            {(!filters.titleContains ||
-              filters.titleContains.trim().length === 0) &&
+            {searchFilter &&
+              searchFilter.trim().length !== 0 &&
+              'Products contains "' + filters.searchFilter + '"'}
+            {(!filters.searchFilter ||
+              filters.searchFilter.trim().length === 0) &&
               "All products"}
           </h2>
           <div className="grid grid-cols-5 gap-10" ref={parent}>

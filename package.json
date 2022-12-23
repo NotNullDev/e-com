@@ -41,7 +41,6 @@
     "@trpc/server": "^10.0.0",
     "daisyui": "^2.42.1",
     "formidable": "^2.1.1",
-    "i": "^0.3.7",
     "immer": "^9.0.16",
     "install": "^0.13.0",
     "next": "^13.0.2",
@@ -86,7 +85,7 @@
     "initVersion": "6.10.2"
   },
   "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} ./prisma/seed.ts"
   },
   "resolutions": {
     "prosemirror-model": "1.8.2",

@@ -4,14 +4,13 @@ import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 export type ProductsFilters = {
-  titleContains: string;
   categoriesIn: Category[];
   limit: number;
   priceSort: string | null;
   rating: number; // 1-5 , 0 = no rating
   productIds: string[];
-  searchFilter?: string; // old store
-  singleCategoryFilter?: string; // used for filtering on the top of the page
+  searchFilter: string; // old store
+  singleCategoryFilter: string; // used for filtering on the top of the page
   setSingleCategoryFilter?: (filter: string) => void; // used for filtering on the top of the page
 };
 export type Sorting = {
@@ -34,12 +33,13 @@ export type ProductsStoreType = {
 };
 
 export const getEmptyFilters = (): ProductsFilters => ({
-  titleContains: "",
   categoriesIn: [],
   limit: 30,
   priceSort: null,
   rating: 0,
   productIds: [],
+  searchFilter: "",
+  singleCategoryFilter: "",
 });
 
 export const productsStore = create<ProductsStoreType>()(
