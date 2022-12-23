@@ -10,61 +10,13 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
-import create from "zustand";
 import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
 import { cartStore } from "../lib/stores/cartStore";
 import { productsStore } from "../lib/stores/productsStore";
 import "../styles/globals.css";
-import { getAllCategoriesAsString as getAllCategoriesAsStrings } from "../utils/enumParser";
-
-type ProductSearchStoreType = {
-  categories: string[];
-  setFilter: (filter: string) => void;
-  filter: string;
-  selectedCategory: Category | null;
-  setSelectedCategory: (newCategory: Category | null) => void;
-  categoryDropdownOpen: boolean;
-  setCategoryDropdownOpen: (newState: boolean) => void;
-};
-
-const productsSearchStore = create<ProductSearchStoreType>()(
-  (setState, getState, store) => {
-    const allCategories = getAllCategoriesAsStrings();
-
-    const setFilter = (appliedFilter: string) => {
-      setState((oldState) => {
-        const filteredCategories = allCategories.filter((c) =>
-          c.toLowerCase().includes(appliedFilter.toLowerCase())
-        );
-        return {
-          ...oldState,
-          filter: appliedFilter,
-          categories: filteredCategories,
-        };
-      });
-    };
-
-    const setSelectedCategory = (newCategory: Category | null) => {
-      setState((old) => ({ ...old, selectedCategory: newCategory }));
-      productsStore.getState().addBasicFilters(getState().filter, newCategory);
-    };
-
-    const setCategoryDropdownOpen = (newState: boolean) => {
-      setState((old) => ({ ...old, categoryDropdownOpen: newState }));
-    };
-
-    return {
-      categories: allCategories,
-      setFilter,
-      selectedCategory: null,
-      setSelectedCategory,
-      categoryDropdownOpen: false,
-      setCategoryDropdownOpen,
-      filter: "",
-    };
-  }
-);
+import { Converters } from "../utils/convertes";
+import { getAllCategoriesAsString } from "../utils/enumParser";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -232,14 +184,18 @@ const Header = () => {
 const ProductSearchDropdown = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const searchListElement = useRef<HTMLUListElement>(null);
-  const selectedCategory = productsSearchStore(
-    (state) => state.selectedCategory
+  const selectedCategories = productsStore(
+    (state) => state.filters.categoriesIn
+  );
+  const selectedCategory = productsStore(
+    (state) => state.filters.singleCategoryFilter
   );
   const trpcContext = trpc.useContext();
+
   const products = trpc.products.searchForProduct.useQuery({
     searchQuery: inputValue ?? "",
     limit: 10,
-    category: selectedCategory,
+    category: selectedCategory ?? null,
   });
   const router = useRouter();
 
@@ -254,10 +210,12 @@ const ProductSearchDropdown = () => {
             placeholder="I am looking for..."
             onChange={(e) => {
               setInputValue(e?.currentTarget?.value ?? "");
-              productsSearchStore.setState((old) => ({
-                ...old,
-                filter: e.currentTarget?.value ?? "",
-              }));
+
+              productsStore.setState((old) => {
+                old.filters.searchFilter = e.currentTarget?.value ?? "";
+                return old;
+              });
+
               trpcContext.products.searchForProduct.invalidate();
             }}
           />
@@ -321,18 +279,14 @@ const ProductSearchDropdown = () => {
 const CategoryDropdown = () => {
   const id = useId();
   const router = useRouter();
-  const setFilter = productsSearchStore((state) => state.setFilter);
-  const filter = productsSearchStore((state) => state.filter);
   const [val, setVal] = useState<string>("");
-  const selectedCategory = productsSearchStore(
-    (state) => state.selectedCategory
+  const selectedCategory = productsStore(
+    (state) => state.filters.singleCategoryFilter
   );
-  const categories = productsSearchStore((state) => state.categories);
-  const categoriesRef = useRef<HTMLUListElement>(null);
+  const dropdownOpen = productsStore((state) => state.categoryDropdownOpen);
+  const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
 
-  const dropdownOpen = productsSearchStore(
-    (state) => state.categoryDropdownOpen
-  );
+  const categoriesRef = useRef<HTMLUListElement>(null);
 
   const openStyle = useMemo(() => {
     const style = dropdownOpen ? "" : "hidden";
@@ -341,7 +295,14 @@ const CategoryDropdown = () => {
 
   useEffect(() => {
     setVal(selectedCategory?.replaceAll("_", " ") ?? "");
+    setFilteredCategories(getAllCategoriesAsString());
   }, [selectedCategory]);
+
+  useEffect(() => {
+    setFilteredCategories(
+      getAllCategoriesAsString().filter((c) => c.includes(val))
+    );
+  }, [val]);
 
   return (
     <>
@@ -352,14 +313,15 @@ const CategoryDropdown = () => {
             searchListRef={categoriesRef}
             value={val}
             onFocus={() =>
-              productsSearchStore.getState().setCategoryDropdownOpen(true)
+              productsStore.setState((old) => {
+                old.categoryDropdownOpen = true;
+              })
             }
             tabIndex={0}
             className="input"
             placeholder="In category..."
             onChange={(e) => {
               setVal(e.currentTarget.value);
-              setFilter(e.currentTarget.value);
             }}
           />
           <button
@@ -370,12 +332,16 @@ const CategoryDropdown = () => {
               e.currentTarget.focus();
               e.currentTarget.blur();
               await router.push("/");
-              productsStore
-                .getState()
-                .addBasicFilters(
-                  productsSearchStore.getState().filter,
-                  productsSearchStore.getState().selectedCategory
-                );
+              productsStore.setState((old) => {
+                old.filters.categoriesIn = [
+                  old.filters.singleCategoryFilter?.replaceAll(
+                    " ",
+                    "_"
+                  ) as Category,
+                ];
+                old.filters.searchFilter = val;
+                old.resetId = old.resetId + 1;
+              });
             }}
           >
             <svg
@@ -404,22 +370,31 @@ const CategoryDropdown = () => {
             className=""
             key={"ALL_CATEGORIES"}
             onClick={() => {
-              productsSearchStore.getState().setSelectedCategory(null);
-              productsSearchStore.getState().setCategoryDropdownOpen(false);
+              productsStore.setState((state) => {
+                state.filters.singleCategoryFilter = undefined;
+                state.filters.categoriesIn = [];
+              });
+              productsStore.setState((old) => {
+                old.categoryDropdownOpen = false;
+              });
             }}
           >
             <a>All categories</a>
           </li>
-          {categories.map((c, idx) => (
+          {filteredCategories.map((c, idx) => (
             <li
               tabIndex={0}
               className=""
               key={c}
               onClick={() => {
-                productsSearchStore
-                  .getState()
-                  .setSelectedCategory(c.replaceAll(" ", "_") as Category);
-                productsSearchStore.getState().setCategoryDropdownOpen(false);
+                productsStore.setState((old) => {
+                  const converted = Converters.stringToCategory(c);
+                  old.filters.singleCategoryFilter = converted;
+                  old.filters.categoriesIn = [converted];
+                });
+                productsStore.setState((old) => {
+                  old.categoryDropdownOpen = false;
+                });
               }}
             >
               <a>{c}</a>
@@ -432,10 +407,10 @@ const CategoryDropdown = () => {
 };
 
 export const CategoriesPicker = () => {
-  const categories = productsSearchStore((state) => state.categories);
-  const selectedCategory = productsSearchStore(
-    (state) => state.selectedCategory
+  const selectedCategory = productsStore(
+    (state) => state.filters.singleCategoryFilter
   );
+  const allCategories = getAllCategoriesAsString();
 
   return (
     <div key={selectedCategory}>
@@ -444,20 +419,24 @@ export const CategoriesPicker = () => {
         className="bg-base-200"
         key={"ALL_CATEGORIES"}
         onClick={() => {
-          productsSearchStore.getState().setSelectedCategory(null);
-          productsSearchStore.getState().setCategoryDropdownOpen(false);
+          productsStore.getState().setSelectedCategory(null);
+          productsStore.setState((old) => {
+            old.categoryDropdownOpen = false;
+          });
         }}
       >
         <a>All categories</a>
       </li>
-      {categories.map((c, idx) => (
+      {allCategories.map((c, idx) => (
         <li
           tabIndex={0}
           className="bg-base-200"
           key={c}
           onClick={() => {
-            productsSearchStore.getState().setSelectedCategory(c as Category);
-            productsSearchStore.getState().setCategoryDropdownOpen(false);
+            productsStore.getState().setSelectedCategory(c as Category);
+            productsStore.setState((old) => {
+              old.categoryDropdownOpen = false;
+            });
           }}
         >
           <a>{c}</a>

@@ -1,4 +1,5 @@
 import type { Category, Product } from "@prisma/client";
+import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 
@@ -9,6 +10,9 @@ export type ProductsFilters = {
   priceSort: string | null;
   rating: number; // 1-5 , 0 = no rating
   productIds: string[];
+  searchFilter?: string; // old store
+  singleCategoryFilter?: string; // used for filtering on the top of the page
+  setSingleCategoryFilter?: (filter: string) => void; // used for filtering on the top of the page
 };
 export type Sorting = {
   price: "asc" | "desc" | undefined;
@@ -18,12 +22,15 @@ export type ProductsStoreType = {
   setFilters: (filters: ProductsFilters) => void;
   removeCategory: (category: Category) => void;
   addCategory: (category: Category) => void;
-  addBasicFilters: (titleContains: string, c: Category | null) => void;
+  addBasicFilters: () => void;
   sorting: Sorting;
   setSorting: (sorting: Sorting) => void;
   products: Product[];
-  resetStore: () => void;
   resetId: number;
+  // old store
+  setSelectedCategory: (newCategory: Category | null) => void;
+  categoryDropdownOpen: boolean;
+  resetStore: () => void;
 };
 
 export const getEmptyFilters = (): ProductsFilters => ({
@@ -61,15 +68,8 @@ export const productsStore = create<ProductsStoreType>()(
       });
     };
 
-    const addBasicFilters = (titleContains: string, c: Category | null) => {
-      setState((old) => ({
-        ...old,
-        filters: {
-          ...old.filters,
-          categoriesIn: c ? [c] : [],
-          titleContains,
-        },
-      }));
+    const addBasicFilters = () => {
+      toast.error("TODO");
     };
 
     const setSorting = (sorting: Sorting) => {
@@ -90,6 +90,11 @@ export const productsStore = create<ProductsStoreType>()(
       });
     };
 
+    const setSelectedCategory = (newCategory: Category | null) => {
+      setState((old) => ({ ...old, selectedCategory: newCategory }));
+      productsStore.getState().addBasicFilters();
+    };
+
     return {
       filters: getEmptyFilters(),
       setFilters,
@@ -101,6 +106,8 @@ export const productsStore = create<ProductsStoreType>()(
       products: [],
       resetStore,
       resetId: 0,
+      categoryDropdownOpen: false,
+      setSelectedCategory,
     };
   })
 );

@@ -45,6 +45,7 @@ Design file: [Excalidraw file](pages.excalidraw)
 - [ ] deploy new version with file server
 - [ ] edit product page
 - [ ] merge product store and product search store
+- [ ] make all stores use immer (remove all setters)
 
 ## Optimalization
 - [ ] Rerendering optimization
