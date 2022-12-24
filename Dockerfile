@@ -14,6 +14,7 @@ RUN \
     fi
 
 COPY . .
+RUN ls -lah
 RUN yarn postinstall
 
 # Next.js collects completely anonymous telemetry data about general usage.
