@@ -183,8 +183,9 @@ const Header = () => {
 const ProductSearchDropdown = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const searchListElement = useRef<HTMLUListElement>(null);
-  const resetId = productsStore((state) => state.resetId);
   const trpcContext = trpc.useContext();
+  const searchFilter = productsStore((state) => state.filters.searchFilter);
+  const resetId = productsStore((state) => state.resetId);
 
   const products = trpc.products.searchForProduct.useQuery({
     searchQuery: inputValue ?? "",
@@ -202,9 +203,9 @@ const ProductSearchDropdown = () => {
       <div className="dropdown" key={router.asPath}>
         <div className="relative">
           <SearchWithNavigation
+            key={resetId}
             searchListRef={searchListElement}
             className="input"
-            key={resetId}
             focusOnCtrlK
             placeholder="I am looking for..."
             onChange={(e) => {
@@ -280,7 +281,6 @@ const CategoryDropdown = () => {
     (state) => state.filters.singleCategoryFilter
   );
   const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
-
   const categoriesRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
@@ -314,39 +314,6 @@ const CategoryDropdown = () => {
               setVal(e.currentTarget.value);
             }}
           />
-          <button
-            className="btn-square btn"
-            tabIndex={0}
-            onClick={async (e) => {
-              e.preventDefault();
-              e.currentTarget.focus();
-              e.currentTarget.blur();
-              await router.push("/");
-              productsStore.setState((old) => {
-                if (!old.filters.singleCategoryFilter) {
-                  old.filters.categoriesIn = [];
-                } else {
-                  old.filters.categoriesIn = [old.filters.singleCategoryFilter];
-                }
-                old.resetId = old.resetId + 1;
-              });
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
         </div>
         <ul
           className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow`}
@@ -390,6 +357,39 @@ const CategoryDropdown = () => {
           ))}
         </ul>
       </div>
+      <button
+        className="btn-square btn"
+        tabIndex={0}
+        onClick={async (e) => {
+          e.preventDefault();
+          e.currentTarget.focus();
+          e.currentTarget.blur();
+          await router.push("/");
+          productsStore.setState((old) => {
+            if (!old.filters.singleCategoryFilter) {
+              old.filters.categoriesIn = [];
+            } else {
+              old.filters.categoriesIn = [old.filters.singleCategoryFilter];
+            }
+            old.resetId = old.resetId + 1;
+          });
+        }}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+      </button>
     </>
   );
 };

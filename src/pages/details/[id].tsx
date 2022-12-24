@@ -6,6 +6,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { NiceButton } from "../../components/NiceButton";
 import { cartStore } from "../../lib/stores/cartStore";
+import { Converters } from "../../utils/convertes";
 import { trpc } from "../../utils/trpc";
 
 export default function ProductDetails() {
@@ -96,7 +97,7 @@ export default function ProductDetails() {
         <div className="mt-3 flex w-full items-end justify-end gap-3">
           {data.data?.categories.map((c) => (
             <div key={c} className="rounded-xl bg-slate-700 p-1 px-3">
-              {c}
+              {Converters.categoryToString(c)}
             </div>
           ))}
         </div>
