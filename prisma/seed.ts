@@ -8,6 +8,13 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("hi!");
 
+  const u = await prisma.user.findFirst();
+
+  if (u) {
+    console.log("Database is already populated. Exiting...");
+    return;
+  }
+
   const initUser = {
     email: "admin@notnulldev.com",
     roles: ["ADMIN"],
