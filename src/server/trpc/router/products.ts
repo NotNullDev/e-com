@@ -1,5 +1,6 @@
 import type { Category, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import toast from "react-hot-toast";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 
@@ -55,6 +56,8 @@ export const productsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { searchQuery, limit, category } = input;
+
+      toast("Aa");
 
       const q =
         searchQuery === ""

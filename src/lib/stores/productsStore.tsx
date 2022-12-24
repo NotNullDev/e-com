@@ -10,7 +10,7 @@ export type ProductsFilters = {
   rating: number; // 1-5 , 0 = no rating
   productIds: string[];
   searchFilter: string; // old store
-  singleCategoryFilter: string; // used for filtering on the top of the page
+  singleCategoryFilter?: Category; // used for filtering on the top of the page
   setSingleCategoryFilter?: (filter: string) => void; // used for filtering on the top of the page
 };
 export type Sorting = {
@@ -39,7 +39,7 @@ export const getEmptyFilters = (): ProductsFilters => ({
   rating: 0,
   productIds: [],
   searchFilter: "",
-  singleCategoryFilter: "",
+  singleCategoryFilter: undefined,
 });
 
 export const productsStore = create<ProductsStoreType>()(

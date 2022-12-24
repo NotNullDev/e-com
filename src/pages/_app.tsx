@@ -4,11 +4,10 @@ import { type AppType } from "next/app";
 
 import { trpc } from "../utils/trpc";
 
-import type { Category } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
@@ -184,20 +183,19 @@ const Header = () => {
 const ProductSearchDropdown = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const searchListElement = useRef<HTMLUListElement>(null);
-  const selectedCategories = productsStore(
-    (state) => state.filters.categoriesIn
-  );
-  const selectedCategory = productsStore(
-    (state) => state.filters.singleCategoryFilter
-  );
+  const resetId = productsStore((state) => state.resetId);
   const trpcContext = trpc.useContext();
 
   const products = trpc.products.searchForProduct.useQuery({
     searchQuery: inputValue ?? "",
     limit: 10,
-    category: selectedCategory ?? null,
+    category: productsStore.getState().filters.singleCategoryFilter ?? null,
   });
   const router = useRouter();
+
+  useEffect(() => {
+    trpcContext.products.searchForProduct.invalidate();
+  }, [inputValue]);
 
   return (
     <>
@@ -206,17 +204,15 @@ const ProductSearchDropdown = () => {
           <SearchWithNavigation
             searchListRef={searchListElement}
             className="input"
+            key={resetId}
             focusOnCtrlK
             placeholder="I am looking for..."
             onChange={(e) => {
-              setInputValue(e?.currentTarget?.value ?? "");
-
-              productsStore.setState((old) => {
-                old.filters.searchFilter = e.currentTarget?.value ?? "";
-                return old;
+              const searchPhrase = e?.currentTarget?.value ?? "";
+              setInputValue(searchPhrase);
+              productsStore.setState((state) => {
+                state.filters.searchFilter = searchPhrase;
               });
-
-              trpcContext.products.searchForProduct.invalidate();
             }}
           />
           <div className="absolute top-1/2 right-3 -translate-y-1/2">
@@ -267,7 +263,7 @@ const ProductSearchDropdown = () => {
                 );
               })
             ) : (
-              <div>Not found</div>
+              <div className="p-3">Not found</div>
             ))}
           {products.status === "error" && <div>ERROR</div>}
         </ul>
@@ -283,18 +279,12 @@ const CategoryDropdown = () => {
   const selectedCategory = productsStore(
     (state) => state.filters.singleCategoryFilter
   );
-  const dropdownOpen = productsStore((state) => state.categoryDropdownOpen);
   const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
 
   const categoriesRef = useRef<HTMLUListElement>(null);
 
-  const openStyle = useMemo(() => {
-    const style = dropdownOpen ? "" : "hidden";
-    return style;
-  }, [dropdownOpen]);
-
   useEffect(() => {
-    setVal(selectedCategory?.replaceAll("_", " ") ?? "");
+    setVal(Converters.categoryToString(selectedCategory));
     setFilteredCategories(getAllCategoriesAsString());
   }, [selectedCategory]);
 
@@ -333,13 +323,11 @@ const CategoryDropdown = () => {
               e.currentTarget.blur();
               await router.push("/");
               productsStore.setState((old) => {
-                old.filters.categoriesIn = [
-                  old.filters.singleCategoryFilter?.replaceAll(
-                    " ",
-                    "_"
-                  ) as Category,
-                ];
-                old.filters.searchFilter = val;
+                if (!old.filters.singleCategoryFilter) {
+                  old.filters.categoriesIn = [];
+                } else {
+                  old.filters.categoriesIn = [old.filters.singleCategoryFilter];
+                }
                 old.resetId = old.resetId + 1;
               });
             }}
@@ -412,6 +400,11 @@ export const CategoriesPicker = () => {
   );
   const allCategories = getAllCategoriesAsString();
 
+  useEffect(() => {
+    if (!selectedCategory) {
+    }
+  }, [selectedCategory]);
+
   return (
     <div key={selectedCategory}>
       <li
@@ -419,9 +412,9 @@ export const CategoriesPicker = () => {
         className="bg-base-200"
         key={"ALL_CATEGORIES"}
         onClick={() => {
-          productsStore.getState().setSelectedCategory(null);
           productsStore.setState((old) => {
             old.categoryDropdownOpen = false;
+            old.filters.singleCategoryFilter = undefined;
           });
         }}
       >
@@ -433,9 +426,9 @@ export const CategoriesPicker = () => {
           className="bg-base-200"
           key={c}
           onClick={() => {
-            productsStore.getState().setSelectedCategory(c as Category);
             productsStore.setState((old) => {
               old.categoryDropdownOpen = false;
+              old.filters.singleCategoryFilter = Converters.stringToCategory(c);
             });
           }}
         >

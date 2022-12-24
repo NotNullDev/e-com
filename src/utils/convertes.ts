@@ -5,7 +5,7 @@ export class Converters {
     return category.replaceAll(" ", "_") as Category;
   }
 
-  static categoryToString(category: Category): string {
-    return category.replaceAll("_", " ");
+  static categoryToString(category?: Category): string {
+    return category?.replaceAll("_", " ") ?? "";
   }
 }

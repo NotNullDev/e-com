@@ -11,20 +11,21 @@ import { productsStore } from "../lib/stores/productsStore";
 import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
-  const filters = productsStore((state) => state.filters);
   const resetId = productsStore((state) => state.resetId);
-  const filteredProducts = trpc.products.filtered.useQuery(filters, {
-    onSuccess: (data) => {
-      productsStore.setState((old) => {
-        if (filteredProducts.data) {
-          old.products = data;
-        } else {
-          old.products = [];
-        }
-      });
-    },
-  });
-  const searchFilter = productsStore((state) => state.filters.searchFilter);
+  const filteredProducts = trpc.products.filtered.useQuery(
+    productsStore.getState().filters,
+    {
+      onSuccess: (data) => {
+        productsStore.setState((old) => {
+          if (filteredProducts.data) {
+            old.products = data;
+          } else {
+            old.products = [];
+          }
+        });
+      },
+    }
+  );
   const [parent] = useAutoAnimate<HTMLDivElement>();
 
   const allCategories = [
@@ -47,12 +48,7 @@ const Home: NextPage = () => {
             </div>
           </div>
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
-            {searchFilter &&
-              searchFilter.trim().length !== 0 &&
-              'Products contains "' + filters.searchFilter + '"'}
-            {(!filters.searchFilter ||
-              filters.searchFilter.trim().length === 0) &&
-              "All products"}
+            <ProductsTitle key={resetId} />
           </h2>
           <div className="grid grid-cols-5 gap-10" ref={parent}>
             {filteredProducts.status === "success" && (
@@ -68,6 +64,18 @@ const Home: NextPage = () => {
         </div>
       </div>
     </>
+  );
+};
+
+const ProductsTitle = () => {
+  const filters = productsStore.getState().filters;
+  return (
+    <div>
+      {filters.searchFilter &&
+        'Products contains "' + filters.searchFilter + '"'}
+      {(!filters.searchFilter || filters.searchFilter.trim().length === 0) &&
+        "All products"}
+    </div>
   );
 };
 
@@ -241,6 +249,7 @@ const SortComponent = () => {
   const [sort, setSort] = useState<Sorting>({
     price: undefined,
   });
+  const trpcContext = trpc.useContext();
   const ascRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLDivElement>(null);
 
@@ -277,7 +286,7 @@ const SortComponent = () => {
   }, [sort]);
 
   return (
-    <div className="flex gap-3 rounded-xl">
+    <div className="flex items-center gap-3 rounded-xl">
       <div
         ref={ascRef}
         className="cursor-pointer  rounded-xl p-1 px-5"
@@ -301,6 +310,23 @@ const SortComponent = () => {
           });
         }}
       />
+      <button
+        className=" btn-ghost btn-sm btn ml-6 shadow shadow-gray-900"
+        onClick={() => {
+          trpcContext.products.filtered.invalidate();
+        }}
+      >
+        apply filters
+      </button>
+      <button
+        className=" btn-ghost btn-sm btn  shadow shadow-gray-900"
+        onClick={() => {
+          productsStore.getState().resetStore();
+          trpcContext.products.filtered.invalidate();
+        }}
+      >
+        clear filters
+      </button>
     </div>
   );
 };
