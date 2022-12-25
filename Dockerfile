@@ -1,11 +1,13 @@
 # Install dependencies only when needed
-FROM node:18.12.1-alpine3.16 AS builder
+FROM node:18.0-bullseye AS builder
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+COPY . .
+
 # Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+# COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 RUN \
     if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
     elif [ -f package-lock.json ]; then npm ci; \
@@ -13,8 +15,8 @@ RUN \
     else echo "Lockfile not found." && exit 1; \
     fi
 
-COPY . .
 RUN ls -lah
+RUN npx prisma generate
 RUN yarn postinstall
 
 # Next.js collects completely anonymous telemetry data about general usage.
