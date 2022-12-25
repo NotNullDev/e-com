@@ -1,13 +1,17 @@
 # Install dependencies only when needed
-FROM node:18.12.1-bullseye AS builder
+FROM node:18.12.1-alpine AS node_modules
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-USER root
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+RUN yarn --frozen-lockfile
+
+FROM node:18.12.1-bullseye AS builder
 
 WORKDIR /app
-COPY . .
-RUN ls -lah
 
-RUN yarn
+COPY . .
+COPY --from=node_modules /app/node_modules ./node_modules
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
