@@ -63,6 +63,7 @@ ENV GCLOUD_PROJECT_ID=$GCLOUD_PROJECT_ID
 ARG GCLOUD_API_KEY=$GCLOUD_API_KEY
 ENV GCLOUD_API_KEY=$GCLOUD_API_KEY
 
+RUN yarn postinstall
 RUN yarn build
 # If using npm comment out above and use below instead
 # RUN npm run build
