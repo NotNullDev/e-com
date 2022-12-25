@@ -1,28 +1,16 @@
 # Install dependencies only when needed
-FROM node:18.0-bullseye AS builder
+FROM node:18.12.1-bullseye AS builder
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 USER root
 
 WORKDIR /app
 COPY . .
-
-# Install dependencies based on the preferred package manager
-# COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN \
-    if [ -f yarn.lock ]; then yarn \
-    elif [ -f package-lock.json ]; then npm ci; \
-    elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
-    else echo "Lockfile not found." && exit 1; \
-    fi
-
 RUN ls -lah
-RUN npx prisma generate
-RUN yarn postinstall
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
+RUN yarn
+
 ENV NEXT_TELEMETRY_DISABLED 1
+
 ENV NODE_ENV=production
 ARG NODE_ENV=production
 ARG DATABASE_URL=$DATABASE_URL
@@ -60,7 +48,6 @@ ENV GCLOUD_PROJECT_ID=$GCLOUD_PROJECT_ID
 ARG GCLOUD_API_KEY=$GCLOUD_API_KEY
 ENV GCLOUD_API_KEY=$GCLOUD_API_KEY
 
-RUN ls
 RUN yarn build
 # If using npm comment out above and use below instead
 # RUN npm run build
@@ -72,22 +59,20 @@ WORKDIR /app
 USER root
 
 ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT 3000
 
 COPY --from=builder /app/public ./public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder  /app/.next/standalone ./
+COPY --from=builder  /app/.next/static ./.next/static
+
+COPY --from=builder  /app/prisma /app/prisma
+COPY --from=builder  /app/entrypoint.sh /app/entrypoint.sh
 
 EXPOSE 3000
 
-ENV PORT 3000
-
 ENV NODE_ENV production
-CMD ["node", "server.js"]
+CMD [ "bash", "./entrypoint.sh" ]

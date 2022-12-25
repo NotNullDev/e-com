@@ -2,4 +2,8 @@
 env
 
 ls
-node .next/standalone/server.js
+
+npx prisma db push
+npx prisma db seed
+
+node server.js
