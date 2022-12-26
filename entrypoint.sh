@@ -7,5 +7,5 @@ if test "$INIT_DB" = "true"; then
   npx prisma db seed
 fi
 
-#yarn start
-sleep 360000s
+yarn start
+# sleep 360000s
