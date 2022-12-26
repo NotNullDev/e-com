@@ -47,6 +47,7 @@ const useUploadImagesMutation = () => {
     }
 
     toast("Uploading files to " + NEXT_PUBLIC_IMAGE_SERVER_URL);
+    console.log("Uploading files to " + NEXT_PUBLIC_IMAGE_SERVER_URL);
     const uploadFilesResponse = await fetch(NEXT_PUBLIC_IMAGE_SERVER_URL, {
       method: "POST",
       body: form,
