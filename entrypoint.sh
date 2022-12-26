@@ -7,4 +7,4 @@ if test "$INIT_DB" = "true"; then
   npx prisma db seed
 fi
 
-node server.js --hostname 0.0.0.0
+yarn start

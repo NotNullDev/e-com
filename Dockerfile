@@ -15,9 +15,9 @@ COPY --from=node_modules /app/node_modules ./node_modules
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
+ARG NODE_ENV=production
 ENV NODE_ENV=production
 
-ARG NODE_ENV=production
 ARG DATABASE_URL=$DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 
@@ -68,25 +68,25 @@ RUN yarn build
 # If using npm comment out above and use below instead
 # RUN npm run build
 
-# Production image, copy all the files and run next
-FROM node:18.12.1-alpine3.16 AS runner
-WORKDIR /app
+# # Production image, copy all the files and run next
+# FROM node:18.12.1-alpine3.16 AS runner
+# WORKDIR /app
 
-USER root
+# USER root
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV PORT 3000
+# ENV NODE_ENV production
+# ENV NEXT_TELEMETRY_DISABLED 1
+# ENV PORT 3000
 
-COPY --from=builder /app/public ./public
+# COPY --from=builder /app/public ./public
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder  /app/.next/standalone ./
-COPY --from=builder  /app/.next/static ./.next/static
+# # Automatically leverage output traces to reduce image size
+# # https://nextjs.org/docs/advanced-features/output-file-tracing
+# COPY --from=builder  /app/.next/standalone ./
+# COPY --from=builder  /app/.next/static ./.next/static
 
-COPY --from=builder  /app/prisma /app/prisma
-COPY --from=builder  /app/entrypoint.sh /app/entrypoint.sh
+# COPY --from=builder  /app/prisma /app/prisma
+# COPY --from=builder  /app/entrypoint.sh /app/entrypoint.sh
 
 EXPOSE 3000
 
