@@ -23,7 +23,7 @@ import { trpc } from "../utils/trpc";
 
 export const NEXT_PUBLIC_IMAGE_SERVER_URL =
   // "https://file-server.notnulldev.com";
-  "/api/files";
+  "file-server.localhost";
 
 const CreateProductPage = () => {
   return (
