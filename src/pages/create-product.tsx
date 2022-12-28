@@ -22,8 +22,7 @@ import { getAllCategoriesAsString } from "../utils/enumParser";
 import { trpc } from "../utils/trpc";
 
 export const NEXT_PUBLIC_IMAGE_SERVER_URL =
-  // "https://file-server.notnulldev.com";
-  "file-server.localhost";
+  "https://file-server.notnulldev.com";
 
 const CreateProductPage = () => {
   return (
