@@ -11,6 +11,7 @@ import Underline from "@tiptap/extension-underline";
 import type { AnyExtension } from "@tiptap/react";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -39,13 +40,21 @@ const CreateProductPage = () => {
 };
 
 const useUploadImagesMutation = () => {
-  const upload = async (images: File[]) => {
+  const upload = async ({
+    images,
+    payload,
+  }: {
+    images: File[];
+    payload: any;
+  }) => {
     const form = new FormData();
     for (const image of images) {
       form.append("files", image);
     }
+    form.append("secret-data", payload);
     toast("Uploading files to " + NEXT_PUBLIC_IMAGE_SERVER_URL);
     console.log("Uploading files to " + NEXT_PUBLIC_IMAGE_SERVER_URL);
+
     const uploadFilesResponse = await fetch(NEXT_PUBLIC_IMAGE_SERVER_URL, {
       method: "POST",
       body: form,
@@ -66,7 +75,9 @@ const CreateProductButton = () => {
   const router = useRouter();
   const trpcContext = trpc.useContext();
   const createProductMutation = trpc.products.createProduct.useMutation();
+  const session = useSession();
   const uploadImagesMutation = useUploadImagesMutation();
+  const singedUserData = trpc.auth.signObject.useQuery(JSON.stringify(session));
 
   return (
     <>
@@ -75,7 +86,10 @@ const CreateProductButton = () => {
           className="btn-primary btn"
           onClick={async () => {
             const mapping = await uploadImagesMutation.mutateAsync(
-              createProductPageStore.getState().product.files ?? [],
+              {
+                images: createProductPageStore.getState().product.files ?? [],
+                payload: singedUserData.data ?? "",
+              },
               {
                 onError: (err) => {
                   toast("Could not upload images to the file server.");
