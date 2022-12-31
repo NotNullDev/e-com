@@ -250,9 +250,10 @@ export const productsRouter = router({
       return a;
     }),
 
-  createProduct: protectedProcedure
+  upsertProduct: protectedProcedure
     .input(
       z.object({
+        id: z.string().nullable(),
         title: z.string(),
         description: z.string(),
         fileUrls: z.array(z.string()),
@@ -264,8 +265,11 @@ export const productsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const createdProduct = await ctx.prisma.product.create({
-        data: {
+      const createdProduct = await ctx.prisma.product.upsert({
+        where: {
+          id: input.id ?? "",
+        },
+        create: {
           title: input.title,
           description: input.description,
           images: input.fileUrls,
@@ -279,6 +283,18 @@ export const productsRouter = router({
           boughtCount: 0,
           rating: 0,
           views: 0,
+        },
+        update: {
+          title: input.title,
+          description: input.description,
+          images: {
+            push: input.fileUrls,
+          },
+          previewImageUrl: input.previewImageUrl,
+          price: input.price,
+          stock: input.stock,
+          shippingTime: input.shippingTimeDays,
+          categories: input.categories as Category[],
         },
         select: {
           id: true,

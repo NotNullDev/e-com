@@ -1,13 +1,16 @@
 import type { Product } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
 import ButtonEdit from "../components/ButtonEdit";
 import ButtonTrash from "../components/ButtonTrash";
 import { GlobalModalController } from "../components/GlobalModal";
+import { EXISTING_IMAGE } from "../utils/CONST";
 import { trpc } from "../utils/trpc";
+import { createProductPageStore } from "./create-product";
 
 type AccountPageStoreType = {
   products: Product[];
@@ -40,7 +43,14 @@ const AccountPage = () => {
     <div className="flex flex-1 flex-col gap-6 p-8 text-3xl">
       <div className="flex w-full justify-between">
         <h1 className="flex ">My products</h1>
-        <Link href="/create-product">
+        <Link
+          href="/create-product"
+          onClick={() => {
+            createProductPageStore.setState((state) => {
+              state.isUpdating = false;
+            });
+          }}
+        >
           <button className="btn-primary btn">Add product</button>
         </Link>
       </div>
@@ -103,6 +113,7 @@ type SingleItemPrevProps = {
 };
 
 const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
+  const router = useRouter();
   return (
     <div className="flex w-full items-center rounded-xl border-indigo-600 shadow shadow-gray-900 hover:bg-primary-focus">
       <Link className="flex w-full p-4" href={`/details/${product.id}`}>
@@ -120,8 +131,27 @@ const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
       <div className="ml-6 flex gap-4 p-4">
         <Link
           href="/create-product"
-          onClick={(e) => {
-            toast("hm");
+          onClick={async (e) => {
+            createProductPageStore.getState().resetStore();
+            createProductPageStore.setState((state) => {
+              state.product = product;
+              state.isUpdating = true;
+            });
+
+            // TODO: it is not most efficient way to do this xD
+            for (const url of product.images) {
+              const response = await fetch(url);
+              const blob = await response.blob();
+              const file = new File([blob], EXISTING_IMAGE, {
+                type: blob.type,
+              });
+
+              createProductPageStore.setState((state) => {
+                state.files.push(file);
+              });
+            }
+
+            router.push("/create-product");
             e.preventDefault();
           }}
         >

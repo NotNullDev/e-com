@@ -1,6 +1,6 @@
 import { MantineProvider } from "@mantine/core";
 import { Link as MantineTiptapLink, RichTextEditor } from "@mantine/tiptap";
-import type { Category } from "@prisma/client";
+import type { Category, DealType, Product } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import TipTapHightlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -23,6 +23,7 @@ import {
   createProductZodValidationObjectWihtoutImages,
 } from "../../common/zodValidators";
 import { NiceButton } from "../components/NiceButton";
+import { EXISTING_IMAGE } from "../utils/CONST";
 import { Converters } from "../utils/convertes";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 import { trpc } from "../utils/trpc";
@@ -50,10 +51,16 @@ const useUploadImagesMutation = () => {
     const result = [];
     const form = new FormData();
     for (const image of images) {
-      form.append("files", image);
+      if (image && image.name !== "") {
+        form.append("files", image);
+      }
     }
 
     for (const img of images) {
+      if (img.name === EXISTING_IMAGE) {
+        toast("Image already exists");
+        continue;
+      }
       const { presignedurl, fileUrl } = await preSingedUrlMutation.mutateAsync({
         fileName: img.name,
       });
@@ -81,8 +88,9 @@ const useUploadImagesMutation = () => {
 const CreateProductButton = () => {
   const router = useRouter();
   const trpcContext = trpc.useContext();
-  const createProductMutation = trpc.products.createProduct.useMutation();
+  const createProductMutation = trpc.products.upsertProduct.useMutation();
   const uploadImagesMutation = useUploadImagesMutation();
+  const isUpdating = createProductPageStore((s) => s.isUpdating);
 
   return (
     <>
@@ -93,6 +101,7 @@ const CreateProductButton = () => {
             toast.remove();
 
             const productToCreate = {
+              id: createProductPageStore.getState().product.id ?? null,
               title: createProductPageStore.getState().product.title,
               description:
                 createProductPageStore.getState().product.description,
@@ -123,7 +132,7 @@ const CreateProductButton = () => {
             }
 
             const mapping = await uploadImagesMutation.mutateAsync(
-              createProductPageStore.getState().product.files ?? [],
+              createProductPageStore.getState().files ?? [],
               {
                 onError: (err) => {
                   console.log(err);
@@ -132,20 +141,36 @@ const CreateProductButton = () => {
               }
             );
 
-            toast(`Successfully uploaded ${mapping.length} images.`);
+            let previewImageUrl =
+              createProductPageStore.getState().product.previewImageUrl;
 
-            const previewImageUrl =
-              mapping.find(
-                (img) =>
-                  img.originalFileName ===
-                  createProductPageStore.getState().product
-                    .previewImageIdentificator.name
-              )?.fileUrl ?? "";
+            if (!previewImageUrl) {
+              previewImageUrl =
+                mapping.find(
+                  (img) =>
+                    img.originalFileName ===
+                    createProductPageStore.getState().previewImageIdentificator
+                      .name
+                )?.fileUrl ?? "";
+            }
 
             const newFileNames = mapping.map((m) => m.fileUrl);
 
-            productToCreate.previewImageUrl = previewImageUrl;
             productToCreate.fileUrls = newFileNames ?? [];
+
+            if (previewImageUrl === "") {
+              if (
+                productToCreate.fileUrls.length === 0 ||
+                !productToCreate.fileUrls[0] ||
+                productToCreate.fileUrls[0] === ""
+              ) {
+                toast.error("You must upload at least one image.");
+                return;
+              }
+              previewImageUrl = productToCreate.fileUrls[0];
+            }
+
+            productToCreate.previewImageUrl = previewImageUrl;
 
             result =
               createProductZodValidationObject.safeParse(productToCreate);
@@ -172,7 +197,7 @@ const CreateProductButton = () => {
             }
           }}
         >
-          Create
+          {isUpdating ? "Update" : "Create"}
         </div>
       </div>
     </>
@@ -195,6 +220,11 @@ const ProductCategories = () => {
 };
 
 const ProductMetadata = () => {
+  const shippingTime = createProductPageStore(
+    (state) => state.product.shippingTime
+  );
+  const stock = createProductPageStore((state) => state.product.stock);
+  const price = createProductPageStore((state) => state.product.price);
   return (
     <>
       <div className="flex gap-3">
@@ -203,6 +233,7 @@ const ProductMetadata = () => {
           <NiceButton
             min={1}
             max={9999}
+            initial={price}
             callback={(p) => {
               createProductPageStore.setState((state) => {
                 state.product.price = p;
@@ -215,6 +246,7 @@ const ProductMetadata = () => {
           <div className="w-[100px]">Stock</div>
           <NiceButton
             min={0}
+            initial={stock}
             callback={(p) => {
               createProductPageStore.setState((state) => {
                 state.product.stock = p;
@@ -226,6 +258,7 @@ const ProductMetadata = () => {
           <div className="w-[100px] whitespace-nowrap">Shipping Time</div>
           <NiceButton
             min={0}
+            initial={shippingTime}
             callback={(p) => {
               createProductPageStore.setState((state) => {
                 state.product.shippingTime = p;
@@ -239,8 +272,10 @@ const ProductMetadata = () => {
 };
 
 const ProductTitle = () => {
+  const val = createProductPageStore((state) => state.product.title);
   return (
     <input
+      value={val}
       placeholder="Product title"
       className="input-bordered input text-3xl"
       onChange={(e) => {
@@ -252,6 +287,9 @@ const ProductTitle = () => {
   );
 };
 const ProductDescriptionEditor = () => {
+  const description = createProductPageStore(
+    (state) => state.product.description
+  );
   const editor = useEditor({
     extensions: [
       StarterKit as AnyExtension,
@@ -265,6 +303,7 @@ const ProductDescriptionEditor = () => {
       TipTapHightlight,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
+    content: description,
     editorProps: { attributes: { class: "min-h-[300px]" } },
     onUpdate: ({ editor, transaction }) => {
       createProductPageStore.setState((state) => {
@@ -323,11 +362,11 @@ const ProductDescriptionEditor = () => {
 };
 
 const FilesSelection = () => {
-  const [files, setFiles] = useState<File[]>([]);
+  const files = createProductPageStore((state) => state.files);
 
   useEffect(() => {
     createProductPageStore.setState((old) => {
-      old.product.files = files;
+      old.files = files;
     });
   }, [files]);
 
@@ -351,7 +390,7 @@ const FilesSelection = () => {
                   onChange={(e) => {
                     if (e.currentTarget.checked) {
                       createProductPageStore.setState((state) => {
-                        state.product.previewImageIdentificator = {
+                        state.previewImageIdentificator = {
                           name: u.name,
                           size: u.size,
                         };
@@ -395,10 +434,8 @@ const FilesSelection = () => {
                     }
                     const file = e?.currentTarget?.files[0];
                     if (file && file.type.startsWith("image/")) {
-                      // const ur = URL.createObjectURL(file);
-                      setFiles([...files, file]);
-                      createProductPageStore.setState((old) => {
-                        old.product.files = [...old.product.files, file];
+                      createProductPageStore.setState((state) => {
+                        state.files.push(file);
                       });
                     }
                   }}
@@ -470,10 +507,40 @@ const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   );
 };
 
-const createProductPageStore = create<CreateProductPageStoreType>()(
-  immer((set, get, _) => {
+const emptyProductPageStore = {
+  product: {
+    title: "",
+    description: "",
+    price: 1,
+    shippingTime: 1,
+    stock: 1,
+    categories: [],
+    views: BigInt("0"),
+    id: "",
+    boughtCount: BigInt("0"),
+    createdAt: new Date(),
+    dealType: "NONE" as DealType,
+    images: [],
+    lastBoughtAt: new Date(),
+    previewImageUrl: "",
+    rating: 0,
+    userId: "",
+  },
+  files: [],
+  previewImageIdentificator: {
+    name: "",
+    size: 0,
+  },
+  isUpdating: false,
+};
+
+export const createProductPageStore = create<CreateProductPageStoreType>()(
+  immer((set, get) => {
     const createProduct = async (): Promise<boolean> => {
       const product = get().product;
+      const previewImageIdentificator = get().previewImageIdentificator;
+      const files = get().files;
+
       const form = new FormData();
       form.append("title", product.title);
       form.append("description", product.description);
@@ -482,10 +549,10 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
       form.append("price", `${product.price}`);
       form.append(
         "previewImageIdentificator",
-        JSON.stringify(product.previewImageIdentificator)
+        JSON.stringify(previewImageIdentificator)
       );
 
-      const filesToSend = product.files.forEach((f) => {
+      const filesToSend = files.forEach((f) => {
         form.append("files", f);
       });
 
@@ -534,44 +601,20 @@ const createProductPageStore = create<CreateProductPageStoreType>()(
     };
 
     const resetStore = () => {
-      set(emptyProductPageStore);
+      set({
+        createProduct,
+        resetStore,
+        ...emptyProductPageStore,
+      });
     };
 
     return {
-      product: {
-        title: "",
-        description: "",
-        files: [],
-        price: 0,
-        shippingTime: 0,
-        stock: 1,
-        categories: [],
-        previewImageIdentificator: {
-          name: "",
-          size: 0,
-        },
-      },
+      ...emptyProductPageStore,
       createProduct,
       resetStore,
     };
   })
 );
-
-const emptyProductPageStore = {
-  product: {
-    title: "",
-    description: "",
-    files: [],
-    price: 0,
-    shippingTime: 0,
-    stock: 1,
-    categories: [],
-    previewImageIdentificator: {
-      name: "",
-      size: 0,
-    },
-  },
-};
 
 const emptyUpdateProductPageStore = {
   categories: [],
@@ -608,6 +651,7 @@ type ProductModel = {
     size: number;
   };
 };
+
 type CategorySelectorProps = {
   category: string;
 };
@@ -625,7 +669,13 @@ type UpdatePruoductPageStoreType = {
   };
 };
 type CreateProductPageStoreType = {
-  product: ProductModel;
+  product: Product;
+  previewImageIdentificator: {
+    name: string;
+    size: number;
+  };
+  files: File[];
+  isUpdating: boolean;
   createProduct: () => Promise<boolean>;
   resetStore: () => void;
 };
@@ -633,10 +683,6 @@ type CreateProductPageStoreType = {
 type SavedFilesMapping = {
   originalFileName: string;
   newFileName: string;
-};
-
-const initializeProductForUpdate = () => {
-  return;
 };
 
 export default CreateProductPage;

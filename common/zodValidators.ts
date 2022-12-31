@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const createProductZodValidationObjectWihtoutImages = z.object({
+  id: z.string().nullable(),
   title: z.string().trim().min(1).max(100),
   description: z.string().trim().min(1).max(5000),
   price: z.number().positive(),
