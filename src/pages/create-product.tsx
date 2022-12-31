@@ -21,9 +21,7 @@ import { NiceButton } from "../components/NiceButton";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 import { trpc } from "../utils/trpc";
 
-export const NEXT_PUBLIC_IMAGE_SERVER_URL =
-  // "https://file-server.notnulldev.com";
-  "file-server.localhost";
+const NEXT_PUBLIC_IMAGE_SERVER_URL = "http://localhost:9000";
 
 const CreateProductPage = () => {
   return (
@@ -41,24 +39,36 @@ const CreateProductPage = () => {
 };
 
 const useUploadImagesMutation = () => {
+  const preSingedUrlMutation =
+    trpc.products.getPreSingedUrlForFileUpload.useMutation();
+
   const upload = async (images: File[]) => {
+    const result = [];
     const form = new FormData();
     for (const image of images) {
       form.append("files", image);
     }
-    toast("Uploading files to " + NEXT_PUBLIC_IMAGE_SERVER_URL);
-    console.log("Uploading files to " + NEXT_PUBLIC_IMAGE_SERVER_URL);
-    const uploadFilesResponse = await fetch(NEXT_PUBLIC_IMAGE_SERVER_URL, {
-      method: "POST",
-      body: form,
-      credentials: "include",
-    });
 
-    const uploadedFilesMapping: SavedFilesMapping[] =
-      await uploadFilesResponse.json();
+    for (const img of images) {
+      const { presignedurl, fileUrl } = await preSingedUrlMutation.mutateAsync({
+        fileName: img.name,
+      });
 
-    return uploadedFilesMapping;
+      const uploadFilesResponse = await fetch(presignedurl, {
+        method: "PUT",
+        body: img,
+      });
+
+      if (!uploadFilesResponse.ok) {
+        throw new Error(
+          `Could not upload image ${img.name} to the file server.`
+        );
+      }
+      result.push({ originalFileName: img.name, fileUrl });
+    }
+    return result;
   };
+
   const uploadMutation = useMutation(["uploadImage"], upload);
 
   return uploadMutation;
@@ -80,24 +90,23 @@ const CreateProductButton = () => {
               createProductPageStore.getState().product.files ?? [],
               {
                 onError: (err) => {
+                  console.log(err);
                   toast("Could not upload images to the file server.");
                 },
               }
             );
 
+            toast(`Successfully uploaded ${mapping.length} images.`);
+
             const previewImageUrl =
-              NEXT_PUBLIC_IMAGE_SERVER_URL +
-              "/" +
               mapping.find(
                 (img) =>
                   img.originalFileName ===
                   createProductPageStore.getState().product
                     .previewImageIdentificator.name
-              )?.newFileName;
+              )?.fileUrl ?? "";
 
-            const newFileNames = mapping.map(
-              (m) => NEXT_PUBLIC_IMAGE_SERVER_URL + "/" + m.newFileName
-            );
+            const newFileNames = mapping.map((m) => m.fileUrl);
 
             const mutationResult = await createProductMutation.mutateAsync({
               title: createProductPageStore.getState().product.title,

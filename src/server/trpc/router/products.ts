@@ -1,7 +1,9 @@
 import type { Category, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { randomUUID } from "node:crypto";
 import toast from "react-hot-toast";
 import { z } from "zod";
+import { getPreSignedUrl, IMAGE_URL_PREFIX } from "../../../utils/fileUploader";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const productsRouter = router({
@@ -284,6 +286,38 @@ export const productsRouter = router({
       });
 
       return createdProduct.id;
+    }),
+  imageTest: protectedProcedure.input(z.any()).mutation(({ ctx, input }) => {
+    const { files } = input;
+
+    console.log(files);
+
+    return "ok";
+  }),
+  getPreSingedUrlForFileUpload: protectedProcedure
+    .input(
+      z.object({
+        fileName: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user = ctx.session.user;
+      console.log(
+        `User ${user.email} requested presigned url for file upload.`
+      );
+
+      const randomFilename = `${input.fileName}-${randomUUID()}`;
+
+      const presignedurl = await getPreSignedUrl(randomFilename);
+
+      console.log(`Presigned url: ${presignedurl}`);
+
+      const fileUrl = `${IMAGE_URL_PREFIX}/${randomFilename}`;
+
+      return {
+        presignedurl,
+        fileUrl,
+      };
     }),
 });
 

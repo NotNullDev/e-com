@@ -8,11 +8,25 @@ services:
       - e-com
     ports:
       - 5444:5432
+  minio:
+    image: quay.io/minio/minio
+    command: 'server /data --console-address ":9090"'
+    ports:
+        - '9000:9000'
+        - '9090:9090'
+    container_name: minio
+    volumes:
+        - 'e-com-fs:/data'
+    environment:
+        - MINIO_ROOT_USER=admin
+        - MINIO_ROOT_PASSWORD=adminpassword
 
 
 volumes:
   e-com-db:
     name: e-com-db
+  e-com-fs:
+    name: e-com-fs
 
 networks:
   e-com:

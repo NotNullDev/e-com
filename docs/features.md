@@ -37,6 +37,8 @@ Design file: [Excalidraw file](pages.excalidraw)
 
 ## 3rd party API
 - [x] Stripe
+- [ ] S3 / minio
+- [ ] Add documentation about minio setup
 
 ## TODO
 - [x] remove items from cart
@@ -46,7 +48,7 @@ Design file: [Excalidraw file](pages.excalidraw)
 - [ ] edit product page
 - [ ] merge product store and product search store
 - [ ] make all stores use immer (remove all setters)
-
+- [ ] integrate modal lib [Micromodal](https://micromodal.vercel.app/)
 ## Optimalization
 - [ ] Rerendering optimization
 
