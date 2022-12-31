@@ -15,9 +15,15 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import type { z } from "zod";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
+import {
+  createProductZodValidationObject,
+  createProductZodValidationObjectWihtoutImages,
+} from "../../common/zodValidators";
 import { NiceButton } from "../components/NiceButton";
+import { Converters } from "../utils/convertes";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 import { trpc } from "../utils/trpc";
 
@@ -84,6 +90,38 @@ const CreateProductButton = () => {
         <div
           className="btn-primary btn"
           onClick={async () => {
+            toast.remove();
+
+            const productToCreate = {
+              title: createProductPageStore.getState().product.title,
+              description:
+                createProductPageStore.getState().product.description,
+              price: createProductPageStore.getState().product.price,
+              stock: createProductPageStore.getState().product.stock,
+              shippingTimeDays:
+                createProductPageStore.getState().product.shippingTime,
+              categories: createProductPageStore
+                .getState()
+                .product.categories.map((c) => Converters.stringToCategory(c)),
+              fileUrls: [],
+              previewImageUrl: "",
+            } as z.infer<typeof createProductZodValidationObject>;
+
+            let result =
+              createProductZodValidationObjectWihtoutImages.safeParse(
+                productToCreate
+              );
+
+            if (!result.success) {
+              result.error.errors.map((error) => {
+                toast.error(`${error.path} ${error.message}`, {
+                  position: "bottom-left",
+                  duration: 10000,
+                });
+              });
+              return;
+            }
+
             const mapping = await uploadImagesMutation.mutateAsync(
               createProductPageStore.getState().product.files ?? [],
               {
@@ -106,18 +144,25 @@ const CreateProductButton = () => {
 
             const newFileNames = mapping.map((m) => m.fileUrl);
 
-            const mutationResult = await createProductMutation.mutateAsync({
-              title: createProductPageStore.getState().product.title,
-              description:
-                createProductPageStore.getState().product.description,
-              price: createProductPageStore.getState().product.price,
-              stock: createProductPageStore.getState().product.stock,
-              shippingTimeDays:
-                createProductPageStore.getState().product.shippingTime,
-              categories: createProductPageStore.getState().product.categories,
-              fileUrls: newFileNames ?? [],
-              previewImageUrl: previewImageUrl,
-            });
+            productToCreate.previewImageUrl = previewImageUrl;
+            productToCreate.fileUrls = newFileNames ?? [];
+
+            result =
+              createProductZodValidationObject.safeParse(productToCreate);
+
+            if (!result.success) {
+              result.error.errors.map((error) => {
+                toast.error(`${error.path} ${error.message}`, {
+                  position: "bottom-left",
+                  duration: 10000,
+                });
+              });
+              return;
+            }
+
+            const mutationResult = await createProductMutation.mutateAsync(
+              productToCreate
+            );
 
             if (mutationResult) {
               await trpcContext.products.getOwnProducts.invalidate();
