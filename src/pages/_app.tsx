@@ -4,11 +4,11 @@ import { type AppType } from "next/app";
 
 import { trpc } from "../utils/trpc";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useId, useRef, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
 import { cartStore } from "../lib/stores/cartStore";
@@ -17,12 +17,20 @@ import "../styles/globals.css";
 import { Converters } from "../utils/convertes";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 
+const Toaster = dynamic(
+  () => import("react-hot-toast").then((c) => c.Toaster),
+  {
+    ssr: false,
+  }
+);
+
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
   pageProps: { session, ...pageProps },
 }) => {
   return (
     <SessionProvider session={session}>
+      <Toaster />
       <div className="container mx-auto min-h-screen">
         <Header />
         <Component {...pageProps} />
@@ -39,7 +47,7 @@ const Footer = () => {
 
 const Header = () => {
   const cartItems = cartStore((state) => state.items);
-  const session = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [cartCount, setCartCount] = useState(0);
   const [resettDropdownKey, setResettDropdownKey] = useState(0);
 
@@ -67,7 +75,6 @@ const Header = () => {
 
   return (
     <header className="flex items-center justify-between p-6">
-      <Toaster />
       <Link
         href="/"
         onClick={() => {
@@ -80,6 +87,7 @@ const Header = () => {
         <ProductSearchDropdown />
         <CategoryDropdown />
       </form>
+
       <div className="flex items-center gap-8">
         <div className="indicator">
           <span className="badge-primary badge badge-sm indicator-item">
@@ -134,13 +142,13 @@ const Header = () => {
           </Link>
         </div>
 
-        {session.status === "authenticated" && (
+        {sessionStatus === "authenticated" && (
           <>
             <div className="dropdown-end dropdown" key={resettDropdownKey}>
               <button className="placeholder avatar flex items-center">
                 <div className="w-8 rounded-full bg-neutral-focus text-neutral-content">
                   <Image
-                    src={session.data.user?.image ?? ""}
+                    src={session.user?.image ?? ""}
                     alt="user profile image"
                     width={24}
                     height={24}
@@ -172,7 +180,7 @@ const Header = () => {
             </div>
           </>
         )}
-        {session.status === "unauthenticated" && (
+        {sessionStatus === "unauthenticated" && (
           <button onClick={() => startSignIn()}>Login</button>
         )}
       </div>
