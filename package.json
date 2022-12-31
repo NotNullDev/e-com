@@ -46,6 +46,7 @@
     "immer": "^9.0.16",
     "install": "^0.13.0",
     "jsonwebtoken": "^9.0.0",
+    "micromodal": "^0.4.10",
     "minio": "^7.0.32",
     "next": "^13.0.2",
     "next-auth": "^4.15.1",
