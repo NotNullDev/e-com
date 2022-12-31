@@ -35,19 +35,11 @@ export async function getPreSignedUrl(fileName: string): Promise<string> {
       resolve(url);
     });
   });
-  if (process.env.NODE_ENV !== "development") {
-    console.log(`IMAGE_URL_PREFIX: ${IMAGE_URL_PREFIX}`);
-    console.log(
-      `NEXT_PUBLIC_IMAGE_SERVER_URL: ${NEXT_PUBLIC_IMAGE_SERVER_URL}`
-    );
-    console.log(`preSingedUrl: ${preSingedUrl}`);
-    preSingedUrl = preSingedUrl.replace(
-      IMAGE_URL_PREFIX.replace("/e-com", ""),
-      FILE_UPLOADER_ENDPOINT
-    );
 
-    // preSingedUrl = IMAGE_URL_PREFIX.replace("/e-com", "") + preSingedUrl;
+  if (process.env.NODE_ENV !== "development") {
+    preSingedUrl.replace("http://minio:9000", "https://minio.notnulldev.com"); // FK envs in nextjs
   }
+
   console.log(`presigned url: ${preSingedUrl}`);
   return preSingedUrl;
 }
