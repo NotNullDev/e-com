@@ -29,7 +29,16 @@ const CartPage: NextPage = () => {
   const router = useRouter();
 
   const { data, status } = trpc.cart.getCartData.useQuery(
-    cart.map((c) => ({ productId: c.productId, quantity: c.quantity }))
+    cart.map((c) => ({ productId: c.productId, quantity: c.quantity })),
+    {
+      onError: (err) => {
+        cartStore.setState((state) => {
+          state.items = [];
+          return state;
+        });
+      },
+      retry: 1,
+    }
   );
 
   useEffect(() => {
