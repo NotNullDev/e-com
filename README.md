@@ -18,6 +18,8 @@ Bootstrapped with create-t3-app.
 docker compose -f ./docker-compose-dev.yml up -d --force-recreate
 ```
 
+openssl genrsa -out private.pem 2048
+openssl rsa -in private.pem -pubout -outform PEM -out private-public.pem
 
 ## Documentation
 Check the ./docs folder for more information.

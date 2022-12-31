@@ -11,6 +11,7 @@ import Underline from "@tiptap/extension-underline";
 import type { AnyExtension } from "@tiptap/react";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -78,7 +79,9 @@ const CreateProductButton = () => {
   const router = useRouter();
   const trpcContext = trpc.useContext();
   const createProductMutation = trpc.products.createProduct.useMutation();
+  const session = useSession();
   const uploadImagesMutation = useUploadImagesMutation();
+  const singedUserData = trpc.auth.signObject.useQuery(JSON.stringify(session));
 
   return (
     <>
@@ -87,7 +90,10 @@ const CreateProductButton = () => {
           className="btn-primary btn"
           onClick={async () => {
             const mapping = await uploadImagesMutation.mutateAsync(
-              createProductPageStore.getState().product.files ?? [],
+              {
+                images: createProductPageStore.getState().product.files ?? [],
+                payload: singedUserData.data ?? "",
+              },
               {
                 onError: (err) => {
                   console.log(err);
