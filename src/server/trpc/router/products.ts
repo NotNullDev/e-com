@@ -330,6 +330,8 @@ export const productsRouter = router({
 
       const fileUrl = `${IMAGE_URL_PREFIX}/${randomFilename}`;
 
+      console.log(`File url: ${fileUrl}`);
+
       return {
         presignedurl,
         fileUrl,

@@ -69,6 +69,7 @@ const useUploadImagesMutation = () => {
         method: "PUT",
         body: img,
       });
+      toast("Uploading image " + img.name + "to url " + presignedurl);
 
       if (!uploadFilesResponse.ok) {
         throw new Error(
