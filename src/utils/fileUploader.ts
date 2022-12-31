@@ -35,10 +35,11 @@ export async function getPreSignedUrl(fileName: string): Promise<string> {
     });
   });
   if (process.env.NODE_ENV !== "development") {
-    preSingedUrl = preSingedUrl.replace(
-      IMAGE_URL_PREFIX.replace("/e-com", ""),
-      NEXT_PUBLIC_IMAGE_SERVER_URL
-    );
+    // preSingedUrl = preSingedUrl.replace(
+    //   IMAGE_URL_PREFIX.replace("/e-com", ""),
+    //   NEXT_PUBLIC_IMAGE_SERVER_URL
+    // );
+    preSingedUrl = IMAGE_URL_PREFIX.replace("/e-com", "") + preSingedUrl;
   }
   console.log(`presigned url: ${preSingedUrl}`);
   return preSingedUrl;

@@ -1,6 +1,8 @@
 - [Sample online shop](#sample-online-shop)
   - [Dev commands](#dev-commands)
   - [Documentation](#documentation)
+  - [Useful tools](#useful-tools)
+  - [templates](#templates)
 
 # Sample online shop
 
@@ -23,3 +25,11 @@ openssl rsa -in private.pem -pubout -outform PEM -out private-public.pem
 
 ## Documentation
 Check the ./docs folder for more information.
+
+## Useful tools
+- https://github.com/Red5d/docker-autocompose
+
+## templates
+https://raw.githubusercontent.com/technorabilia/portainer-templates/main/lsio/templates/templates-2.0.json
+
+https://raw.githubusercontent.com/Qballjos/portainer_templates/master/Template/template.json
