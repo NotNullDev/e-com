@@ -11,7 +11,6 @@ import Underline from "@tiptap/extension-underline";
 import type { AnyExtension } from "@tiptap/react";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -21,8 +20,6 @@ import { immer } from "zustand/middleware/immer";
 import { NiceButton } from "../components/NiceButton";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 import { trpc } from "../utils/trpc";
-
-const NEXT_PUBLIC_IMAGE_SERVER_URL = "http://localhost:9000";
 
 const CreateProductPage = () => {
   return (
@@ -79,9 +76,7 @@ const CreateProductButton = () => {
   const router = useRouter();
   const trpcContext = trpc.useContext();
   const createProductMutation = trpc.products.createProduct.useMutation();
-  const session = useSession();
   const uploadImagesMutation = useUploadImagesMutation();
-  const singedUserData = trpc.auth.signObject.useQuery(JSON.stringify(session));
 
   return (
     <>
@@ -90,10 +85,7 @@ const CreateProductButton = () => {
           className="btn-primary btn"
           onClick={async () => {
             const mapping = await uploadImagesMutation.mutateAsync(
-              {
-                images: createProductPageStore.getState().product.files ?? [],
-                payload: singedUserData.data ?? "",
-              },
+              createProductPageStore.getState().product.files ?? [],
               {
                 onError: (err) => {
                   console.log(err);
