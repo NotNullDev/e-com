@@ -13,11 +13,11 @@ export const ShowModalButton = (props: ShowModalButtonProps) => {
     <button
       {...props}
       onClick={(e: any) => {
-        showModal();
-        e.stopPropagation();
         if (onClick) {
           onClick(e);
         }
+        showModal();
+        e.stopPropagation();
       }}
     >
       {children}
@@ -31,11 +31,11 @@ export const CloseModalButton = (props: ShowModalButtonProps) => {
     <button
       {...props}
       onClick={(e: any) => {
-        closeModal();
-        e.stopPropagation();
         if (onClick) {
           onClick(e);
         }
+        closeModal();
+        e.stopPropagation();
       }}
     >
       {children}
@@ -145,7 +145,7 @@ export const AppModal = ({
             x
           </button>
         </div>
-        <div className="flex-1 p-4">
+        <div className="flex flex-1 flex-col p-4">
           {children}
           {!children && content}
         </div>

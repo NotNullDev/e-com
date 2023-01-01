@@ -19,6 +19,7 @@ import { createProductPageStore } from "./create-product";
 
 type AccountPageStoreType = {
   products: Product[];
+  selectedProductToDelete?: Product;
 };
 
 const accountPageStore = create<AccountPageStoreType>()(
@@ -65,7 +66,23 @@ const AccountPage = () => {
           return <SingleItemPrev key={d.id} product={d} />;
         })}
       </div>
+      <AccountPageModal />
     </div>
+  );
+};
+
+const AccountPageModal = () => {
+  const product = accountPageStore((state) => state.selectedProductToDelete);
+  return (
+    <AppModal header="Delete item?" footer={<ModalFooter product={product} />}>
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <span className="text-base">You are about to delete item</span>
+        <span className="mb-2 text-xl font-bold">{product?.title}</span>
+        <div className="text-base text-red-700">
+          Operation cannot be undone.
+        </div>
+      </div>
+    </AppModal>
   );
 };
 
@@ -74,7 +91,7 @@ type SingleItemPrevProps = {
 };
 
 type ModalFooterProps = {
-  product: Product;
+  product?: Product;
 };
 
 const ModalFooter = ({ product }: ModalFooterProps) => {
@@ -87,10 +104,12 @@ const ModalFooter = ({ product }: ModalFooterProps) => {
         onClick={async () => {
           GlobalModalController.close();
           await deleteProductMutation.mutateAsync({
-            id: product.id,
+            id: product?.id ?? "",
           });
           await trpcContext.products.getOwnProducts.invalidate();
-          toast.success(`Item ${product.title} has been successfully deleted.`);
+          toast.success(
+            `Item ${product?.title} has been successfully deleted.`
+          );
         }}
       >
         delete
@@ -98,7 +117,7 @@ const ModalFooter = ({ product }: ModalFooterProps) => {
       <CloseModalButton
         className="btn-primary btn-sm btn"
         onClick={() => {
-          GlobalModalController.close();
+          // GlobalModalController.close();
           toast.error("Operation cancelled.");
         }}
       >
@@ -154,17 +173,15 @@ const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
         >
           <ButtonEdit />
         </Link>
-        <ShowModalButton>
+        <ShowModalButton
+          onClick={() => {
+            accountPageStore.setState((state) => {
+              state.selectedProductToDelete = product;
+            });
+          }}
+        >
           <ButtonTrash />
         </ShowModalButton>
-        <AppModal
-          header="Delete item?"
-          footer={<ModalFooter product={product} />}
-          key={product.id}
-        >
-          <div>You are about to delete item {product.title}</div>
-          <div className="text-red-700">Operation cannot be undone.</div>
-        </AppModal>
       </div>
     </div>
   );
