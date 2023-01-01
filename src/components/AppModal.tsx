@@ -45,7 +45,7 @@ export const CloseModalButton = (props: ShowModalButtonProps) => {
 
 // stopPropagation must must be prevented while calling this function, else it will close  the modal immediately
 export const showModal = () => {
-  const parent = document.querySelector("#modal-parent") as HTMLElement;
+  const parent = document.querySelector(".modal-parent") as HTMLElement;
 
   if (!parent) {
     throw new Error("parent element not found");
@@ -53,7 +53,7 @@ export const showModal = () => {
 
   parent.classList.remove("hidden");
 
-  const { removeListeners } = onClickOuSide("#modal-parent", () => {
+  const { removeListeners } = onClickOuSide(".modal-parent", () => {
     removeListeners();
     parent.classList.add("hidden");
   });
@@ -63,7 +63,7 @@ export const showModal = () => {
 };
 
 export const closeModal = () => {
-  const parent = document.querySelector("#modal-parent");
+  const parent = document.querySelector(".modal-parent");
 
   if (!parent) {
     throw new Error("parent element not found");
@@ -78,7 +78,7 @@ export const closeModal = () => {
 
 const useInitModal = () => {
   useEffect(() => {
-    const parent = document.querySelector("#modal-parent") as HTMLElement;
+    const parent = document.querySelector(".modal-parent") as HTMLElement;
 
     if (!parent) {
       throw new Error("parent element not found");
@@ -86,7 +86,7 @@ const useInitModal = () => {
 
     parent.classList.remove("hidden");
 
-    const { removeListeners } = onClickOuSide("#modal-parent", () => {
+    const { removeListeners } = onClickOuSide(".modal-parent", () => {
       removeListeners();
       parent.classList.add("hidden");
     });
@@ -105,6 +105,8 @@ const useInitModal = () => {
       }
     });
 
+    closeModal();
+
     return () => {
       removeListeners();
       removeListeners1();
@@ -113,9 +115,9 @@ const useInitModal = () => {
 };
 
 type AppModalProps = {
-  header: React.ReactNode;
-  content: React.ReactNode;
-  footer: React.ReactNode;
+  header?: React.ReactNode;
+  content?: React.ReactNode;
+  footer?: React.ReactNode;
   children?: React.ReactNode;
 };
 
@@ -129,18 +131,16 @@ export const AppModal = ({
   return (
     <>
       <div
-        className="absolute top-1/2 left-1/2 flex h-[300px] w-[500px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl bg-base-300"
-        id="modal-parent"
+        className="modal-parent absolute top-1/2 left-1/2 z-50 flex hidden h-[300px] w-[500px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl  bg-base-300"
         tabIndex={-1}
       >
         <div className="flex items-center justify-between p-4 shadow">
           <div className="flex-1">{header}</div>
           <button
-            className="btn-ghost btn-sm btn"
+            className="modal-first btn-ghost btn-sm btn"
             onClick={() => {
               closeModal();
             }}
-            id="modal-first"
           >
             x
           </button>
@@ -149,8 +149,8 @@ export const AppModal = ({
           {children}
           {!children && content}
         </div>
-        <button id="modal-last" className="h-[0px] w-[0px]"></button>
         <div className="p-4 shadow">{footer}</div>
+        <button className="modal-last h-[0px] w-[0px]"></button>
       </div>
     </>
   );

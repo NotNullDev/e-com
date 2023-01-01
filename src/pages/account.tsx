@@ -5,6 +5,11 @@ import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import create from "zustand";
 import { immer } from "zustand/middleware/immer";
+import {
+  AppModal,
+  CloseModalButton,
+  ShowModalButton,
+} from "../components/AppModal";
 import ButtonEdit from "../components/ButtonEdit";
 import ButtonTrash from "../components/ButtonTrash";
 import { GlobalModalController } from "../components/GlobalModal";
@@ -64,56 +69,48 @@ const AccountPage = () => {
   );
 };
 
-type ModalBodyProps = {
-  productName: string;
-  productId: string;
-};
-const ModalBody = ({ productName, productId }: ModalBodyProps) => {
-  const deleteProductMutation = trpc.products.deleteProduct.useMutation();
-  const trpcContext = trpc.useContext();
-
-  return (
-    <div className="flex h-[200px] w-[300px] flex-col rounded-xl bg-base-100 p-3 shadow shadow-gray-900">
-      <div className="flex flex-1 flex-col justify-center text-center">
-        <div className="text-xl">
-          Delete <strong className="font-bold">{productName}</strong>?{" "}
-        </div>
-        <div className="text text-red-900">Operation cannot be undone</div>
-      </div>
-      <div className="flex justify-end gap-2">
-        <button
-          className="btn-ghost btn-sm btn"
-          onClick={async () => {
-            GlobalModalController.close();
-            await deleteProductMutation.mutateAsync({
-              id: productId,
-            });
-            await trpcContext.products.getOwnProducts.invalidate();
-            toast.success(`Item ${productName} has been successfully deleted.`);
-          }}
-        >
-          delete
-        </button>
-        <button
-          className="btn-primary btn-sm btn"
-          onClick={() => {
-            GlobalModalController.close();
-            toast.error("Operation cancelled.");
-          }}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-};
-
 type SingleItemPrevProps = {
   product: Product;
 };
 
+type ModalFooterProps = {
+  product: Product;
+};
+
+const ModalFooter = ({ product }: ModalFooterProps) => {
+  const deleteProductMutation = trpc.products.deleteProduct.useMutation();
+  const trpcContext = trpc.useContext();
+  return (
+    <div className="flex w-full justify-end">
+      <CloseModalButton
+        className="btn-ghost btn-sm btn"
+        onClick={async () => {
+          GlobalModalController.close();
+          await deleteProductMutation.mutateAsync({
+            id: product.id,
+          });
+          await trpcContext.products.getOwnProducts.invalidate();
+          toast.success(`Item ${product.title} has been successfully deleted.`);
+        }}
+      >
+        delete
+      </CloseModalButton>
+      <CloseModalButton
+        className="btn-primary btn-sm btn"
+        onClick={() => {
+          GlobalModalController.close();
+          toast.error("Operation cancelled.");
+        }}
+      >
+        Cancel
+      </CloseModalButton>
+    </div>
+  );
+};
+
 const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
   const router = useRouter();
+
   return (
     <div className="flex w-full items-center rounded-xl border-indigo-600 shadow shadow-gray-900 hover:bg-primary-focus">
       <Link className="flex w-full p-4" href={`/details/${product.id}`}>
@@ -157,14 +154,17 @@ const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
         >
           <ButtonEdit />
         </Link>
-        <ButtonTrash
-          onClick={(e) => {
-            GlobalModalController.setBody(
-              <ModalBody productName={product.title} productId={product.id} />
-            );
-            GlobalModalController.open();
-          }}
-        />
+        <ShowModalButton>
+          <ButtonTrash />
+        </ShowModalButton>
+        <AppModal
+          header="Delete item?"
+          footer={<ModalFooter product={product} />}
+          key={product.id}
+        >
+          <div>You are about to delete item {product.title}</div>
+          <div className="text-red-700">Operation cannot be undone.</div>
+        </AppModal>
       </div>
     </div>
   );

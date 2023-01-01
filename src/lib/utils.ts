@@ -49,9 +49,9 @@ export type focusTrapReturn = {
 };
 
 export function focusTrap(
-  parentElementID: string,
-  firstElementID: string,
-  lastElementID: string,
+  parentElementClassName: string,
+  firstElementClassName: string,
+  lastElementClassName: string,
   showConsoleLog = false
 ): focusTrapReturn {
   if (typeof window === undefined) {
@@ -63,7 +63,7 @@ export function focusTrap(
   }
 
   const parentElement = document.querySelector(
-    "#" + parentElementID
+    "." + parentElementClassName
   ) as HTMLElement;
 
   if (showConsoleLog) {
@@ -72,28 +72,30 @@ export function focusTrap(
 
   const eventHandler = (e: KeyboardEvent): void => {
     if (
-      (e.target as HTMLElement).id === lastElementID &&
+      (e.target as HTMLElement).classList.contains(lastElementClassName) &&
       e.key === "Tab" &&
       !e.shiftKey
     ) {
-      (document.querySelector("#" + firstElementID) as HTMLElement)?.focus();
+      (
+        document.querySelector("." + firstElementClassName) as HTMLElement
+      )?.focus();
       if (showConsoleLog) {
         console.log("moving focus to the first element");
       }
-      toast("moving focus to the first element");
 
       e.preventDefault();
     }
     if (
-      (e.target as HTMLElement).id === firstElementID &&
+      (e.target as HTMLElement).classList.contains(firstElementClassName) &&
       e.key === "Tab" &&
       e.shiftKey
     ) {
-      (document.querySelector("#" + lastElementID) as HTMLElement)?.focus();
+      (
+        document.querySelector("." + lastElementClassName) as HTMLElement
+      )?.focus();
       if (showConsoleLog) {
         console.log("moving focus to the last element");
       }
-      toast("moving focus to the last element");
       e.preventDefault();
     }
   };
