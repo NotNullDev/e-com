@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { randomUUID } from "node:crypto";
 import toast from "react-hot-toast";
 import { z } from "zod";
-import { getPreSignedUrl, IMAGE_URL_PREFIX } from "../../../utils/fileUploader";
+import { getPreSignedUrl } from "../../../utils/fileUploader";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const productsRouter = router({
@@ -328,7 +328,7 @@ export const productsRouter = router({
 
       console.log(`Presigned url: ${presignedurl}`);
 
-      const fileUrl = `${IMAGE_URL_PREFIX}/${randomFilename}`;
+      const fileUrl = `https://minio.notnulldev.com/e-com/${randomFilename}`;
 
       console.log(`File url: ${fileUrl}`);
 
