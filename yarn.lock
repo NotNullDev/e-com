@@ -1074,6 +1074,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/micromodal@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@types/micromodal/-/micromodal-0.3.3.tgz#2ffc55fc90ca201054389b5eba118772c0189eaf"
+  integrity sha512-XQg6nqg15A6ZKkMkDdqLkC5LTxLb7CZU6BX8uHBj4AVU7+k/W6kfriW5HCsarrjFpONNOMAmhA1ReUsMm7297g==
+
 "@types/minio@^7.0.15":
   version "7.0.15"
   resolved "https://registry.yarnpkg.com/@types/minio/-/minio-7.0.15.tgz#6fbf2e17aeae172cbf181ea52b1faa05a601ce42"
