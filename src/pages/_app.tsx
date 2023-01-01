@@ -90,7 +90,7 @@ const Header = () => {
         <button
           className="btn-primary btn"
           onClick={() => {
-            Micromodal.open("modal-1");
+            Micromodal.show("modal-1");
           }}
         >
           Modal test
