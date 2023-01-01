@@ -17,12 +17,6 @@ import "../styles/globals.css";
 import { Converters } from "../utils/convertes";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 
-import Micromodal from "micromodal";
-
-if (typeof window !== "undefined") {
-  Micromodal.init();
-}
-
 const Toaster = dynamic(
   () => import("react-hot-toast").then((c) => c.Toaster),
   {
@@ -87,14 +81,6 @@ const Header = () => {
           productsStore.getState().resetStore();
         }}
       >
-        <button
-          className="btn-primary btn"
-          onClick={() => {
-            Micromodal.show("modal-1");
-          }}
-        >
-          Modal test
-        </button>
         <h1 className="text-2xl">The shop</h1>
       </Link>
       <form className="flex gap-2">
