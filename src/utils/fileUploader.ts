@@ -36,7 +36,7 @@ export async function getPreSignedUrl(fileName: string): Promise<string> {
     });
   });
 
-  if (process.env.NODE_ENV !== "development") {
+  if (process.env.NODE_ENV === "production") {
     preSingedUrl = preSingedUrl.replace(
       "http://minio:9000",
       "https://minio.notnulldev.com"

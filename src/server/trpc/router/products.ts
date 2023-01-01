@@ -327,8 +327,13 @@ export const productsRouter = router({
       const presignedurl = await getPreSignedUrl(randomFilename);
 
       console.log(`Presigned url: ${presignedurl}`);
+      let fileUrl;
 
-      const fileUrl = `https://minio.notnulldev.com/e-com/${randomFilename}`;
+      fileUrl = `http://localhost:9000/e-com/${randomFilename}`;
+
+      if (process.env.NODE_ENV === "production") {
+        fileUrl = `https://minio.notnulldev.com/e-com/${randomFilename}`;
+      }
 
       console.log(`File url: ${fileUrl}`);
 
