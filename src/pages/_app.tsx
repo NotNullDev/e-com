@@ -31,7 +31,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <Toaster />
-      <div className="container mx-auto min-h-screen">
+      <div className="container mx-auto flex min-h-screen flex-col">
         <Header />
         <Component {...pageProps} />
         <Footer />
@@ -93,7 +93,7 @@ const Header = () => {
           <span className="badge-primary badge badge-sm indicator-item">
             10+
           </span>
-          <Link href="/">
+          <Link href="/messages">
             <button>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -161,12 +161,22 @@ const Header = () => {
               >
                 <li>
                   <Link
+                    href="/history"
+                    onClick={() => {
+                      setResettDropdownKey(resettDropdownKey + 1);
+                    }}
+                  >
+                    <div>Purchase history</div>
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/account"
                     onClick={() => {
                       setResettDropdownKey(resettDropdownKey + 1);
                     }}
                   >
-                    <div>My account</div>
+                    <div>My products</div>
                   </Link>
                 </li>
                 <li

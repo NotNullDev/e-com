@@ -62,6 +62,9 @@ const CartPage: NextPage = () => {
 
   useEffect(() => {
     if (success) {
+      cartStore.setState((state) => {
+        state.items = [];
+      });
       toast.success("Payment succeed", {
         duration: 10000,
       });

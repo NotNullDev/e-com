@@ -26,21 +26,26 @@ const expiryTime = 24 * 60 * 60;
 export async function getPreSignedUrl(fileName: string): Promise<string> {
   let preSingedUrl = "";
   console.log(`img url prefix ${IMAGE_URL_PREFIX}`);
-  preSingedUrl = await new Promise<string>((resolve, reject) => {
-    client.presignedPutObject("e-com", fileName, expiryTime, (err, url) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(url);
+  try {
+    preSingedUrl = await new Promise<string>((resolve, reject) => {
+      client.presignedPutObject("e-com", fileName, expiryTime, (err, url) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(url);
+      });
     });
-  });
 
-  if (process.env.NODE_ENV === "production") {
-    preSingedUrl = preSingedUrl.replace(
-      "http://minio:9000",
-      "https://minio.notnulldev.com"
-    ); // FK envs in nextjs
+    if (process.env.NODE_ENV === "production") {
+      preSingedUrl = preSingedUrl.replace(
+        "http://minio:9000",
+        "https://minio.notnulldev.com"
+      ); // FK envs in nextjs
+    }
+  } catch (e) {
+    console.log(e); // print error to the console
+    throw e;
   }
 
   console.log(`presigned url: ${preSingedUrl}`);

@@ -42,15 +42,18 @@ Design file: [Excalidraw file](pages.excalidraw)
 
 ## TODO
 - [x] remove items from cart
+- [x] edit product page
+- [x] merge product store and product search store
+- [ ] create history page
+- [ ] add messages system
+- [ ] make website responsive
+- [ ] make website mobile friendly
 - [ ] redesign cart page
 - [ ] fix images background position
-- [ ] deploy new version with file server
-- [ ] edit product page
-- [ ] merge product store and product search store
 - [ ] make all stores use immer (remove all setters)
-- [ ] integrate modal lib [Micromodal](https://micromodal.vercel.app/)
 ## Optimalization
 - [ ] Rerendering optimization
+- [ ] Slow "My products" page loading
 
 ## Bugs
 - [x] Fix bug with cart items count in header (it's not updating when you remove item from cart)
