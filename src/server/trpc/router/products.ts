@@ -331,9 +331,9 @@ export const productsRouter = router({
 
       fileUrl = `http://localhost:9000/e-com/${randomFilename}`;
 
-      if (process.env.NODE_ENV === "production") {
-        fileUrl = `https://minio.notnulldev.com/e-com/${randomFilename}`;
-      }
+      // if (process.env.NODE_ENV === "production") {
+      fileUrl = `https://minio.notnulldev.com/e-com/${randomFilename}`;
+      // }
 
       console.log(`File url: ${fileUrl}`);
 

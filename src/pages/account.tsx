@@ -13,7 +13,6 @@ import {
 import ButtonEdit from "../components/ButtonEdit";
 import ButtonTrash from "../components/ButtonTrash";
 import { GlobalModalController } from "../components/GlobalModal";
-import { EXISTING_IMAGE } from "../utils/CONST";
 import { trpc } from "../utils/trpc";
 import { createProductPageStore } from "./create-product";
 
@@ -146,29 +145,26 @@ const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
       </Link>
       <div className="ml-6 flex gap-4 p-4">
         <Link
-          href="/create-product"
+          href={"/create-product?id=" + product.id}
           onClick={async (e) => {
-            createProductPageStore.getState().resetStore();
-            createProductPageStore.setState((state) => {
-              state.product = product;
-              state.isUpdating = true;
-            });
-
-            // TODO: it is not most efficient way to do this xD
-            for (const url of product.images) {
-              const response = await fetch(url);
-              const blob = await response.blob();
-              const file = new File([blob], EXISTING_IMAGE, {
-                type: blob.type,
-              });
-
-              createProductPageStore.setState((state) => {
-                state.files.push(file);
-              });
-            }
-
-            router.push("/create-product");
-            e.preventDefault();
+            // createProductPageStore.getState().resetStore();
+            // createProductPageStore.setState((state) => {
+            //   state.product = product;
+            //   state.isUpdating = true;
+            // });
+            // // TODO: it is not most efficient way to do this xD
+            // for (const url of product.images) {
+            //   const response = await fetch(url);
+            //   const blob = await response.blob();
+            //   const file = new File([blob], EXISTING_IMAGE, {
+            //     type: blob.type,
+            //   });
+            //   createProductPageStore.setState((state) => {
+            //     state.files.push(file);
+            //   });
+            // }
+            // router.push("/create-product");
+            // e.preventDefault();
           }}
         >
           <ButtonEdit />

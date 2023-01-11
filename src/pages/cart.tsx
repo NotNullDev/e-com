@@ -118,7 +118,7 @@ const CartPage: NextPage = () => {
             })}
         </div>
       </div>
-      <div className="flex flex-1 flex-col p-6 shadow shadow-gray-900">
+      <div className="flex h-min flex-1 flex-col p-6 shadow shadow-gray-900">
         {true && (
           <>
             <h1 className="mb-4 text-3xl">Summary</h1>

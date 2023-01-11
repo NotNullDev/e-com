@@ -1,6 +1,7 @@
 import { MantineProvider } from "@mantine/core";
 import { Link as MantineTiptapLink, RichTextEditor } from "@mantine/tiptap";
 import type { Category, DealType, Product } from "@prisma/client";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useMutation } from "@tanstack/react-query";
 import TipTapHightlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -28,19 +29,89 @@ import { Converters } from "../utils/convertes";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 import { trpc } from "../utils/trpc";
 
+type DeletePopupStoreType = {
+  popupOpen: boolean;
+  picturesToDeleteIds: string[];
+};
+
+const deletePopupStore = create<DeletePopupStoreType>()(
+  immer((set) => {
+    return {
+      popupOpen: false,
+      picturesToDeleteIds: [],
+    };
+  })
+);
+
 const CreateProductPage = () => {
+  useInitProductPage();
   return (
     <div className="flex-1">
       <ProductTitle />
       <FilesSelection />
+      <div className="flex w-full justify-end"></div>
       <div className="flex flex-col gap-2 p-2">
-        <ProductMetadata />
+        <div className="flex w-full items-center justify-between">
+          <ProductMetadata />
+          <DeleteIcon />
+        </div>
         <ProductCategories />
       </div>
       <ProductDescriptionEditor />
       <CreateProductButton />
     </div>
   );
+};
+
+const useInitProductPage = () => {
+  const router = useRouter();
+  const productId = router.query.id as string;
+  const trpcContext = trpc.useContext();
+  const { data: product } = trpc.products.byId.useQuery(
+    {
+      id: productId ?? "",
+    },
+    {
+      onSuccess: async (data) => {
+        if (data) {
+          // createProductPageStore.setState({
+          //   product: {
+          //     ...data,
+          //   },
+          //   files: [],
+          //   previewImageIdentificator: { name: EXISTING_IMAGE, size: 0 },
+          // });
+          createProductPageStore.setState((state) => {
+            state.product = data;
+            state.isUpdating = true;
+          });
+
+          // TODO: it is not most efficient way to do this xD
+          for (const url of data.images) {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const file = new File([blob], EXISTING_IMAGE, {
+              type: blob.type,
+            });
+
+            createProductPageStore.setState((state) => {
+              state.files.push({
+                url,
+                file,
+              });
+            });
+          }
+        }
+      },
+    }
+  );
+
+  useEffect(() => {
+    createProductPageStore.getState().resetStore();
+    if (productId) {
+      trpcContext.products.invalidate();
+    }
+  }, [productId]);
 };
 
 const useUploadImagesMutation = () => {
@@ -58,7 +129,6 @@ const useUploadImagesMutation = () => {
 
     for (const img of images) {
       if (img.name === EXISTING_IMAGE) {
-        toast("Image already exists");
         continue;
       }
       const { presignedurl, fileUrl } = await preSingedUrlMutation.mutateAsync({
@@ -69,7 +139,6 @@ const useUploadImagesMutation = () => {
         method: "PUT",
         body: img,
       });
-      toast("Uploading image " + img.name + "to url " + presignedurl);
 
       if (!uploadFilesResponse.ok) {
         throw new Error(
@@ -133,7 +202,7 @@ const CreateProductButton = () => {
             }
 
             const mapping = await uploadImagesMutation.mutateAsync(
-              createProductPageStore.getState().files ?? [],
+              createProductPageStore.getState().files.map((f) => f.file) ?? [],
               {
                 onError: (err) => {
                   console.log(err);
@@ -224,6 +293,7 @@ const ProductMetadata = () => {
   const shippingTime = createProductPageStore(
     (state) => state.product.shippingTime
   );
+  const p = createProductPageStore((state) => state.product);
   const stock = createProductPageStore((state) => state.product.stock);
   const price = createProductPageStore((state) => state.product.price);
   return (
@@ -232,6 +302,7 @@ const ProductMetadata = () => {
         <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
           <div className="w-[100px]">Price</div>
           <NiceButton
+            key={price}
             min={1}
             max={9999}
             initial={price}
@@ -246,6 +317,7 @@ const ProductMetadata = () => {
         <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
           <div className="w-[100px]">Stock</div>
           <NiceButton
+            key={stock}
             min={0}
             initial={stock}
             callback={(p) => {
@@ -258,6 +330,7 @@ const ProductMetadata = () => {
         <div className="flex items-center gap-3 rounded-xl p-2 px-4 shadow-sm shadow-gray-900">
           <div className="w-[100px] whitespace-nowrap">Shipping Time</div>
           <NiceButton
+            key={shippingTime}
             min={0}
             initial={shippingTime}
             callback={(p) => {
@@ -312,6 +385,10 @@ const ProductDescriptionEditor = () => {
       });
     },
   });
+
+  useEffect(() => {
+    editor?.commands.setContent(description);
+  }, [description]);
 
   return (
     <MantineProvider theme={{ colorScheme: "dark" }}>
@@ -375,47 +452,37 @@ const FilesSelection = () => {
     <div className="relative w-full p-4">
       <div className="group grid columns-3 grid-cols-4 gap-4">
         {files.map((u, idx) => (
-          <div key={idx} className="relative ">
+          <label key={idx} className="relative cursor-pointer">
             <Image
-              src={URL.createObjectURL(u)}
+              src={u.url}
               width={400}
               height={200}
               alt="haha"
               className="col-span-1 h-[200px] w-[400px] bg-cover bg-center"
             />
-            <div className="invisible absolute right-10 top-0 m-4 h-[24px] w-[24px] gap-2 rounded group-hover:visible">
+            <div className="invisible absolute right-0 top-0 m-4 h-[24px] w-[24px] gap-2 rounded group-hover:visible group-active:visible">
               <div className="flex w-[100px] flex-nowrap gap-3">
                 <input
                   className="checkbox-primary checkbox"
                   type="checkbox"
                   onChange={(e) => {
                     if (e.currentTarget.checked) {
-                      createProductPageStore.setState((state) => {
-                        state.previewImageIdentificator = {
-                          name: u.name,
-                          size: u.size,
-                        };
+                      deletePopupStore.setState((state) => {
+                        state.picturesToDeleteIds.push(u.url);
+                      });
+                    } else {
+                      deletePopupStore.setState((state) => {
+                        state.picturesToDeleteIds =
+                          state.picturesToDeleteIds.filter(
+                            (url) => url !== u.url
+                          );
                       });
                     }
                   }}
                 />
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6 text-error hover:cursor-pointer"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                  />
-                </svg>
               </div>
             </div>
-          </div>
+          </label>
         ))}
         {files.length <= 7 && (
           <>
@@ -436,7 +503,10 @@ const FilesSelection = () => {
                     const file = e?.currentTarget?.files[0];
                     if (file && file.type.startsWith("image/")) {
                       createProductPageStore.setState((state) => {
-                        state.files.push(file);
+                        state.files.push({
+                          url: URL.createObjectURL(file),
+                          file,
+                        });
                       });
                     }
                   }}
@@ -447,6 +517,63 @@ const FilesSelection = () => {
         )}
       </div>
     </div>
+  );
+};
+
+const DeleteIcon = () => {
+  const itemsToDelete = deletePopupStore((state) => state.picturesToDeleteIds);
+  return (
+    <>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger
+          className="btn-ghost btn flex gap-3"
+          disabled={itemsToDelete.length === 0}
+        >
+          <label>
+            Delete selected pictures ({itemsToDelete.length ?? ""}){" "}
+          </label>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-6 w-6 text-error hover:cursor-pointer"
+            onClick={() => {
+              deletePopupStore.setState((state) => {
+                state.popupOpen = false;
+              });
+            }}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+            />
+          </svg>
+        </DropdownMenu.Trigger>
+
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            className="flex flex-col gap-4 rounded-xl bg-base-300 p-4"
+            side="left"
+            align="start"
+            sideOffset={5}
+            alignOffset={40}
+          >
+            <DropdownMenu.Label>Are you sure?</DropdownMenu.Label>
+            <DropdownMenu.DropdownMenuGroup className="flex gap-3">
+              <DropdownMenu.Item>
+                <button className="btn-ghost btn-sm btn">No</button>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item>
+                <button className="btn-error btn-sm btn">Yes</button>
+              </DropdownMenu.Item>
+            </DropdownMenu.DropdownMenuGroup>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </>
   );
 };
 
@@ -554,7 +681,7 @@ export const createProductPageStore = create<CreateProductPageStoreType>()(
       );
 
       const filesToSend = files.forEach((f) => {
-        form.append("files", f);
+        form.append("files", f.file);
       });
 
       const headers = new Headers();
@@ -675,7 +802,10 @@ type CreateProductPageStoreType = {
     name: string;
     size: number;
   };
-  files: File[];
+  files: {
+    url: string;
+    file: File;
+  }[];
   isUpdating: boolean;
   createProduct: () => Promise<boolean>;
   resetStore: () => void;
