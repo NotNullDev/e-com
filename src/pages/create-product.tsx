@@ -81,6 +81,7 @@ const useInitProductPage = () => {
           //   files: [],
           //   previewImageIdentificator: { name: EXISTING_IMAGE, size: 0 },
           // });
+          createProductPageStore.getState().resetStore();
           createProductPageStore.setState((state) => {
             state.product = data;
             state.isUpdating = true;
@@ -161,117 +162,127 @@ const CreateProductButton = () => {
   const createProductMutation = trpc.products.upsertProduct.useMutation();
   const uploadImagesMutation = useUploadImagesMutation();
   const isUpdating = createProductPageStore((s) => s.isUpdating);
+  const { upsertProduct } = useUpsertProduct();
 
   return (
     <>
       <div className="mt-3 flex w-full justify-end">
-        <div
-          className="btn-primary btn"
-          onClick={async () => {
-            toast.remove();
-
-            const productToCreate = {
-              id: createProductPageStore.getState().product.id ?? null,
-              title: createProductPageStore.getState().product.title,
-              description:
-                createProductPageStore.getState().product.description,
-              price: createProductPageStore.getState().product.price,
-              stock: createProductPageStore.getState().product.stock,
-              shippingTimeDays:
-                createProductPageStore.getState().product.shippingTime,
-              categories: createProductPageStore
-                .getState()
-                .product.categories.map((c) => Converters.stringToCategory(c)),
-              fileUrls: [],
-              previewImageUrl: "",
-            } as z.infer<typeof createProductZodValidationObject>;
-
-            let result =
-              createProductZodValidationObjectWihtoutImages.safeParse(
-                productToCreate
-              );
-
-            if (!result.success) {
-              result.error.errors.map((error) => {
-                toast.error(`${error.path} ${error.message}`, {
-                  position: "bottom-left",
-                  duration: 10000,
-                });
-              });
-              return;
-            }
-
-            const mapping = await uploadImagesMutation.mutateAsync(
-              createProductPageStore.getState().files.map((f) => f.file) ?? [],
-              {
-                onError: (err) => {
-                  console.log(err);
-                  toast("Could not upload images to the file server.");
-                },
-              }
-            );
-
-            let previewImageUrl =
-              createProductPageStore.getState().product.previewImageUrl;
-
-            if (!previewImageUrl) {
-              previewImageUrl =
-                mapping.find(
-                  (img) =>
-                    img.originalFileName ===
-                    createProductPageStore.getState().previewImageIdentificator
-                      .name
-                )?.fileUrl ?? "";
-            }
-
-            const newFileNames = mapping.map((m) => m.fileUrl);
-
-            productToCreate.fileUrls = newFileNames ?? [];
-
-            if (previewImageUrl === "") {
-              if (
-                productToCreate.fileUrls.length === 0 ||
-                !productToCreate.fileUrls[0] ||
-                productToCreate.fileUrls[0] === ""
-              ) {
-                toast.error("You must upload at least one image.");
-                return;
-              }
-              previewImageUrl = productToCreate.fileUrls[0];
-            }
-
-            productToCreate.previewImageUrl = previewImageUrl;
-
-            result =
-              createProductZodValidationObject.safeParse(productToCreate);
-
-            if (!result.success) {
-              result.error.errors.map((error) => {
-                toast.error(`${error.path} ${error.message}`, {
-                  position: "bottom-left",
-                  duration: 10000,
-                });
-              });
-              return;
-            }
-
-            const mutationResult = await createProductMutation.mutateAsync(
-              productToCreate
-            );
-
-            if (mutationResult) {
-              await trpcContext.products.getOwnProducts.invalidate();
-              createProductPageStore.getState().resetStore();
-              toast("Product has been created successfully.");
-              router.push("/account");
-            }
-          }}
-        >
+        <div className="btn-primary btn" onClick={() => upsertProduct()}>
           {isUpdating ? "Update" : "Create"}
         </div>
       </div>
     </>
   );
+};
+
+const useUpsertProduct = () => {
+  const createProductMutation = trpc.products.upsertProduct.useMutation();
+  const uploadImagesMutation = useUploadImagesMutation();
+  const trpcContext = trpc.useContext();
+  const isUpdating = createProductPageStore((s) => s.isUpdating);
+  const router = useRouter();
+
+  const upsertProduct = async () => {
+    toast.remove();
+
+    const productToCreate = {
+      id: createProductPageStore.getState().product.id ?? null,
+      title: createProductPageStore.getState().product.title,
+      description: createProductPageStore.getState().product.description,
+      price: createProductPageStore.getState().product.price,
+      stock: createProductPageStore.getState().product.stock,
+      shippingTimeDays: createProductPageStore.getState().product.shippingTime,
+      categories: createProductPageStore
+        .getState()
+        .product.categories.map((c) => Converters.stringToCategory(c)),
+      fileUrls: [],
+      previewImageUrl: "",
+    } as z.infer<typeof createProductZodValidationObject>;
+
+    let result =
+      createProductZodValidationObjectWihtoutImages.safeParse(productToCreate);
+
+    if (!result.success) {
+      result.error.errors.map((error) => {
+        toast.error(`${error.path} ${error.message}`, {
+          position: "bottom-left",
+          duration: 10000,
+        });
+      });
+      return;
+    }
+
+    const mapping = await uploadImagesMutation.mutateAsync(
+      createProductPageStore.getState().files.map((f) => f.file) ?? [],
+      {
+        onError: (err) => {
+          console.log(err);
+          toast("Could not upload images to the file server.");
+        },
+      }
+    );
+
+    let previewImageUrl =
+      createProductPageStore.getState().product.previewImageUrl;
+
+    if (!previewImageUrl) {
+      previewImageUrl =
+        mapping.find(
+          (img) =>
+            img.originalFileName ===
+            createProductPageStore.getState().previewImageIdentificator.name
+        )?.fileUrl ?? "";
+    }
+
+    const newFileNames = mapping.map((m) => m.fileUrl);
+
+    productToCreate.fileUrls = newFileNames ?? [];
+
+    if (previewImageUrl === "") {
+      if (
+        productToCreate.fileUrls.length === 0 ||
+        !productToCreate.fileUrls[0] ||
+        productToCreate.fileUrls[0] === ""
+      ) {
+        toast.error("You must upload at least one image.");
+        return;
+      }
+      previewImageUrl = productToCreate.fileUrls[0];
+    }
+
+    productToCreate.previewImageUrl = previewImageUrl;
+
+    result = createProductZodValidationObject.safeParse(productToCreate);
+
+    if (!result.success) {
+      result.error.errors.map((error) => {
+        toast.error(`${error.path} ${error.message}`, {
+          position: "bottom-left",
+          duration: 10000,
+        });
+      });
+      return;
+    }
+
+    const mutationResult = await createProductMutation.mutateAsync(
+      productToCreate
+    );
+
+    if (mutationResult) {
+      if (isUpdating) {
+        toast.success("Product updated successfully.");
+      } else {
+        toast.success("Product created successfully.");
+      }
+      router.push("/account");
+      await trpcContext.products.getOwnProducts.invalidate();
+      createProductPageStore.getState().resetStore();
+    }
+  };
+
+  return {
+    upsertProduct,
+  };
 };
 
 const ProductCategories = () => {
@@ -522,6 +533,10 @@ const FilesSelection = () => {
 
 const DeleteIcon = () => {
   const itemsToDelete = deletePopupStore((state) => state.picturesToDeleteIds);
+  const setImagesMutation = trpc.products.setImages.useMutation();
+  const trpcContext = trpc.useContext();
+  const router = useRouter();
+
   return (
     <>
       <DropdownMenu.Root>
@@ -567,7 +582,37 @@ const DeleteIcon = () => {
                 <button className="btn-ghost btn-sm btn">No</button>
               </DropdownMenu.Item>
               <DropdownMenu.Item>
-                <button className="btn-error btn-sm btn">Yes</button>
+                <button
+                  className="btn-error btn-sm btn"
+                  onClick={async () => {
+                    createProductPageStore.setState((state) => {
+                      const urls = state.files
+                        .filter((f) => f.file.name !== EXISTING_IMAGE)
+                        .map((f) => f.url);
+                      state.product.images = state.product.images.filter(
+                        (i) => !urls.includes(i)
+                      );
+                      state.product.images = state.product.images.filter(
+                        (i) => !itemsToDelete.includes(i)
+                      );
+                    });
+                    toast.success(
+                      createProductPageStore
+                        .getState()
+                        .product.images.length.toString()
+                    );
+                    await setImagesMutation.mutateAsync({
+                      productId: createProductPageStore.getState().product.id,
+                      urls: createProductPageStore.getState().product.images,
+                    });
+                    await trpcContext.products.byId.invalidate({
+                      id: router.query.id as string,
+                    });
+                    toast.success("Pictures deleted");
+                  }}
+                >
+                  Yes
+                </button>
               </DropdownMenu.Item>
             </DropdownMenu.DropdownMenuGroup>
           </DropdownMenu.Content>
@@ -724,7 +769,11 @@ export const createProductPageStore = create<CreateProductPageStoreType>()(
       const r = await resp.json();
       toast(JSON.stringify(r));
 
-      toast.success("Product created.");
+      if (createProductPageStore.getState().isUpdating) {
+        toast.success("Product updated.");
+      } else {
+        toast.success("Product created.");
+      }
       return true;
     };
 
@@ -733,6 +782,9 @@ export const createProductPageStore = create<CreateProductPageStoreType>()(
         createProduct,
         resetStore,
         ...emptyProductPageStore,
+      });
+      deletePopupStore.setState((state) => {
+        state.picturesToDeleteIds = [];
       });
     };
 

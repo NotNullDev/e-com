@@ -250,6 +250,29 @@ export const productsRouter = router({
       return a;
     }),
 
+  setImages: protectedProcedure
+    .input(
+      z.object({
+        urls: z.array(z.string()),
+        productId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { prisma, session } = ctx;
+      const { productId, urls } = input;
+
+      await prisma.product.update({
+        where: {
+          id: productId,
+        },
+        data: {
+          images: {
+            set: urls,
+          },
+        },
+      });
+    }),
+
   upsertProduct: protectedProcedure
     .input(
       z.object({
