@@ -50,7 +50,10 @@ const Home: NextPage = () => {
           <h2 className="mb-2 w-min whitespace-nowrap bg-gradient-to-br from-sky-400 to-indigo-500 bg-clip-text text-3xl font-bold italic text-opacity-0">
             <ProductsTitle key={resetId} />
           </h2>
-          <div className="grid grid-cols-5 gap-10" ref={parent}>
+          <div
+            className="grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4  2xl:grid-cols-5"
+            ref={parent}
+          >
             {filteredProducts.status === "success" && (
               <>
                 {filteredProducts.data?.map((p) => (
