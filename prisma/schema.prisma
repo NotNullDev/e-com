@@ -50,15 +50,17 @@ model Session {
 }
 
 model User {
-  id             String     @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String?
-  email          String?    @unique
+  email          String?        @unique
   emailVerified  DateTime?
   image          String?
   accounts       Account[]
   sessions       Session[]
   roles          UserRole[]
   productsToSell Product[]
+  conversations  Conversation[]
+  ChatMessage    ChatMessage[]
 }
 
 model VerificationToken {
@@ -107,4 +109,28 @@ model Product {
   categories      Category[]
   rating          Int
   userId          String
+}
+
+model Conversation {
+  id        BigInt        @id
+  messages  ChatMessage[]
+  title     String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+}
+
+model ChatMessage {
+  id      BigInt @id @default(autoincrement())
+  owner   User   @relation(fields: [onwerId], references: [id])
+  content String
+
+  createdAt DateTime @default(now())
+  seen      Boolean  @default(false)
+
+  Conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  conversationId BigInt?
+  onwerId        String
 }

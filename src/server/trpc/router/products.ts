@@ -1,4 +1,4 @@
-import type { Category, Prisma } from "@prisma/client";
+import type { Category, Conversation, Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { randomUUID } from "node:crypto";
 import toast from "react-hot-toast";
@@ -365,6 +365,18 @@ export const productsRouter = router({
         fileUrl,
       };
     }),
+
+  getConversations: protectedProcedure.query(async ({ ctx, input }) => {
+    const { prisma, session } = ctx;
+
+    const conversations: Conversation[] = await prisma.conversation.findMany({
+      where: {
+        userId: session.user.id,
+      },
+    });
+
+    return conversations;
+  }),
 });
 
 export type CreateProductModel = {

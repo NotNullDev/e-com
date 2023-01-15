@@ -1,4 +1,3 @@
-
 name: "e-com"
 services:
   # db:
@@ -20,7 +19,6 @@ services:
       - .env.production.local
     networks:
       - e-com
-
 
 volumes:
   e-com-db:
