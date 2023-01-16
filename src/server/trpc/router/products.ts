@@ -371,11 +371,15 @@ export const productsRouter = router({
 
     const conversations = await prisma.conversation.findMany({
       where: {
-        userId: session.user.id,
+        participitants: {
+          some: {
+            id: session.user.id,
+          },
+        },
       },
       include: {
         messages: true,
-        User: true,
+        participitants: true,
       },
     });
 

@@ -163,6 +163,7 @@ const CartPage: NextPage = () => {
           <button
             name="data"
             className="btn-primary btn mt-4 w-full"
+            disabled={data?.length === 0}
             type="submit"
             onClick={(e) => {
               const recentCartValue = JSON.stringify(

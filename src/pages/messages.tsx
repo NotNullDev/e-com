@@ -1,8 +1,8 @@
-import type { Conversation } from "@prisma/client";
+import type { Conversation, User } from "@prisma/client";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRef, useState } from "react";
 import { toast } from "react-hot-toast";
-import create from "zustand";
+import create, { useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import SearchWithNavigation from "../components/SearchWithNavigation";
 import { trpc } from "../utils/trpc";
@@ -125,11 +125,28 @@ const MessagesPage = () => {
   );
 };
 
-const NewConversationModal = () => {
-  const peopleListRef = useRef<HTMLUListElement>(null);
-  const [dropdownKey, setDropdownKey] = useState(0);
-  const [userFilter, setUserFilter] = useState("");
-  const { data, status } = trpc.users.search.useQuery({
+type NewConversationModelStoreType = {
+  userFilter: string;
+  selectedUsers: User[];
+};
+
+const newConversationModalStore = create<NewConversationModelStoreType>()(
+  immer((set, get, store) => {
+    return {
+      userFilter: "",
+      selectedUsers: [],
+    };
+  })
+);
+
+const useFilteredUsers = () => {
+  const userFilter = useStore(newConversationModalStore, (s) => s.userFilter);
+  const selectedUsers = useStore(
+    newConversationModalStore,
+    (s) => s.selectedUsers
+  );
+
+  return trpc.users.search.useQuery({
     where: {
       OR: [
         {
@@ -145,8 +162,28 @@ const NewConversationModal = () => {
           },
         },
       ],
+      AND: {
+        id: {
+          notIn: selectedUsers.map((u) => u.id),
+        },
+      },
     },
+    take: 10,
   });
+};
+
+const NewConversationModal = () => {
+  const peopleListRef = useRef<HTMLUListElement>(null);
+  const userFilter = useStore(newConversationModalStore, (s) => s.userFilter);
+  const [dropdownKey, setDropdownKey] = useState(0);
+  const selectedUsers = useStore(
+    newConversationModalStore,
+    (s) => s.selectedUsers
+  );
+  const { data, status } = useFilteredUsers();
+  const createNewConverstaionMuatation =
+    trpc.users.createConverstation.useMutation();
+  const trpcContext = trpc.useContext();
 
   return (
     <>
@@ -174,8 +211,9 @@ const NewConversationModal = () => {
                   placeholder="Find person"
                   value={userFilter}
                   onChange={(e) => {
-                    toast(e.currentTarget.value);
-                    setUserFilter(e.currentTarget.value);
+                    newConversationModalStore.setState((s) => {
+                      s.userFilter = e.currentTarget.value;
+                    });
                   }}
                 />
                 <ul
@@ -213,8 +251,13 @@ const NewConversationModal = () => {
                         tabIndex={-1}
                         onClick={() => {
                           toast(user.name);
+                          newConversationModalStore.setState((state) => {
+                            state.selectedUsers.push(user);
+                          });
                           setDropdownKey((o) => o + 1);
-                          setUserFilter(user.name ?? "");
+                          newConversationModalStore.setState((state) => {
+                            state.userFilter = "";
+                          });
                         }}
                       >
                         <a>
@@ -225,13 +268,72 @@ const NewConversationModal = () => {
                     );
                   })}
                 </ul>
+                <div className="flex flex-wrap gap-4 p-4">
+                  {selectedUsers.map((u) => (
+                    <UserBadge user={u} key={u.id} />
+                  ))}
+                </div>
               </div>
-
-              <button className="btn-primary btn">Start chat</button>
+              <button
+                className="btn-primary btn"
+                onClick={async () => {
+                  await createNewConverstaionMuatation.mutateAsync({
+                    title: "",
+                    participantsIds: newConversationModalStore
+                      .getState()
+                      .selectedUsers.map((u) => u.id),
+                  });
+                  await trpcContext.products.getConversations.invalidate();
+                  toast("success");
+                }}
+              >
+                Start chat
+              </button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+    </>
+  );
+};
+
+type UserBadgeType = {
+  user: User;
+};
+
+const UserBadge = ({ user }: UserBadgeType) => {
+  return (
+    <>
+      <div className="indicator">
+        <span
+          className="indicator-item cursor-pointer"
+          onClick={() => {
+            newConversationModalStore.setState((state) => {
+              state.selectedUsers = state.selectedUsers.filter(
+                (u) => u.id !== user.id
+              );
+            });
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-6 w-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </span>
+        <div className="rounded-xl bg-base-300 p-2 px-4 shadow-primary">
+          {user.name}
+        </div>
+      </div>
     </>
   );
 };
