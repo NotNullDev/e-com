@@ -369,13 +369,17 @@ export const productsRouter = router({
   getConversations: protectedProcedure.query(async ({ ctx, input }) => {
     const { prisma, session } = ctx;
 
-    const conversations: Conversation[] = await prisma.conversation.findMany({
+    const conversations = await prisma.conversation.findMany({
       where: {
         userId: session.user.id,
       },
+      include: {
+        messages: true,
+        User: true,
+      },
     });
 
-    return conversations;
+    return conversations as Conversation[];
   }),
 });
 

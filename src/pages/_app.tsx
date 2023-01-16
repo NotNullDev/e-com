@@ -144,7 +144,7 @@ const Header = () => {
 
         {sessionStatus === "authenticated" && (
           <>
-            <div className="dropdown-end dropdown" key={resettDropdownKey}>
+            <div className="dropdown dropdown-end" key={resettDropdownKey}>
               <button className="placeholder avatar flex items-center">
                 <div className="w-8 rounded-full bg-neutral-focus text-neutral-content">
                   <Image
@@ -339,7 +339,7 @@ const CategoryDropdown = () => {
           key={selectedCategory}
         >
           <li
-            tabIndex={0}
+            tabIndex={-1}
             className=""
             key={"ALL_CATEGORIES"}
             onClick={() => {
@@ -356,7 +356,7 @@ const CategoryDropdown = () => {
           </li>
           {filteredCategories.map((c, idx) => (
             <li
-              tabIndex={0}
+              tabIndex={-1}
               className=""
               key={c}
               onClick={() => {
