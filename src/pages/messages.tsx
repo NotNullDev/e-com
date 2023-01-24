@@ -1,6 +1,6 @@
 import type { Conversation, User } from "@prisma/client";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import create, { useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
@@ -33,6 +33,10 @@ const MessagesPage = () => {
       }
     },
   });
+
+  useEffect(() => {
+    toast(data?.length.toString() ?? "no length");
+  }, [data?.length]);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center">
@@ -202,7 +206,7 @@ const NewConversationModal = () => {
                 </button>
               </Dialog.Close>
             </Dialog.Title>
-
+            )
             <div className="flex h-full max-h-full flex-col p-4">
               <div className="dropdown flex-1">
                 <SearchWithNavigation

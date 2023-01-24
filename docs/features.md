@@ -7,6 +7,7 @@
   - [Sorting](#sorting)
   - [3rd party API](#3rd-party-api)
   - [TODO](#todo)
+  - [Main fetures](#main-fetures)
   - [Optimalization](#optimalization)
   - [Bugs](#bugs)
   - [API KEY](#api-key)
@@ -37,20 +38,26 @@ Design file: [Excalidraw file](pages.excalidraw)
 
 ## 3rd party API
 - [x] Stripe
-- [ ] S3 / minio
+- [x] S3 / minio
 - [ ] Add documentation about minio setup
 
 ## TODO
 - [x] remove items from cart
 - [x] edit product page
 - [x] merge product store and product search store
-- [ ] create history page
 - [ ] add messages system
+- [ ] create history page
 - [ ] make website responsive
 - [ ] make website mobile friendly
 - [ ] redesign cart page
 - [ ] fix images background position
 - [ ] make all stores use immer (remove all setters)
+
+
+## Main fetures
+- [ ] Charts showing sales
+- [ ] Notifications (email)
+
 ## Optimalization
 - [ ] Rerendering optimization
 - [ ] Slow "My products" page loading

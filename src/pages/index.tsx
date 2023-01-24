@@ -314,7 +314,7 @@ const SortComponent = () => {
         }}
       />
       <button
-        className=" btn-ghost btn-sm btn ml-6 shadow shadow-gray-900"
+        className=" btn-primary btn-sm btn ml-6 shadow shadow-gray-900"
         onClick={() => {
           trpcContext.products.filtered.invalidate();
         }}
@@ -322,7 +322,7 @@ const SortComponent = () => {
         apply filters
       </button>
       <button
-        className=" btn-ghost btn-sm btn  shadow shadow-gray-900"
+        className="btn-ghost btn-sm btn shadow shadow-gray-900"
         onClick={() => {
           productsStore.getState().resetStore();
           trpcContext.products.filtered.invalidate();
