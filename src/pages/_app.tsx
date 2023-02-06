@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useId, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
 import { cartStore } from "../lib/stores/cartStore";
@@ -57,18 +58,6 @@ const Header = () => {
     });
   };
 
-  const startSignIn = () => {
-    signIn(
-      "google",
-      {
-        redirect: false,
-      },
-      {
-        prompt: "login",
-      }
-    );
-  };
-
   useEffect(() => {
     setCartCount(cartItems.length);
   }, [cartItems.length]);
@@ -93,7 +82,12 @@ const Header = () => {
           <span className="badge-primary badge badge-sm indicator-item">
             10+
           </span>
-          <Link href="/messages">
+          <Link
+            href="/"
+            onClick={() => {
+              toast("Not yet! :)");
+            }}
+          >
             <button>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -144,7 +138,7 @@ const Header = () => {
 
         {sessionStatus === "authenticated" && (
           <>
-            <div className="dropdown dropdown-end" key={resettDropdownKey}>
+            <div className="dropdown-end dropdown" key={resettDropdownKey}>
               <button className="placeholder avatar flex items-center">
                 <div className="w-8 rounded-full bg-neutral-focus text-neutral-content">
                   <Image
@@ -159,7 +153,7 @@ const Header = () => {
                 className="dropdown-content menu rounded-box w-52 bg-base-100 p-2 shadow"
                 tabIndex={0}
               >
-                <li>
+                {/* <li>
                   <Link
                     href="/history"
                     onClick={() => {
@@ -168,7 +162,7 @@ const Header = () => {
                   >
                     <div>Purchase history</div>
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link
                     href="/account"
@@ -190,11 +184,38 @@ const Header = () => {
             </div>
           </>
         )}
-        {sessionStatus === "unauthenticated" && (
-          <button onClick={() => startSignIn()}>Login</button>
-        )}
+        {sessionStatus === "unauthenticated" && <LoginButton />}
       </div>
     </header>
+  );
+};
+
+const LoginButton = () => {
+  const loginRequired = cartStore((state) => state.loginRequired);
+  const [id, setId] = useState<number>(1);
+
+  const startSignIn = () => {
+    signIn(
+      "google",
+      {
+        redirect: false,
+      },
+      {
+        prompt: "login",
+      }
+    );
+  };
+
+  useEffect(() => {
+    setId((old) => old + 1);
+  }, [loginRequired]);
+
+  return (
+    <>
+      <button key={id} className={""} onClick={() => startSignIn()}>
+        Login
+      </button>
+    </>
   );
 };
 

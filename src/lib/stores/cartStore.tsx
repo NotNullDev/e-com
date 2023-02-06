@@ -13,6 +13,7 @@ export type CartStoreType = {
   items: CartItem[];
   addItem: (items: CartItem) => void;
   getQuantity: (productId: string) => number;
+  loginRequired: boolean; // used to make login jump
 };
 
 export const cartStore = create<CartStoreType>()(
@@ -50,6 +51,7 @@ export const cartStore = create<CartStoreType>()(
         items: [],
         addItem,
         getQuantity,
+        loginRequired: false,
       };
     })
   )

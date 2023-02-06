@@ -12,16 +12,16 @@ services:
     image: quay.io/minio/minio
     command: 'server /data --console-address ":9090"'
     ports:
-        - '9000:9000'
-        - '9090:9090'
+      - "9000:9000"
+      - "9090:9090"
     container_name: minio
     volumes:
-        - 'e-com-fs:/data'
+      - "e-com-fs:/data"
     environment:
-        - MINIO_ROOT_USER=admin
-        - MINIO_ROOT_PASSWORD=adminpassword
-
-
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=adminpassword
+      - MINIO_ACCESS_KEY=oPCkkCrWF9zFgNUG
+      - MINIO_SECRET_KEY=vNHFMsgBKYB50cMIIuSIF1vUs65Kp9Sn
 volumes:
   e-com-db:
     name: e-com-db

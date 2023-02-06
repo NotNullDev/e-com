@@ -176,6 +176,10 @@ const CartPage: NextPage = () => {
               if (session.status !== "authenticated") {
                 e.preventDefault();
                 toast("You need to be logged in to checkout your cart");
+                cartStore.setState((state) => {
+                  state.loginRequired = true;
+                  return state;
+                });
               }
             }}
           >
