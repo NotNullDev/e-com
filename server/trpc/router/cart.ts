@@ -1,6 +1,6 @@
 import type { PrismaClient, User } from "@prisma/client";
 import { z } from "zod";
-import type { FullCartItem } from "../../../lib/stores/cartStore";
+import type { FullCartItem } from "../../../src/logic/common/cartStore";
 import { publicProcedure, router } from "../trpc";
 
 export type CartResponse = {

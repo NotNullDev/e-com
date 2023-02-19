@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { NiceButton } from "../../components/NiceButton";
-import { cartStore } from "../../lib/stores/cartStore";
+import { cartStore } from "../../logic/common/cartStore";
 import { Converters } from "../../utils/convertes";
 import { trpc } from "../../utils/trpc";
 

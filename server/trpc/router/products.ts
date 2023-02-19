@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { randomUUID } from "node:crypto";
 import toast from "react-hot-toast";
 import { z } from "zod";
-import { getPreSignedUrl } from "../../../utils/fileUploader";
+import { getPreSignedUrl } from "../../../src/utils/fileUploader";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const productsRouter = router({

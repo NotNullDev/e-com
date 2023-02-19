@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Stripe } from "stripe";
-import type { CartItem } from "../../lib/stores/cartStore";
-import { getServerAuthSession } from "../../server/common/get-server-auth-session";
-import { prisma } from "../../server/db/client";
-import { getCartData } from "../../server/trpc/router/cart";
+import { getServerAuthSession } from "../../../server/common/get-server-auth-session";
+import { prisma } from "../../../server/db/client";
+import { getCartData } from "../../../server/trpc/router/cart";
+import type { CartItem } from "../../logic/common/cartStore";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2022-11-15",
