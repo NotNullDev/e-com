@@ -3,9 +3,9 @@ import type { Category } from "@prisma/client";
 import formidable from "formidable";
 import { readFileSync } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerAuthSession } from "../../../server/common/get-server-auth-session";
-import { prisma } from "../../../server/db/client";
-import { IMAGE_URL_PREFIX } from "../../utils/CONST";
+import {getServerAuthSession} from "../../../server/common/get-server-auth-session";
+import {prisma} from "../../../server/config/prisma";
+import {IMAGE_URL_PREFIX} from "../../utils/CONST";
 
 //set bodyparser
 export const config = {
