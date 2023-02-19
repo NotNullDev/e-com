@@ -1,8 +1,8 @@
-import { Rating } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
+import type { Sorting } from "../../logic/common/productsStore";
+import { productsStore } from "../../logic/common/productsStore";
 import { trpc } from "../../utils/trpc";
-import type { Sorting } from "../common/productsStore";
-import { productsStore } from "../common/productsStore";
+import { Rating } from "./RatingComponent";
 
 export const SortComponent = () => {
   const [sort, setSort] = useState<Sorting>({

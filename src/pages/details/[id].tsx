@@ -113,7 +113,8 @@ const CartFooter = ({ item }: CartFooterProps) => {
           setAmount(u);
         }}
       />
-      <div className="flex gap-3 p-2">
+      <div className="flex items-center gap-3 p-2">
+        <div className="mr-2 text-xl font-bold">{item.price * amount} PLN</div>
         <button className="btn-ghost btn">buy now</button>
         <button
           className="btn-secondary btn"
