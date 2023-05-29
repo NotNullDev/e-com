@@ -1,6 +1,6 @@
 import type { Category, Product } from "@prisma/client";
 import toast from "react-hot-toast";
-import create from "zustand";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 export type ProductsFilters = {
@@ -12,6 +12,7 @@ export type ProductsFilters = {
   searchFilter: string; // old store
   singleCategoryFilter?: Category; // used for filtering on the top of the page
   setSingleCategoryFilter?: (filter: string) => void; // used for filtering on the top of the page
+  skip: number;
 };
 export type Sorting = {
   price: "asc" | "desc" | undefined;
@@ -40,6 +41,7 @@ export const getEmptyFilters = (): ProductsFilters => ({
   productIds: [],
   searchFilter: "",
   singleCategoryFilter: undefined,
+  skip: 0,
 });
 
 export const productsStore = create<ProductsStoreType>()(

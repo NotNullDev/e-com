@@ -1,4 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Category } from "@prisma/client";
 import { type NextPage } from "next";
 import { CategorySelector } from "../components/index/CategorySelect";
@@ -8,29 +7,77 @@ import { ProductsTitle } from "../components/index/ProductsTitle";
 import { SortComponent } from "../components/index/SortComponent";
 import { productsStore } from "../logic/common/productsStore";
 
+import { useEffect } from "react";
+import { useStore } from "zustand";
 import { trpc } from "../utils/trpc";
+
+let observer: IntersectionObserver;
+if (typeof window !== "undefined") {
+  observer = new IntersectionObserver((nodes, observer) => {
+    nodes.forEach((n) => {
+      if (n.isIntersecting) {
+        const pList = document.querySelector("#products-list") as HTMLElement;
+        if (!pList) return;
+
+        const columns =
+          getComputedStyle(pList).gridTemplateColumns.split("px").length - 1;
+
+        console.log("columns: ", columns);
+        const secondRowChildIdx = pList.children.length - 2 * columns;
+
+        return;
+      }
+    });
+    return () => {
+      observer.disconnect();
+    };
+  });
+}
 
 const Home: NextPage = () => {
   const resetId = productsStore((state) => state.resetId);
-  const filteredProducts = trpc.products.filtered.useQuery(
-    productsStore.getState().filters,
-    {
-      onSuccess: (data) => {
-        productsStore.setState((old) => {
-          if (filteredProducts.data) {
-            old.products = data;
-          } else {
-            old.products = [];
-          }
-        });
-      },
-    }
-  );
-  const [parent] = useAutoAnimate<HTMLDivElement>();
+  const { filters } = useStore(productsStore);
+  const filteredProducts = trpc.products.filtered.useQuery(filters, {
+    onSuccess: (data) => {
+      productsStore.setState((old) => {
+        if (filteredProducts.data) {
+          old.products = data;
+        } else {
+          old.products = [];
+        }
+      });
+    },
+  });
 
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
   ];
+
+  useEffect(() => {
+    const list = document.querySelector("#products-list");
+
+    if (!list || !filteredProducts.isSuccess) {
+      observer.disconnect();
+      return;
+    }
+
+    const columns =
+      getComputedStyle(list).gridTemplateColumns.split("px").length - 1;
+
+    console.log("columns: ", columns);
+    const secondRowChildIdx = list.children.length - 2 * columns;
+    const secondRowChild = list.children[secondRowChildIdx];
+
+    if (!list || !filteredProducts.isSuccess || !secondRowChild) {
+      observer.disconnect();
+    } else {
+      observer.observe(secondRowChild as Element);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [filters, filteredProducts.isSuccess]);
 
   return (
     <>
@@ -52,7 +99,7 @@ const Home: NextPage = () => {
           </h2>
           <div
             className="grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4  2xl:grid-cols-5"
-            ref={parent}
+            id="products-list"
           >
             {filteredProducts.status === "success" && (
               <>
@@ -62,7 +109,9 @@ const Home: NextPage = () => {
               </>
             )}
             {filteredProducts.status === "loading" &&
-              [...Array(20)].map((i) => <SingleProductSkeleton key={i} />)}
+              [...Array(20)].map((i, idx) => (
+                <SingleProductSkeleton key={idx} />
+              ))}
           </div>
         </div>
       </div>

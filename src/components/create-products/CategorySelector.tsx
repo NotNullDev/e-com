@@ -2,6 +2,7 @@ import type { Category } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import { createProductPageStore } from "../../logic/create-products/createProductsPageStore";
 import type { CategorySelectorProps } from "../../logic/create-products/types";
+import clsx from "clsx";
 
 export const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   const [enabled, setEnabled] = useState(false);
@@ -25,10 +26,6 @@ export const CategorySelector = ({ category: c }: CategorySelectorProps) => {
     });
   };
 
-  const enabledStyle = "bg-primary text-primary-content";
-
-  const activeStyle = useMemo(() => (enabled ? enabledStyle : ""), [enabled]);
-
   useEffect(() => {
     if (selectedCategories.includes(c as Category)) {
       setEnabled(true);
@@ -48,7 +45,11 @@ export const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   return (
     <div
       className={
-        "cursor-pointer rounded-xl bg-base-200 p-2 px-4 " + ` ${activeStyle}`
+        clsx(
+            "cursor-pointer rounded-xl bg-base-200 p-2 px-4",
+            "hover:bg-primary hover:text-primary-content",
+            {"hover:bg-primary hover:text-primary-content": enabled}
+        )
       }
       key={c}
       onClick={() => {

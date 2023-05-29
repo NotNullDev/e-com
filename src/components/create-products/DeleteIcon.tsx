@@ -1,4 +1,4 @@
-import DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import {

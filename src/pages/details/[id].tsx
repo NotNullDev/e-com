@@ -1,11 +1,12 @@
 import type { Product } from "@prisma/client";
+import { useAtom } from "jotai";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { NiceButton } from "../../components/NiceButton";
-import { cartStore } from "../../logic/common/cartStore";
+import { CartAtoms } from "../../logic/common/cartStore";
 import { Converters } from "../../utils/convertes";
 import { trpc } from "../../utils/trpc";
 
@@ -39,8 +40,7 @@ export default function ProductDetails() {
                         height={600}
                         width={600}
                         className="rounded-t-xl"
-                        priority={true}
-                        placeholder="empty"
+                        loading="lazy"
                       />
                     </div>
                   </>
@@ -52,6 +52,7 @@ export default function ProductDetails() {
                     alt="hello!"
                     height={400}
                     width={200}
+                    loading="lazy"
                   />
                 )}
               </div>
@@ -104,6 +105,8 @@ type CartFooterProps = {
 };
 const CartFooter = ({ item }: CartFooterProps) => {
   const [amount, setAmount] = useState(1);
+  const [, addItem] = useAtom(CartAtoms.mutation.addItemAtom);
+
   return (
     <div className="flex h-min items-center justify-between">
       <NiceButton
@@ -115,12 +118,12 @@ const CartFooter = ({ item }: CartFooterProps) => {
       />
       <div className="flex items-center gap-3 p-2">
         <div className="mr-2 text-xl font-bold">{item.price * amount} PLN</div>
-        <button className="btn-ghost btn">buy now</button>
+        {/* <button className="btn-ghost btn">buy now</button> */}
         <button
           className="btn-secondary btn"
           onClick={() => {
             if (item) {
-              cartStore.getState().addItem({
+              addItem({
                 productId: item.id,
                 quantity: amount,
               });

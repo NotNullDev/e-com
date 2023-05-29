@@ -23,6 +23,7 @@ export const FilesSelection = () => {
               src={u.url}
               width={400}
               height={200}
+              loading="lazy"
               alt="haha"
               className="col-span-1 h-[200px] w-[400px] bg-cover bg-center"
             />

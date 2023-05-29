@@ -1,12 +1,13 @@
 import type { ReactNode, ReactPortal } from "react";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import create from "zustand";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 export const openGlobalModal = () => {
   const modal = document.querySelector("#global-modal") as HTMLInputElement;
   modal.checked = true;
+  modal.readOnly = true;
 };
 
 export type GlobalModalStoreType = {
@@ -106,19 +107,19 @@ const GlobalModal = () => {
   return (
     <div hidden={!open} ref={modalRef}>
       <div
-        className="absolute top-0 left-0 z-[499] h-[100vh] w-[100vw] overflow-hidden bg-base-300 opacity-50"
+        className="absolute left-0 top-0 z-[499] h-[100vh] w-[100vw] overflow-hidden bg-base-300 opacity-50"
         onClick={() => {
           GlobalModalController.close();
         }}
       ></div>
       <div
-        className="absolute top-1/2 left-1/2 z-[500] -translate-x-1/2 -translate-y-1/2"
+        className="absolute left-1/2 top-1/2 z-[500] -translate-x-1/2 -translate-y-1/2"
         key={"global-portal"}
       >
         <div className="relative">
           {modalStatus === true && (
             <div
-              className="absolute top-0 right-0 m-2"
+              className="absolute right-0 top-0 m-2"
               onClick={() => {
                 GlobalModalController.close();
               }}

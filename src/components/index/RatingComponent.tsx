@@ -21,6 +21,7 @@ export const Rating = ({ rating, editable, onClick: callback }: RatingType) => {
           name={"rating" + uuid}
           className="hidden"
           checked={currentRating === 0}
+          readOnly
         />
         {[...Array(5)].map((_, idx) => {
           return (
@@ -33,6 +34,7 @@ export const Rating = ({ rating, editable, onClick: callback }: RatingType) => {
                 `${currentRating === 0 ? "" : "bg-orange-400"}`
               }
               checked={idx === currentRating - 1}
+              readOnly
               onClick={() => {
                 if (editable && callback) {
                   if (idx === currentRating - 1) {

@@ -14,14 +14,16 @@ export const ProductCard = ({ product }: SingleProductPreviewProps) => {
       <Link
         href={"/details/" + product.id ?? 0}
         className="card card-compact relative h-[300px] w-[250px] cursor-pointer bg-base-100 text-base shadow-xl hover:opacity-80"
+        data-product-id={product.id}
       >
         <figure>
           <Image
             src={product.previewImageUrl}
             alt="Shoes"
+            loading="lazy"
             width={280}
             height={190}
-            priority={true}
+            // priority={true}
           />
         </figure>
         <div className="card-body flex w-full flex-col justify-between">

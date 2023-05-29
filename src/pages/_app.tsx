@@ -4,6 +4,7 @@ import { type AppType } from "next/app";
 
 import { trpc } from "../utils/trpc";
 
+import { useAtom } from "jotai";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,12 +13,13 @@ import { useEffect, useId, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
-import { cartStore } from "../logic/common/cartStore";
+import { CartAtoms } from "../logic/common/cartStore";
 import { productsStore } from "../logic/common/productsStore";
 import "../styles/globals.css";
 import { Converters } from "../utils/convertes";
 import { getAllCategoriesAsString } from "../utils/enumParser";
 
+// workaround for the hydration error
 const Toaster = dynamic(
   () => import("react-hot-toast").then((c) => c.Toaster),
   {
@@ -42,12 +44,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
   );
 };
 
-const Footer = () => {
-  return <footer className="mt-10 p-6"></footer>;
-};
-
 const Header = () => {
-  const cartItems = cartStore((state) => state.items);
+  // const cartItems = cartStore((state) => state.items);
+  const cartItems = useAtom(CartAtoms.query.cartAtom);
   const { data: session, status: sessionStatus } = useSession();
   const [cartCount, setCartCount] = useState(0);
   const [resettDropdownKey, setResettDropdownKey] = useState(0);
@@ -191,7 +190,7 @@ const Header = () => {
 };
 
 const LoginButton = () => {
-  const loginRequired = cartStore((state) => state.loginRequired);
+  const loginRequired = useAtom(CartAtoms.query.loginSuggestionAtom);
   const [id, setId] = useState<number>(1);
 
   const startSignIn = () => {
@@ -255,7 +254,7 @@ const ProductSearchDropdown = () => {
               });
             }}
           />
-          <div className="absolute top-1/2 right-3 -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <kbd className="kbd kbd-sm">ctrl</kbd>+
             <kbd className="kbd kbd-sm">k</kbd>
           </div>
@@ -433,49 +432,8 @@ const CategoryDropdown = () => {
   );
 };
 
-export const CategoriesPicker = () => {
-  const selectedCategory = productsStore(
-    (state) => state.filters.singleCategoryFilter
-  );
-  const allCategories = getAllCategoriesAsString();
-
-  useEffect(() => {
-    if (!selectedCategory) {
-    }
-  }, [selectedCategory]);
-
-  return (
-    <div key={selectedCategory}>
-      <li
-        tabIndex={0}
-        className="bg-base-200"
-        key={"ALL_CATEGORIES"}
-        onClick={() => {
-          productsStore.setState((old) => {
-            old.categoryDropdownOpen = false;
-            old.filters.singleCategoryFilter = undefined;
-          });
-        }}
-      >
-        <a>All categories</a>
-      </li>
-      {allCategories.map((c, idx) => (
-        <li
-          tabIndex={0}
-          className="bg-base-200"
-          key={c}
-          onClick={() => {
-            productsStore.setState((old) => {
-              old.categoryDropdownOpen = false;
-              old.filters.singleCategoryFilter = Converters.stringToCategory(c);
-            });
-          }}
-        >
-          <a>{c}</a>
-        </li>
-      ))}
-    </div>
-  );
+const Footer = () => {
+  return <footer className="mt-10 p-6"></footer>;
 };
 
 export default trpc.withTRPC(MyApp);

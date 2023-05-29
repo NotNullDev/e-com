@@ -6,7 +6,7 @@ export const ProductTitle = () => {
     <input
       value={val}
       placeholder="Product title"
-      className="input-bordered input text-3xl"
+      className="input-bordered input text-3xl placeholder:text-slate-600"
       onChange={(e) => {
         createProductPageStore.setState((state) => {
           state.product.title = e.currentTarget.value;

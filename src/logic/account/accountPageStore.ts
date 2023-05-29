@@ -1,5 +1,5 @@
 import type { Product } from "@prisma/client";
-import create from "zustand";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 export type AccountPageStoreType = {

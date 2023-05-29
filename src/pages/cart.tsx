@@ -1,4 +1,5 @@
 import type { Product } from "@prisma/client";
+import { useAtom } from "jotai";
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -8,7 +9,7 @@ import { AllProductsCostSummary } from "../components/cart/AllProductsCostSummar
 import { AllProductsSummarySkeleton } from "../components/cart/AllProductsSummarySkeleton";
 import { SellerProducts } from "../components/cart/ProductsList";
 import { SellerSummary } from "../components/cart/SellerSummary";
-import { cartStore } from "../logic/common/cartStore";
+import { CartAtoms } from "../logic/common/cartStore";
 import { trpc } from "../utils/trpc";
 
 const getSellersFromCartProducts = (cartProducts: Product[]) => {
@@ -22,22 +23,21 @@ const getSellersFromCartProducts = (cartProducts: Product[]) => {
 const CartPage: NextPage = () => {
   const session = useSession();
   const cartInputRef = useRef<HTMLInputElement>(null);
-  const cart = cartStore(
-    (state) => state.items,
-    (a, b) => {
-      return a.length === b.length;
-    }
+  const [cart] = useAtom(CartAtoms.query.cartAtom);
+  const [items] = useAtom(CartAtoms.query.cartItemsAtom);
+  const [, addItem] = useAtom(CartAtoms.mutation.addItemAtom);
+  const [, clearCart] = useAtom(CartAtoms.mutation.clearCartAtom);
+  const [, removeItem] = useAtom(CartAtoms.mutation.removeItemAtom);
+  const [, triggerLoginSuggestion] = useAtom(
+    CartAtoms.query.loginSuggestionAtom
   );
   const router = useRouter();
 
   const { data, status } = trpc.cart.getCartData.useQuery(
-    cart.map((c) => ({ productId: c.productId, quantity: c.quantity })),
+    items.map((c) => ({ productId: c.productId, quantity: c.quantity })),
     {
       onError: (err) => {
-        cartStore.setState((state) => {
-          state.items = [];
-          return state;
-        });
+        clearCart();
       },
       retry: 1,
     }
@@ -52,11 +52,12 @@ const CartPage: NextPage = () => {
       const productIdsToRemove = cartProductIds.filter(
         (id) => !dataProductIds.includes(id)
       );
-      cartStore.setState((state) => {
-        state.items = state.items.filter(
-          (item) => !productIdsToRemove.includes(item.productId)
-        );
-      });
+      // cartStore.setState((state) => {
+      //   state.items = state.items.filter(
+      //     (item) => !productIdsToRemove.includes(item.productId)
+      //   );
+      // });
+      productIdsToRemove.forEach((productId) => removeItem({ productId }));
     }
   }, [data, cart]);
 
@@ -64,9 +65,7 @@ const CartPage: NextPage = () => {
 
   useEffect(() => {
     if (success) {
-      cartStore.setState((state) => {
-        state.items = [];
-      });
+      clearCart();
       toast.success("Payment succeed", {
         duration: 10000,
       });
@@ -159,7 +158,7 @@ const CartPage: NextPage = () => {
           <input
             hidden={true}
             name="data"
-            value={JSON.stringify(cartStore.getState().items)}
+            value={JSON.stringify(items)}
             ref={cartInputRef}
           />
           <button
@@ -168,9 +167,7 @@ const CartPage: NextPage = () => {
             disabled={data?.length === 0}
             type="submit"
             onClick={(e) => {
-              const recentCartValue = JSON.stringify(
-                cartStore.getState().items
-              );
+              const recentCartValue = JSON.stringify(items);
               // put recent cart value into input above
               if (cartInputRef.current) {
                 cartInputRef.current.value = recentCartValue;
@@ -178,10 +175,7 @@ const CartPage: NextPage = () => {
               if (session.status !== "authenticated") {
                 e.preventDefault();
                 toast("You need to be logged in to checkout your cart");
-                cartStore.setState((state) => {
-                  state.loginRequired = true;
-                  return state;
-                });
+                triggerLoginSuggestion(true);
               }
             }}
           >

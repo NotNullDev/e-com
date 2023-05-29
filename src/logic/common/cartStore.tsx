@@ -1,67 +1,22 @@
 import type { Product } from "@prisma/client";
-import create from "zustand";
-import { persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
-import { productsStore } from "./productsStore";
+import { atom } from "jotai";
+import { atomFamily } from "jotai/utils";
 
 export type CartItem = {
   productId: string;
   quantity: number;
 };
-
-export type CartStoreType = {
-  items: CartItem[];
-  addItem: (items: CartItem) => void;
-  getQuantity: (productId: string) => number;
-  loginRequired: boolean; // used to make login jump
-};
-
-export const cartStore = create<CartStoreType>()(
-  persist(
-    immer((set, get, store) => {
-      const addItem = (item: CartItem) => {
-        const existingItem = get().items.find(
-          (i) => i.productId === item.productId
-        );
-        if (existingItem) {
-          set((state) => {
-            const existing = state.items.find(
-              (i) => i.productId === item.productId
-            );
-            if (existing) {
-              existing.quantity = item.quantity;
-            }
-            return state;
-          });
-          return;
-        }
-        set((state) => {
-          state.items.push(item);
-          return state;
-        });
-      };
-
-      const getQuantity = (productId: string) => {
-        const item = get().items.find((i) => i.productId === productId);
-        if (!item) return 0;
-        return item.quantity;
-      };
-
-      return {
-        items: [],
-        addItem,
-        getQuantity,
-        loginRequired: false,
-      };
-    })
-  )
-);
-
 export type FullCartItem = CartItem & Product;
 
-export const getCurrenCart = () => {
-  const items = cartStore.getState().items;
-  const allProducts = productsStore.getState().products;
+const cartItemsAtom = atom<CartItem[]>([]);
+const productsAtom = atom<Product[]>([]);
+// makes login button to jump for a while
+const loginSuggestionAtom = atom(false);
+
+const cartAtom = atom<FullCartItem[]>((get) => {
+  const items = get(cartItemsAtom);
+  const allProducts = get(productsAtom);
+
   const products = items.map((item) => {
     const product = allProducts.find((p) => p.id === item.productId);
     if (!product) return null;
@@ -70,5 +25,65 @@ export const getCurrenCart = () => {
       quantity: item.quantity,
     } as FullCartItem;
   });
-  return products;
+
+  return products.filter((p) => p !== null) as FullCartItem[];
+});
+
+const cartPriceSummary = atom((get) => {
+  return get(cartAtom).reduce((p, c) => p + c.price, 0);
+});
+
+const getQuantityAtom = atomFamily(
+  (productId: string) =>
+    atom((get) => {
+      return (
+        get(cartItemsAtom).find((item) => item.productId === productId)
+          ?.quantity ?? 0
+      );
+    }),
+  (a, b) => a === b
+);
+
+const addItemAtom = atom(
+  null,
+  (
+    get,
+    set,
+    { productId, quantity }: { productId: string; quantity: number }
+  ) => {
+    const productToAdd = get(productsAtom).find((p) => p.id === productId);
+    if (!productToAdd) return;
+
+    set(cartItemsAtom, [...get(cartItemsAtom), { productId, quantity }]);
+  }
+);
+
+const removeItemAtom = atom(
+  null,
+  (get, set, { productId }: { productId: string }) => {
+    set(
+      cartItemsAtom,
+      get(cartItemsAtom).filter((p) => p.productId !== productId)
+    );
+  }
+);
+
+const clearCartAtom = atom(null, (get, set) => {
+  set(cartItemsAtom, []);
+});
+
+export const CartAtoms = {
+  query: {
+    cartItemsAtom,
+    productsAtom,
+    loginSuggestionAtom,
+    cartAtom,
+    getQuantityAtom,
+    cartPriceSummary,
+  },
+  mutation: {
+    addItemAtom,
+    removeItemAtom,
+    clearCartAtom,
+  },
 };

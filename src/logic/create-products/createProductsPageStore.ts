@@ -1,7 +1,7 @@
 import type { DealType } from "@prisma/client";
 import toast from "react-hot-toast";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import create from "zustand/react";
 import type { CreateProductPageStoreType, SavedFilesMapping } from "./types";
 
 export type DeletePopupStoreType = {
