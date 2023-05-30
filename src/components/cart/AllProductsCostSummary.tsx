@@ -7,9 +7,7 @@ export type AllProductsCostSummaryProps = {
   products: FullCartItem[];
 };
 
-export const AllProductsCostSummary = ({
-  products,
-}: AllProductsCostSummaryProps) => {
+export const AllProductsCostSummary = () => {
   const [productsCost] = useAtom(CartAtoms.query.cartPriceSummary);
 
   return (

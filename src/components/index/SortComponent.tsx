@@ -1,6 +1,7 @@
+import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import type { Sorting } from "../../logic/common/productsStore";
-import { productsStore } from "../../logic/common/productsStore";
+import { ProductAtoms } from "../../logic/common/productsStore";
 import { trpc } from "../../utils/trpc";
 import { Rating } from "./RatingComponent";
 
@@ -12,7 +13,9 @@ export const SortComponent = () => {
   const ascRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLDivElement>(null);
 
-  const setSorting = productsStore((state) => state.setSorting);
+  const [, setSorting] = useAtom(ProductAtoms.query.productSortingAtom);
+  const [, setFilters] = useAtom(ProductAtoms.query.productFiltersAtom);
+  const [, resetStore] = useAtom(ProductAtoms.mutation.resetStoreAtom);
 
   const handlePriceSortingChange = (s: "asc" | "desc") => {
     if (s === "asc") {
@@ -64,8 +67,9 @@ export const SortComponent = () => {
         rating={0}
         editable
         onClick={(a) => {
-          productsStore.setState((old) => {
-            old.filters.rating = a;
+          setFilters((old) => {
+            old.rating = a;
+            return old;
           });
         }}
       />
@@ -80,7 +84,7 @@ export const SortComponent = () => {
       <button
         className="btn-ghost btn-sm btn shadow shadow-gray-900"
         onClick={() => {
-          productsStore.getState().resetStore();
+          resetStore();
           trpcContext.products.filtered.invalidate();
         }}
       >

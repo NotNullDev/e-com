@@ -1,5 +1,6 @@
+import { useAtom } from "jotai";
 import type { FullCartItem } from "../../logic/common/cartStore";
-import { cartStore } from "../../logic/common/cartStore";
+import { CartAtoms } from "../../logic/common/cartStore";
 
 export type SellerSummaryProps = {
   sellerName: string;
@@ -7,10 +8,11 @@ export type SellerSummaryProps = {
 };
 
 export const SellerSummary = ({ sellerName, products }: SellerSummaryProps) => {
-  const items = cartStore((state) => state.items);
-  const getQuantity = cartStore((state) => state.getQuantity);
+  const [items] = useAtom(CartAtoms.query.cartItemsAtom);
   const productsCost = products.reduce(
-    (sum, p) => sum + p.price * getQuantity(p.id),
+    (sum, p) =>
+      sum +
+      p.price * (items.find((p1) => p1?.productId === p?.id)?.quantity ?? 0),
     0
   );
 

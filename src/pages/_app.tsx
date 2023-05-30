@@ -14,7 +14,7 @@ import { toast } from "react-hot-toast";
 import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
 import { CartAtoms } from "../logic/common/cartStore";
-import { productsStore } from "../logic/common/productsStore";
+import { ProductAtoms } from "../logic/common/productsStore";
 import "../styles/globals.css";
 import { Converters } from "../utils/convertes";
 import { getAllCategoriesAsString } from "../utils/enumParser";
@@ -45,11 +45,11 @@ const MyApp: AppType<{ session: Session | null }> = ({
 };
 
 const Header = () => {
-  // const cartItems = cartStore((state) => state.items);
-  const cartItems = useAtom(CartAtoms.query.cartAtom);
+  const [cartItems] = useAtom(CartAtoms.query.cartAtom);
   const { data: session, status: sessionStatus } = useSession();
   const [cartCount, setCartCount] = useState(0);
   const [resettDropdownKey, setResettDropdownKey] = useState(0);
+  const [, resetStore] = useAtom(ProductAtoms.mutation.resetStoreAtom);
 
   const startSignOut = async () => {
     const resp = await signOut({
@@ -66,7 +66,7 @@ const Header = () => {
       <Link
         href="/"
         onClick={() => {
-          productsStore.getState().resetStore();
+          resetStore();
         }}
       >
         <h1 className="text-2xl">The shop</h1>
@@ -190,7 +190,7 @@ const Header = () => {
 };
 
 const LoginButton = () => {
-  const loginRequired = useAtom(CartAtoms.query.loginSuggestionAtom);
+  const [loginRequired] = useAtom(CartAtoms.query.loginSuggestionAtom);
   const [id, setId] = useState<number>(1);
 
   const startSignIn = () => {
@@ -222,13 +222,13 @@ const ProductSearchDropdown = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const searchListElement = useRef<HTMLUListElement>(null);
   const trpcContext = trpc.useContext();
-  const searchFilter = productsStore((state) => state.filters.searchFilter);
-  const resetId = productsStore((state) => state.resetId);
+  const [filters, setFilters] = useAtom(ProductAtoms.query.productFiltersAtom);
+  const [resetId] = useAtom(ProductAtoms.mutation.resetIdAtom);
 
   const products = trpc.products.searchForProduct.useQuery({
     searchQuery: inputValue ?? "",
     limit: 10,
-    category: productsStore.getState().filters.singleCategoryFilter ?? null,
+    category: filters.singleCategoryFilter ?? null,
   });
   const router = useRouter();
 
@@ -249,9 +249,10 @@ const ProductSearchDropdown = () => {
             onChange={(e) => {
               const searchPhrase = e?.currentTarget?.value ?? "";
               setInputValue(searchPhrase);
-              productsStore.setState((state) => {
-                state.filters.searchFilter = searchPhrase;
-              });
+              setFilters((old) => ({
+                ...old,
+                searchFilter: searchPhrase,
+              }));
             }}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -315,11 +316,14 @@ const CategoryDropdown = () => {
   const id = useId();
   const router = useRouter();
   const [val, setVal] = useState<string>("");
-  const selectedCategory = productsStore(
-    (state) => state.filters.singleCategoryFilter
-  );
   const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
   const categoriesRef = useRef<HTMLUListElement>(null);
+
+  const [selectedCategory] = useAtom(
+    ProductAtoms.query.singleCategoryFilterAtom
+  );
+  const [, setFilters] = useAtom(ProductAtoms.query.productFiltersAtom);
+  const [, setResetId] = useAtom(ProductAtoms.mutation.resetIdAtom);
 
   useEffect(() => {
     setVal(Converters.categoryToString(selectedCategory));
@@ -363,9 +367,10 @@ const CategoryDropdown = () => {
             className=""
             key={"ALL_CATEGORIES"}
             onClick={() => {
-              productsStore.setState((state) => {
-                state.filters.singleCategoryFilter = undefined;
-                state.filters.categoriesIn = [];
+              setFilters((state) => {
+                state.singleCategoryFilter = undefined;
+                state.categoriesIn = [];
+                return state;
               });
               productsStore.setState((old) => {
                 old.categoryDropdownOpen = false;
@@ -380,10 +385,11 @@ const CategoryDropdown = () => {
               className=""
               key={c}
               onClick={() => {
-                productsStore.setState((old) => {
+                setFilters((old) => {
                   const converted = Converters.stringToCategory(c);
-                  old.filters.singleCategoryFilter = converted;
-                  old.filters.categoriesIn = [converted];
+                  old.singleCategoryFilter = converted;
+                  old.categoriesIn = [converted];
+                  return old;
                 });
                 productsStore.setState((old) => {
                   old.categoryDropdownOpen = false;
@@ -403,14 +409,15 @@ const CategoryDropdown = () => {
           e.currentTarget.focus();
           e.currentTarget.blur();
           await router.push("/");
-          productsStore.setState((old) => {
-            if (!old.filters.singleCategoryFilter) {
-              old.filters.categoriesIn = [];
+          setFilters((old) => {
+            if (!old.singleCategoryFilter) {
+              old.categoriesIn = [];
             } else {
-              old.filters.categoriesIn = [old.filters.singleCategoryFilter];
+              old.categoriesIn = [old.singleCategoryFilter];
             }
-            old.resetId = old.resetId + 1;
+            return old;
           });
+          setResetId((old) => old + 1);
         }}
       >
         <svg

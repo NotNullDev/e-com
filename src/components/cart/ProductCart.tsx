@@ -1,6 +1,7 @@
+import { useAtom } from "jotai";
 import { useState } from "react";
 import type { FullCartItem } from "../../logic/common/cartStore";
-import { cartStore } from "../../logic/common/cartStore";
+import { CartAtoms } from "../../logic/common/cartStore";
 import { NiceButton } from "../NiceButton";
 
 export type ProductProps = {
@@ -9,6 +10,7 @@ export type ProductProps = {
 
 export const Product = ({ productInfo }: ProductProps) => {
   const [q, setQ] = useState(productInfo.quantity);
+  const [, setItems] = useAtom(CartAtoms.query.cartItemsAtom);
   const [deletePopupOpen, setDeletePopupOpen] = useState(false);
   return (
     <div className="flex w-full items-center justify-between rounded-xl p-3 px-6 text-xl">
@@ -26,19 +28,22 @@ export const Product = ({ productInfo }: ProductProps) => {
               }
               setDeletePopupOpen(false);
               setQ(u);
-              cartStore.setState((state) => {
-                const p = state.items.find(
+              // TODO !
+              setItems((old) => {
+                const p = old.find(
                   (i) => i.productId === productInfo.productId
                 );
                 if (p) {
                   p.quantity = u;
                 }
+
+                return [...old];
               });
             }}
           />
           {deletePopupOpen && (
             <div
-              className="absolute bottom-0 left-0 flex translate-y-16 -translate-x-28 flex-col gap-2 rounded-xl bg-base-100 p-3 text-sm shadow-xl"
+              className="absolute bottom-0 left-0 flex -translate-x-28 translate-y-16 flex-col gap-2 rounded-xl bg-base-100 p-3 text-sm shadow-xl"
               key={productInfo.id}
             >
               <div>Delete item?</div>
@@ -48,15 +53,16 @@ export const Product = ({ productInfo }: ProductProps) => {
                   onClick={() => {
                     setDeletePopupOpen(false);
                     setQ(0);
-                    cartStore.setState((state) => {
-                      const p = state.items.find(
+                    setItems((state) => {
+                      const p = state.find(
                         (i) => i.productId === productInfo.productId
                       );
                       if (p) {
-                        state.items = state.items.filter(
+                        state = state.filter(
                           (i) => i.productId !== productInfo.productId
                         );
                       }
+                      return state;
                     });
                   }}
                 >

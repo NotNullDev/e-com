@@ -52,11 +52,6 @@ const CartPage: NextPage = () => {
       const productIdsToRemove = cartProductIds.filter(
         (id) => !dataProductIds.includes(id)
       );
-      // cartStore.setState((state) => {
-      //   state.items = state.items.filter(
-      //     (item) => !productIdsToRemove.includes(item.productId)
-      //   );
-      // });
       productIdsToRemove.forEach((productId) => removeItem({ productId }));
     }
   }, [data, cart]);
@@ -137,20 +132,7 @@ const CartPage: NextPage = () => {
                   );
                 })}
             </>
-            <AllProductsCostSummary
-              products={data?.flatMap((c) => c.products) ?? []}
-              productsCost={
-                data?.reduce(
-                  (sum, c) =>
-                    sum +
-                    c.products.reduce(
-                      (sum1, c1) => sum1 + c1.price * c1.quantity,
-                      0
-                    ),
-                  0
-                ) ?? 0
-              }
-            />
+            <AllProductsCostSummary />
           </>
         )}
         {status === "loading" && <AllProductsSummarySkeleton />}

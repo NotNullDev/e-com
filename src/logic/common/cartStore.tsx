@@ -1,7 +1,8 @@
 import type { Product } from "@prisma/client";
 import { atom } from "jotai";
 import { atomFamily } from "jotai/utils";
-
+import { toast } from "react-hot-toast";
+import { ProductAtoms } from "./productsStore";
 export type CartItem = {
   productId: string;
   quantity: number;
@@ -9,13 +10,13 @@ export type CartItem = {
 export type FullCartItem = CartItem & Product;
 
 const cartItemsAtom = atom<CartItem[]>([]);
-const productsAtom = atom<Product[]>([]);
+
 // makes login button to jump for a while
 const loginSuggestionAtom = atom(false);
 
 const cartAtom = atom<FullCartItem[]>((get) => {
   const items = get(cartItemsAtom);
-  const allProducts = get(productsAtom);
+  const allProducts = get(ProductAtoms.query.productsAtom);
 
   const products = items.map((item) => {
     const product = allProducts.find((p) => p.id === item.productId);
@@ -51,8 +52,13 @@ const addItemAtom = atom(
     set,
     { productId, quantity }: { productId: string; quantity: number }
   ) => {
-    const productToAdd = get(productsAtom).find((p) => p.id === productId);
-    if (!productToAdd) return;
+    const productToAdd = get(ProductAtoms.query.productsAtom).find(
+      (p) => p.id === productId
+    );
+    if (!productToAdd) {
+      toast.error("product to add not found!");
+      return;
+    }
 
     set(cartItemsAtom, [...get(cartItemsAtom), { productId, quantity }]);
   }
@@ -68,6 +74,18 @@ const removeItemAtom = atom(
   }
 );
 
+const removeItemsAtom = atom(
+  null,
+  (get, set, { productIds }: { productIds: string[] }) => {
+    set(
+      cartItemsAtom,
+      get(cartItemsAtom).filter(
+        (p) => !productIds.find((p1) => p1 === p.productId)
+      )
+    );
+  }
+);
+
 const clearCartAtom = atom(null, (get, set) => {
   set(cartItemsAtom, []);
 });
@@ -75,7 +93,6 @@ const clearCartAtom = atom(null, (get, set) => {
 export const CartAtoms = {
   query: {
     cartItemsAtom,
-    productsAtom,
     loginSuggestionAtom,
     cartAtom,
     getQuantityAtom,

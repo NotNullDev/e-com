@@ -1,6 +1,7 @@
 import type { Category } from "@prisma/client";
+import { useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
-import { productsStore } from "../../logic/common/productsStore";
+import { ProductAtoms } from "../../logic/common/productsStore";
 
 type CategorySelectorProps = {
   category: string;
@@ -8,11 +9,11 @@ type CategorySelectorProps = {
 
 export const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   const [enabled, setEnabled] = useState(false);
-  const addCategory = productsStore((state) => state.addCategory);
-  const removeCategory = productsStore((state) => state.removeCategory);
+  const [, addCategory] = useAtom(ProductAtoms.mutation.addCategoryAtom);
+  const [, removeCategory] = useAtom(ProductAtoms.mutation.deleteCategoryAtom);
 
-  const selectedCategories = productsStore(
-    (state) => state.filters.categoriesIn
+  const [selectedCategories] = useAtom(
+    ProductAtoms.query.categoriesInFilterAtom
   );
 
   const enabledStyle = "bg-primary text-primary-content";
@@ -29,16 +30,17 @@ export const CategorySelector = ({ category: c }: CategorySelectorProps) => {
 
   useEffect(() => {
     if (enabled) {
-      addCategory(c as Category);
+      addCategory({ category: c as Category });
     } else {
-      removeCategory(c as Category);
+      removeCategory({ categoryToDelete: c as Category });
     }
   }, [enabled]);
 
   return (
     <div
       className={
-        "transition-all duration-300 active:scale-90 cursor-pointer rounded-xl bg-base-200 p-2 px-4 " + ` ${activeStyle}`
+        "cursor-pointer rounded-xl bg-base-200 p-2 px-4 transition-all duration-300 active:scale-90 " +
+        ` ${activeStyle}`
       }
       key={c}
       onClick={() => {

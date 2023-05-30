@@ -5,10 +5,10 @@ import { ProductCard } from "../components/index/ProductCard";
 import { SingleProductSkeleton } from "../components/index/ProductSkeleton";
 import { ProductsTitle } from "../components/index/ProductsTitle";
 import { SortComponent } from "../components/index/SortComponent";
-import { productsStore } from "../logic/common/productsStore";
 
+import { useAtom } from "jotai";
 import { useEffect } from "react";
-import { useStore } from "zustand";
+import { ProductAtoms } from "../logic/common/productsStore";
 import { trpc } from "../utils/trpc";
 
 let observer: IntersectionObserver;
@@ -35,17 +35,12 @@ if (typeof window !== "undefined") {
 }
 
 const Home: NextPage = () => {
-  const resetId = productsStore((state) => state.resetId);
-  const { filters } = useStore(productsStore);
-  const filteredProducts = trpc.products.filtered.useQuery(filters, {
+  const [resetId] = useAtom(ProductAtoms.mutation.resetIdAtom);
+  const [filters, setFilters] = useAtom(ProductAtoms.query.productFiltersAtom);
+  const [products, setProducts] = useAtom(ProductAtoms.query.productsAtom);
+  const { isSuccess, isLoading } = trpc.products.filtered.useQuery(filters, {
     onSuccess: (data) => {
-      productsStore.setState((old) => {
-        if (filteredProducts.data) {
-          old.products = data;
-        } else {
-          old.products = [];
-        }
-      });
+      setProducts(data);
     },
   });
 
@@ -56,7 +51,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     const list = document.querySelector("#products-list");
 
-    if (!list || !filteredProducts.isSuccess) {
+    if (!list || !isSuccess) {
       observer.disconnect();
       return;
     }
@@ -68,7 +63,7 @@ const Home: NextPage = () => {
     const secondRowChildIdx = list.children.length - 2 * columns;
     const secondRowChild = list.children[secondRowChildIdx];
 
-    if (!list || !filteredProducts.isSuccess || !secondRowChild) {
+    if (!list || !isSuccess || !secondRowChild) {
       observer.disconnect();
     } else {
       observer.observe(secondRowChild as Element);
@@ -77,7 +72,7 @@ const Home: NextPage = () => {
     return () => {
       observer.disconnect();
     };
-  }, [filters, filteredProducts.isSuccess]);
+  }, [filters, isSuccess]);
 
   return (
     <>
@@ -101,14 +96,14 @@ const Home: NextPage = () => {
             className="grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4  2xl:grid-cols-5"
             id="products-list"
           >
-            {filteredProducts.status === "success" && (
+            {isSuccess && (
               <>
-                {filteredProducts.data?.map((p) => (
+                {products.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
               </>
             )}
-            {filteredProducts.status === "loading" &&
+            {isLoading &&
               [...Array(20)].map((i, idx) => (
                 <SingleProductSkeleton key={idx} />
               ))}
