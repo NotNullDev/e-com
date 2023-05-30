@@ -13,7 +13,6 @@ export const SortComponent = () => {
   const ascRef = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLDivElement>(null);
 
-  const [, setSorting] = useAtom(ProductAtoms.query.productSortingAtom);
   const [, setFilters] = useAtom(ProductAtoms.query.productFiltersAtom);
   const [, resetStore] = useAtom(ProductAtoms.mutation.resetStoreAtom);
 
@@ -44,7 +43,10 @@ export const SortComponent = () => {
   };
 
   useEffect(() => {
-    setSorting({ ...sort });
+    if (sort?.price) {
+      // @ts-ignore
+      setFilters((old) => ({ ...old, priceSort: sort.price }));
+    }
   }, [sort]);
 
   return (
@@ -68,8 +70,7 @@ export const SortComponent = () => {
         editable
         onClick={(a) => {
           setFilters((old) => {
-            old.rating = a;
-            return old;
+            return { ...old, rating: a };
           });
         }}
       />

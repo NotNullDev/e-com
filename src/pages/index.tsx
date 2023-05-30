@@ -6,8 +6,7 @@ import { SingleProductSkeleton } from "../components/index/ProductSkeleton";
 import { ProductsTitle } from "../components/index/ProductsTitle";
 import { SortComponent } from "../components/index/SortComponent";
 
-import { useAtom } from "jotai";
-import { useEffect } from "react";
+import { atom, useAtom } from "jotai";
 import { ProductAtoms } from "../logic/common/productsStore";
 import { trpc } from "../utils/trpc";
 
@@ -34,45 +33,15 @@ if (typeof window !== "undefined") {
   });
 }
 
+const statusFetchAtom = atom<"loading" | "success" | "error">("loading");
 const Home: NextPage = () => {
   const [resetId] = useAtom(ProductAtoms.mutation.resetIdAtom);
-  const [filters, setFilters] = useAtom(ProductAtoms.query.productFiltersAtom);
-  const [products, setProducts] = useAtom(ProductAtoms.query.productsAtom);
-  const { isSuccess, isLoading } = trpc.products.filtered.useQuery(filters, {
-    onSuccess: (data) => {
-      setProducts(data);
-    },
-  });
-
+  const [products] = useAtom(ProductAtoms.query.productsAtom);
+  const [status] = useAtom(statusFetchAtom);
+  useIndexPageData();
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
   ];
-
-  useEffect(() => {
-    const list = document.querySelector("#products-list");
-
-    if (!list || !isSuccess) {
-      observer.disconnect();
-      return;
-    }
-
-    const columns =
-      getComputedStyle(list).gridTemplateColumns.split("px").length - 1;
-
-    console.log("columns: ", columns);
-    const secondRowChildIdx = list.children.length - 2 * columns;
-    const secondRowChild = list.children[secondRowChildIdx];
-
-    if (!list || !isSuccess || !secondRowChild) {
-      observer.disconnect();
-    } else {
-      observer.observe(secondRowChild as Element);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [filters, isSuccess]);
 
   return (
     <>
@@ -96,14 +65,14 @@ const Home: NextPage = () => {
             className="grid grid-cols-2 gap-10 md:grid-cols-3 xl:grid-cols-4  2xl:grid-cols-5"
             id="products-list"
           >
-            {isSuccess && (
+            {status === "success" && (
               <>
                 {products.map((p) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
               </>
             )}
-            {isLoading &&
+            {status === "loading" &&
               [...Array(20)].map((i, idx) => (
                 <SingleProductSkeleton key={idx} />
               ))}
@@ -113,5 +82,49 @@ const Home: NextPage = () => {
     </>
   );
 };
+
+function useIndexPageData() {
+  const [products, setProducts] = useAtom(ProductAtoms.query.productsAtom);
+  const [filters] = useAtom(ProductAtoms.query.productFiltersAtom);
+
+  debugger;
+
+  const { status } = trpc.products.filtered.useQuery(filters, {
+    onSuccess: (data) => {
+      setProducts(data);
+    },
+  });
+
+  // useEffect(() => {
+  //   const list = document.querySelector("#products-list");
+
+  //   if (!list || !isSuccess) {
+  //     observer.disconnect();
+  //     return;
+  //   }
+
+  //   const columns =
+  //     getComputedStyle(list).gridTemplateColumns.split("px").length - 1;
+
+  //   console.log("columns: ", columns);
+  //   const secondRowChildIdx = list.children.length - 2 * columns;
+  //   const secondRowChild = list.children[secondRowChildIdx];
+
+  //   if (!list || !isSuccess || !secondRowChild) {
+  //     observer.disconnect();
+  //   } else {
+  //     observer.observe(secondRowChild as Element);
+  //   }
+
+  //   return () => {
+  //     observer.disconnect();
+  //   };
+  // }, [filters, isSuccess]);
+
+  return {
+    products,
+    status,
+  };
+}
 
 export default Home;

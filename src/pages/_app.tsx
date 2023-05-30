@@ -59,7 +59,7 @@ const Header = () => {
 
   useEffect(() => {
     setCartCount(cartItems.length);
-  }, [cartItems.length]);
+  }, [cartItems]);
 
   return (
     <header className="flex items-center justify-between p-6">
@@ -152,16 +152,6 @@ const Header = () => {
                 className="dropdown-content menu rounded-box w-52 bg-base-100 p-2 shadow"
                 tabIndex={0}
               >
-                {/* <li>
-                  <Link
-                    href="/history"
-                    onClick={() => {
-                      setResettDropdownKey(resettDropdownKey + 1);
-                    }}
-                  >
-                    <div>Purchase history</div>
-                  </Link>
-                </li> */}
                 <li>
                   <Link
                     href="/account"
@@ -344,11 +334,6 @@ const CategoryDropdown = () => {
             key={id}
             searchListRef={categoriesRef}
             value={val}
-            onFocus={() =>
-              productsStore.setState((old) => {
-                old.categoryDropdownOpen = true;
-              })
-            }
             tabIndex={0}
             className="input"
             placeholder="In category..."
@@ -372,9 +357,6 @@ const CategoryDropdown = () => {
                 state.categoriesIn = [];
                 return state;
               });
-              productsStore.setState((old) => {
-                old.categoryDropdownOpen = false;
-              });
             }}
           >
             <a>All categories</a>
@@ -390,9 +372,6 @@ const CategoryDropdown = () => {
                   old.singleCategoryFilter = converted;
                   old.categoriesIn = [converted];
                   return old;
-                });
-                productsStore.setState((old) => {
-                  old.categoryDropdownOpen = false;
                 });
               }}
             >
