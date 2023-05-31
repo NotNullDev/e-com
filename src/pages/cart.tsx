@@ -1,15 +1,15 @@
-import type { Product } from "@prisma/client";
-import type { NextPage } from "next";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
-import { useEffect, useRef } from "react";
+import type {Product} from "@prisma/client";
+import type {NextPage} from "next";
+import {useSession} from "next-auth/react";
+import {useRouter} from "next/router";
+import {useEffect, useRef} from "react";
 import toast from "react-hot-toast";
-import { AllProductsCostSummary } from "../components/cart/AllProductsCostSummary";
-import { AllProductsSummarySkeleton } from "../components/cart/AllProductsSummarySkeleton";
-import { SellerProducts } from "../components/cart/ProductsList";
-import { SellerSummary } from "../components/cart/SellerSummary";
-import { cartStore } from "../logic/common/cartStore";
-import { trpc } from "../utils/trpc";
+import {AllProductsCostSummary} from "../components/cart/AllProductsCostSummary";
+import {AllProductsSummarySkeleton} from "../components/cart/AllProductsSummarySkeleton";
+import {SellerProducts} from "../components/cart/ProductsList";
+import {SellerSummary} from "../components/cart/SellerSummary";
+import {cartStore} from "../logic/common/cartStore";
+import {trpc} from "../utils/trpc";
 
 const getSellersFromCartProducts = (cartProducts: Product[]) => {
   const sellers = new Set<string>();
@@ -30,8 +30,8 @@ const CartPage: NextPage = () => {
   );
   const router = useRouter();
 
-  const { data, status } = trpc.cart.getCartData.useQuery(
-    cart.map((c) => ({ productId: c.productId, quantity: c.quantity })),
+  const {data, status} = trpc.cart.getCartData.useQuery(
+    cart.map((c) => ({productId: c.productId, quantity: c.quantity})),
     {
       onError: (err) => {
         cartStore.setState((state) => {
@@ -60,7 +60,7 @@ const CartPage: NextPage = () => {
     }
   }, [data, cart]);
 
-  const { success, canceled } = router.query;
+  const {success, canceled} = router.query;
 
   useEffect(() => {
     if (success) {
@@ -85,11 +85,11 @@ const CartPage: NextPage = () => {
           <h1 className="mb-4 text-3xl">Your cart</h1>
           {status === "loading" && (
             <>
-              {[...Array(3)].map((i) => {
+              {[...Array(3)].map((i, idx) => {
                 return (
                   <div
                     className="flex h-[300px] w-full animate-pulse flex-col gap-3 rounded-xl bg-base-300 p-4"
-                    key={i}
+                    key={idx}
                   >
                     <div className="mb-1 h-[30px] w-1/3 rounded-xl bg-base-100"></div>
                     <div className="flex justify-between">
@@ -121,45 +121,42 @@ const CartPage: NextPage = () => {
         </div>
       </div>
       <div className="flex h-min flex-1 flex-col p-6 shadow shadow-gray-900">
-        {true && (
-          <>
-            <h1 className="mb-4 text-3xl">Summary</h1>
-            <div className="flex flex-col gap-2"> </div>
-            <>
-              {status === "success" &&
-                data?.map((p) => {
-                  const sellerName = p.seller.name ?? "???";
-                  return (
-                    <SellerSummary
-                      key={p.seller.id}
-                      sellerName={sellerName}
-                      products={p.products}
-                    />
-                  );
-                })}
-            </>
-            <AllProductsCostSummary
-              products={data?.flatMap((c) => c.products) ?? []}
-              productsCost={
-                data?.reduce(
-                  (sum, c) =>
-                    sum +
-                    c.products.reduce(
-                      (sum1, c1) => sum1 + c1.price * c1.quantity,
-                      0
-                    ),
+        <h1 className="mb-4 text-3xl">Summary</h1>
+        <div className="flex flex-col gap-2"></div>
+        <>
+          {status === "success" &&
+            data?.map((p) => {
+              const sellerName = p.seller.name ?? "???";
+              return (
+                <SellerSummary
+                  key={p.seller.id}
+                  sellerName={sellerName}
+                  products={p.products}
+                />
+              );
+            })}
+        </>
+        <AllProductsCostSummary
+          products={data?.flatMap((c) => c.products) ?? []}
+          productsCost={
+            data?.reduce(
+              (sum, c) =>
+                sum +
+                c.products.reduce(
+                  (sum1, c1) => sum1 + c1.price * c1.quantity,
                   0
-                ) ?? 0
-              }
-            />
-          </>
-        )}
-        {status === "loading" && <AllProductsSummarySkeleton />}
+                ),
+              0
+            ) ?? 0
+          }
+        />
+        {status === "loading" && <AllProductsSummarySkeleton/>}
         <form action="/api/checkout-session" method="POST" className="w-full">
           <input
             hidden={true}
             name="data"
             value={JSON.stringify(cartStore.getState().items)}
+            readOnly
             ref={cartInputRef}
           />
           <button

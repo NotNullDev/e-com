@@ -1,8 +1,8 @@
 import type { DealType } from "@prisma/client";
 import toast from "react-hot-toast";
-import { immer } from "zustand/middleware/immer";
-import create from "zustand/react";
-import type { CreateProductPageStoreType, SavedFilesMapping } from "./types";
+import {immer} from "zustand/middleware/immer";
+import {create} from "zustand";
+import type {CreateProductPageStoreType, SavedFilesMapping} from "./types";
 
 export type DeletePopupStoreType = {
   popupOpen: boolean;

@@ -1,12 +1,13 @@
 import type { ReactNode, ReactPortal } from "react";
 import React, { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import create from "zustand";
-import { immer } from "zustand/middleware/immer";
+import {createPortal} from "react-dom";
+import {create} from "zustand";
+import {immer} from "zustand/middleware/immer";
 
 export const openGlobalModal = () => {
   const modal = document.querySelector("#global-modal") as HTMLInputElement;
   modal.checked = true;
+  modal.readOnly = true;
 };
 
 export type GlobalModalStoreType = {

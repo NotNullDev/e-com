@@ -15,7 +15,6 @@ export const DeleteIcon = () => {
   const router = useRouter();
 
   return (
-    <>
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           className="btn-ghost btn flex gap-3"
@@ -95,6 +94,5 @@ export const DeleteIcon = () => {
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
-    </>
   );
 };

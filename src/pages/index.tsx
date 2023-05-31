@@ -57,12 +57,12 @@ const Home: NextPage = () => {
             {filteredProducts.status === "success" && (
               <>
                 {filteredProducts.data?.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                  <ProductCard key={p.id} product={p}/>
                 ))}
               </>
             )}
             {filteredProducts.status === "loading" &&
-              [...Array(20)].map((i) => <SingleProductSkeleton key={i} />)}
+              [...Array(20)].map((i, idx) => <SingleProductSkeleton key={idx}/>)}
           </div>
         </div>
       </div>

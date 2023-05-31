@@ -18,7 +18,7 @@ export const NiceButton = ({
 
   return (
     <>
-      <div>
+      <div className="flex items-center gap-1">
         <button
           className="btm btn-sm text-xl font-bold"
           onClick={() => {
@@ -40,7 +40,7 @@ export const NiceButton = ({
           -
         </button>
         <input
-          className="input w-[60px] text-center"
+          className="input  text-center w-32"
           placeholder="1"
           value={currentVal}
           onChange={(e) => {

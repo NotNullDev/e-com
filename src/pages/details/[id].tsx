@@ -16,7 +16,7 @@ export default function ProductDetails() {
 
   const idASString = id as string;
 
-  const data = trpc.products.byId.useQuery({ id: idASString });
+  const data = trpc.products.byId.useQuery({id: idASString}, {enabled: !!idASString});
 
   if (!data.data) {
     return <div></div>;
@@ -30,20 +30,18 @@ export default function ProductDetails() {
             <div className="flex aspect-14 h-[400px] w-[600px] flex-col items-center justify-center">
               <div className="carousel w-full bg-base-100">
                 {data.data?.images.map((i, idx) => (
-                  <>
-                    <div className="carousel-item" key={i}>
-                      <Image
-                        id={`item${idx + 1}`}
-                        src={i ?? ""}
-                        alt="hello!"
-                        height={600}
-                        width={600}
-                        className="rounded-t-xl"
-                        priority={true}
-                        placeholder="empty"
-                      />
+                  <div className="carousel-item" key={idx}>
+                    <Image
+                      id={`item${idx + 1}`}
+                      src={i ?? ""}
+                      alt="hello!"
+                      height={600}
+                      width={600}
+                      className="rounded-t-xl"
+                      priority={true}
+                      placeholder="empty"
+                    />
                     </div>
-                  </>
                 ))}
                 {data.data?.images.length === 0 && (
                   <Image
@@ -59,7 +57,6 @@ export default function ProductDetails() {
             <div className="flex w-[600px] flex-wrap justify-center gap-2 rounded-xl bg-base-300 px-5 py-3">
               {data.data?.images.map((i, idx) => {
                 return (
-                  <>
                     <Link
                       href={`#item${idx + 1}`}
                       className="btn-md btn bg-fuchsia-800"
@@ -68,7 +65,6 @@ export default function ProductDetails() {
                     >
                       {idx + 1}
                     </Link>
-                  </>
                 );
               })}
             </div>
@@ -83,8 +79,8 @@ export default function ProductDetails() {
         </div>
 
         <div className="mt-3 flex w-full items-end justify-end gap-3">
-          {data.data?.categories.map((c) => (
-            <div key={c} className="rounded-xl bg-slate-700 p-1 px-3">
+          {data.data?.categories.map((c, idx) => (
+            <div key={idx} className="rounded-xl bg-slate-700 p-1 px-3">
               {Converters.categoryToString(c)}
             </div>
           ))}
@@ -115,9 +111,9 @@ const CartFooter = ({ item }: CartFooterProps) => {
       />
       <div className="flex items-center gap-3 p-2">
         <div className="mr-2 text-xl font-bold">{item.price * amount} PLN</div>
-        <button className="btn-ghost btn">buy now</button>
+        {/*<button className="btn-ghost btn">buy now</button>*/}
         <button
-          className="btn-secondary btn"
+          className="btn-secondary btn ml-10"
           onClick={() => {
             if (item) {
               cartStore.getState().addItem({

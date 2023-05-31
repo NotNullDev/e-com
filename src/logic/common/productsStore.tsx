@@ -1,7 +1,7 @@
 import type { Category, Product } from "@prisma/client";
 import toast from "react-hot-toast";
-import create from "zustand";
-import { immer } from "zustand/middleware/immer";
+import {create} from "zustand";
+import {immer} from "zustand/middleware/immer";
 
 export type ProductsFilters = {
   categoriesIn: Category[];

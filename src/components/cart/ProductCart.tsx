@@ -18,13 +18,13 @@ export const Product = ({ productInfo }: ProductProps) => {
           <NiceButton
             min={1}
             max={3}
-            initial={q}
+            initial={productInfo.quantity}
             callback={(u) => {
               if (u === 1 && q === 1) {
                 setDeletePopupOpen(true);
                 return;
               }
-              setDeletePopupOpen(false);
+              // setDeletePopupOpen(false);
               setQ(u);
               cartStore.setState((state) => {
                 const p = state.items.find(

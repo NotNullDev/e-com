@@ -1,6 +1,6 @@
-import type { Product } from "@prisma/client";
-import create from "zustand";
-import { persist } from "zustand/middleware";
+import type {Product} from "@prisma/client";
+import {create} from "zustand";
+import {persist} from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { productsStore } from "./productsStore";
 
@@ -53,7 +53,7 @@ export const cartStore = create<CartStoreType>()(
         getQuantity,
         loginRequired: false,
       };
-    })
+    }), {name: "cart-store"}
   )
 );
 
