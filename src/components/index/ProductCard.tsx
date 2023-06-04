@@ -1,5 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
 import type { Product } from "@prisma/client";
-import Image from "next/image";
 import Link from "next/link";
 import { Rating } from "./RatingComponent";
 import { ProductSticker } from "./StickerComponent";
@@ -13,18 +13,14 @@ export const ProductCard = ({ product }: SingleProductPreviewProps) => {
     <>
       <Link
         href={"/details/" + product.id ?? 0}
-        className="card card-compact relative h-[300px] w-[250px] cursor-pointer bg-base-100 text-base shadow-xl hover:opacity-80"
+        className="flex h-[300px] w-[300px] flex-col rounded-xl bg-base-100 shadow-xl"
       >
-        <figure>
-          <Image
-            src={product.previewImageUrl}
-            alt="Shoes"
-            width={280}
-            height={190}
-            priority={true}
-          />
-        </figure>
-        <div className="card-body flex w-full flex-col justify-between">
+        <img
+          src={product.previewImageUrl}
+          alt="Shoes"
+          className="flex-1 rounded-t-xl object-fill"
+        />
+        <div className="flex h-[150px] flex-col justify-between gap-2 p-4">
           <h2 className="text font-bold">{product.title}</h2>
           <div className="relative">
             <Rating rating={product.rating} key={product.id} />

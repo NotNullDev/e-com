@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { SingleItemPrev } from "../components/account/ItemCard";
 import { AccountPageModal } from "../components/account/Modal";
 import { NoItem } from "../components/account/NoItem";
@@ -42,7 +43,7 @@ const AccountPage = () => {
           return <SingleItemPrev key={d.id} product={d} />;
         })}
       </div>
-      <AccountPageModal />
+      {createPortal(<AccountPageModal />, document.body)}
     </div>
   );
 };

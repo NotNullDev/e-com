@@ -3,8 +3,9 @@ FROM node:18.12.1-alpine AS node_modules
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable
+RUN pnpm i
 
 FROM node:18.12.1-bullseye AS builder
 
@@ -22,10 +23,9 @@ ENV NEXT_TELEMETRY_DISABLED 1
 # RUN ls /var/run/envs/nextjs.env \
 #     && cat /var/run/envs/nextjs.env > ./.env \
 #     || echo "No env file found, skipping loading" # if no env file is found, the build will continue without it
-
-RUN yarn postinstall
-
-RUN yarn build
+RUN corepack enable
+RUN pnpm postinstall
+RUN pnpm build
 
 # Production image, copy all the files and run next
 FROM node:18.12.1-alpine3.16 AS runner

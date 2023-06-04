@@ -69,10 +69,12 @@ const Header = () => {
         onClick={() => {
           productsStore.getState().resetStore();
         }}
+        className="whitespace-nowrap"
       >
         <h1 className="text-2xl">The shop</h1>
       </Link>
-      <form className="flex gap-2">
+
+      <form className="flex gap-2 max-[1050px]:hidden">
         <ProductSearchDropdown />
         <CategoryDropdown />
       </form>
@@ -255,7 +257,7 @@ const ProductSearchDropdown = () => {
               });
             }}
           />
-          <div className="absolute top-1/2 right-3 -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <kbd className="kbd kbd-sm">ctrl</kbd>+
             <kbd className="kbd kbd-sm">k</kbd>
           </div>

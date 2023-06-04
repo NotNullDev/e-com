@@ -4,8 +4,8 @@ export default function Document() {
   return (
     <Html data-theme="dark" style={{ backgroundColor: "#272935" }}>
       <Head />
-      <div id="global-modal-placement"></div>
       <body>
+        <div id="global-modal-placement"></div>
         <Main />
         <NextScript />
       </body>

@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Stripe } from "stripe";
-import {getServerAuthSession} from "../../../server/common/get-server-auth-session";
-import {prisma} from "../../../server/config/prisma";
-import type {CartItem} from "../../logic/common/cartStore";
+import { getServerAuthSession } from "../../../server/common/get-server-auth-session";
+import { prisma } from "../../../server/config/prisma";
+import { _getCartData } from "../../../server/router/cart";
+import type { CartItem } from "../../logic/common/cartStore";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2022-11-15",
@@ -55,7 +56,7 @@ export default async function handler(
 
   const user = session.user;
 
-  const r = await getCartData(boughtItems, prisma);
+  const r = await _getCartData(boughtItems, prisma);
 
   console.log("boughtItems: ", boughtItems);
   console.log("CART DATA: ", r);

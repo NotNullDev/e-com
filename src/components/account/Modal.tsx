@@ -46,7 +46,7 @@ export const AccountPageModal = () => {
   const product = accountPageStore((state) => state.selectedProductToDelete);
   return (
     <AppModal header="Delete item?" footer={<ModalFooter product={product} />}>
-      <div className="flex flex-1 flex-col items-center justify-center">
+      <div className="flex flex-1 flex-col">
         <span className="text-base">You are about to delete item</span>
         <span className="mb-2 text-xl font-bold">{product?.title}</span>
         <div className="text-base text-red-700">

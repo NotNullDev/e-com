@@ -1,3 +1,4 @@
+import { clsx } from "@mantine/core";
 import { useEffect } from "react";
 import { focusTrap, onClickOuSide } from "../lib/utils";
 
@@ -51,11 +52,15 @@ export const showModal = () => {
     throw new Error("parent element not found");
   }
 
+  parent.classList.remove("scale-down-center");
   parent.classList.remove("hidden");
 
   const { removeListeners } = onClickOuSide(".modal-parent", () => {
     removeListeners();
-    parent.classList.add("hidden");
+    parent.classList.remove("scale-down-center");
+    setTimeout(() => {
+      parent.classList.add("hidden");
+    }, 300);
   });
 
   removeModalListener = removeListeners;
@@ -73,7 +78,10 @@ export const closeModal = () => {
     removeModalListener();
   }
 
-  parent.classList.add("hidden");
+  parent.classList.add("scale-down-center");
+  setTimeout(() => {
+    parent.classList.add("hidden");
+  }, 300);
 };
 
 const useInitModal = () => {
@@ -88,7 +96,8 @@ const useInitModal = () => {
 
     const { removeListeners } = onClickOuSide(".modal-parent", () => {
       removeListeners();
-      parent.classList.add("hidden");
+      parent.classList.remove("scale-down-center");
+      // parent.classList.add("hidden");
     });
 
     removeModalListener = removeListeners;
@@ -131,7 +140,16 @@ export const AppModal = ({
   return (
     <>
       <div
-        className="modal-parent absolute top-1/2 left-1/2 z-50 flex hidden h-[300px] w-[500px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl  bg-base-300"
+        className={clsx(
+          "modal-parent",
+          "absolute",
+          "left-1/2 top-1/2 -translate-x-[50%] -translate-y-[50%]",
+          "z-50 hidden h-[300px] w-[500px] flex-col",
+          "rounded-xl border border-base-300",
+          "bg-base-200",
+          // "animate-jump-in animate-duration-300 animate-once animate-ease-linear",
+          ""
+        )}
         tabIndex={-1}
       >
         <div className="flex items-center justify-between p-4 shadow">
