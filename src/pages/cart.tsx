@@ -1,15 +1,15 @@
-import type {Product} from "@prisma/client";
-import type {NextPage} from "next";
-import {useSession} from "next-auth/react";
-import {useRouter} from "next/router";
-import {useEffect, useRef} from "react";
+import type { Product } from "@prisma/client";
+import type { NextPage } from "next";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import {AllProductsCostSummary} from "../components/cart/AllProductsCostSummary";
-import {AllProductsSummarySkeleton} from "../components/cart/AllProductsSummarySkeleton";
-import {SellerProducts} from "../components/cart/ProductsList";
-import {SellerSummary} from "../components/cart/SellerSummary";
-import {cartStore} from "../logic/common/cartStore";
-import {trpc} from "../utils/trpc";
+import { AllProductsCostSummary } from "../components/cart/AllProductsCostSummary";
+import { AllProductsSummarySkeleton } from "../components/cart/AllProductsSummarySkeleton";
+import { SellerProducts } from "../components/cart/ProductsList";
+import { SellerSummary } from "../components/cart/SellerSummary";
+import { cartStore } from "../logic/common/cartStore";
+import { trpc } from "../utils/trpc";
 
 const getSellersFromCartProducts = (cartProducts: Product[]) => {
   const sellers = new Set<string>();
@@ -30,8 +30,8 @@ const CartPage: NextPage = () => {
   );
   const router = useRouter();
 
-  const {data, status} = trpc.cart.getCartData.useQuery(
-    cart.map((c) => ({productId: c.productId, quantity: c.quantity})),
+  const { data, status } = trpc.cart.getCartData.useQuery(
+    cart.map((c) => ({ productId: c.productId, quantity: c.quantity })),
     {
       onError: (err) => {
         cartStore.setState((state) => {
@@ -60,7 +60,7 @@ const CartPage: NextPage = () => {
     }
   }, [data, cart]);
 
-  const {success, canceled} = router.query;
+  const { success, canceled } = router.query;
 
   useEffect(() => {
     if (success) {
@@ -88,7 +88,7 @@ const CartPage: NextPage = () => {
               {[...Array(3)].map((i, idx) => {
                 return (
                   <div
-                    className="flex h-[300px] w-full animate-pulse flex-col gap-3 rounded-xl bg-base-300 p-4"
+                    className="flex h-[300px] w-full animate-pulse flex-col gap-3 rounded-xl bg-base-100 p-4"
                     key={idx}
                   >
                     <div className="mb-1 h-[30px] w-1/3 rounded-xl bg-base-100"></div>
@@ -150,7 +150,7 @@ const CartPage: NextPage = () => {
             ) ?? 0
           }
         />
-        {status === "loading" && <AllProductsSummarySkeleton/>}
+        {status === "loading" && <AllProductsSummarySkeleton />}
         <form action="/api/checkout-session" method="POST" className="w-full">
           <input
             hidden={true}

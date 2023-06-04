@@ -2,7 +2,6 @@ import type { Product } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { accountPageStore } from "../../logic/account/accountPageStore";
-import { ShowModalButton } from "../AppModal";
 import ButtonEdit from "../ButtonEdit";
 import ButtonTrash from "../ButtonTrash";
 
@@ -14,7 +13,7 @@ export const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
   const router = useRouter();
 
   return (
-    <div className="flex w-full items-center rounded-xl border-indigo-600 shadow shadow-gray-900 hover:bg-primary-focus">
+    <div className="border-100-interactive flex w-full items-center shadow shadow-gray-900  ">
       <Link className="flex w-full p-4" href={`/details/${product.id}`}>
         <div className="flex-1">{product.title}</div>
         <div className="flex items-center gap-24">
@@ -53,15 +52,16 @@ export const SingleItemPrev = ({ product }: SingleItemPrevProps) => {
         >
           <ButtonEdit />
         </Link>
-        <ShowModalButton
+        <div
           onClick={() => {
             accountPageStore.setState((state) => {
               state.selectedProductToDelete = product;
             });
+            (window as any).account_modal_1?.showModal();
           }}
         >
           <ButtonTrash />
-        </ShowModalButton>
+        </div>
       </div>
     </div>
   );

@@ -38,7 +38,7 @@ export const Product = ({ productInfo }: ProductProps) => {
           />
           {deletePopupOpen && (
             <div
-              className="absolute bottom-0 left-0 flex translate-y-16 -translate-x-28 flex-col gap-2 rounded-xl bg-base-100 p-3 text-sm shadow-xl"
+              className="border-100 absolute bottom-0 left-0 flex -translate-x-28 translate-y-16 flex-col gap-2 rounded-xl bg-base-100 p-3 text-sm shadow-xl"
               key={productInfo.id}
             >
               <div>Delete item?</div>

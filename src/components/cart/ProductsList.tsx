@@ -12,7 +12,7 @@ export const SellerProducts = ({
   productsInfo,
 }: SellerProductsProps) => {
   return (
-    <div className=" w-full rounded-xl p-6 shadow shadow-gray-900">
+    <div className=" w-full rounded-xl border  border-base-200/30 p-6 shadow-xl">
       <h1 className="mb-4 text-3xl">{sellerName}</h1>
       <div className="flex w-full flex-col gap-2 shadow shadow-gray-900">
         {productsInfo.map((p) => (

@@ -1,6 +1,5 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { createPortal } from "react-dom";
 import { SingleItemPrev } from "../components/account/ItemCard";
 import { AccountPageModal } from "../components/account/Modal";
 import { NoItem } from "../components/account/NoItem";
@@ -23,28 +22,30 @@ const AccountPage = () => {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-8 text-3xl">
-      <div className="flex w-full justify-between">
-        <h1 className="flex ">My products</h1>
-        <Link
-          href="/create-product"
-          onClick={() => {
-            createProductPageStore.setState((state) => {
-              state.isUpdating = false;
-            });
-          }}
-        >
-          <button className="btn-primary btn">Add product</button>
-        </Link>
+    <>
+      <div className="relative flex flex-1 flex-col gap-6 p-8 text-3xl">
+        <div className="flex w-full justify-between">
+          <h1 className="flex ">My products</h1>
+          <Link
+            href="/create-product"
+            onClick={() => {
+              createProductPageStore.setState((state) => {
+                state.isUpdating = false;
+              });
+            }}
+          >
+            <button className="btn-primary btn">Add product</button>
+          </Link>
+        </div>
+        {data?.length === 0 && <NoItem />}
+        <div className="flex flex-col gap-2 text-base">
+          {data?.map((d) => {
+            return <SingleItemPrev key={d.id} product={d} />;
+          })}
+        </div>
       </div>
-      {data?.length === 0 && <NoItem />}
-      <div className="flex flex-col gap-2 text-base">
-        {data?.map((d) => {
-          return <SingleItemPrev key={d.id} product={d} />;
-        })}
-      </div>
-      {createPortal(<AccountPageModal />, document.body)}
-    </div>
+      <AccountPageModal />
+    </>
   );
 };
 

@@ -38,7 +38,8 @@ export const CategorySelector = ({ category: c }: CategorySelectorProps) => {
   return (
     <div
       className={
-        "transition-all duration-300 active:scale-90 cursor-pointer rounded-xl bg-base-200 p-2 px-4 " + ` ${activeStyle}`
+        "cursor-pointer rounded-xl  p-2 px-4 transition-all duration-300 active:scale-90 " +
+        ` ${activeStyle}`
       }
       key={c}
       onClick={() => {

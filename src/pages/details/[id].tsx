@@ -1,10 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
-import { clsx } from "@mantine/core";
 import type { Product } from "@prisma/client";
-import Image from "next/image";
-import Link from "next/link";
+import { clsx } from "clsx";
+import useEmblaCarousel from "embla-carousel-react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { NiceButton } from "../../components/NiceButton";
 import { cartStore } from "../../logic/common/cartStore";
@@ -13,6 +12,7 @@ import { trpc } from "../../utils/trpc";
 
 export default function ProductDetails() {
   const router = useRouter();
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
 
   const { id } = router.query;
 
@@ -23,50 +23,40 @@ export default function ProductDetails() {
     { enabled: !!idASString }
   );
 
+  useEffect(() => {
+    if (emblaApi) {
+      console.log(emblaApi.slideNodes()); // Access API
+    }
+  }, [emblaApi]);
+
   if (!data.data) {
     return <div></div>;
   }
 
   return (
     <div className="flex w-full gap-3 max-[1050px]:flex-col">
-      <div className="rounded-xl bg-base-300">
+      <div className="border-100">
         {data.status === "success" && (
           <>
-            <div className="carousel max-h-[400px] w-full bg-base-100">
-              {data.data?.images.map((i, idx) => (
-                <div className="carousel-item" key={idx}>
-                  <img
-                    id={`item${idx + 1}`}
-                    src={i ?? ""}
-                    alt="hello!"
-                    className="rounded-t-xl object-cover"
-                    placeholder="empty"
-                  />
+            <div className="embla max-h-[400px] w-full bg-base-100">
+              <div className="embla">
+                <div className="embla__viewport" ref={emblaRef}>
+                  <div className="embla__container">
+                    {data.data?.images.map((i, idx) => (
+                      <div className="embla__slide" key={i}>
+                        <div className="embla__slide__number">
+                          <span>{idx + 1}</span>
+                        </div>
+                        <img
+                          src={i}
+                          className="embla__slide__img w-[600px]"
+                          alt="hello!"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-              {data.data?.images.length === 0 && (
-                <Image
-                  src={data.data?.previewImageUrl ?? ""}
-                  className="w-[600px]"
-                  alt="hello!"
-                  height={400}
-                  width={200}
-                />
-              )}
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 rounded-xl bg-base-300 px-5 py-3">
-              {data.data?.images.map((i, idx) => {
-                return (
-                  <Link
-                    href={`#item${idx + 1}`}
-                    className="btn-md btn bg-fuchsia-800"
-                    key={idx}
-                    replace
-                  >
-                    {idx + 1}
-                  </Link>
-                );
-              })}
+              </div>
             </div>
           </>
         )}
@@ -75,7 +65,7 @@ export default function ProductDetails() {
 
       <div
         className={clsx(
-          "flex min-w-[500px] flex-1 flex-col rounded-xl bg-base-300 p-4",
+          "border-100 flex min-w-[500px] flex-1 flex-col rounded-xl p-4",
           "min-h-[300px] max-[1050px]:max-w-full"
         )}
       >
@@ -91,10 +81,11 @@ export default function ProductDetails() {
           ))}
         </div>
 
-        <div
-          className="mt-5 flex w-full flex-1 rounded-xl"
-          dangerouslySetInnerHTML={{ __html: data.data?.description ?? "" }}
-        ></div>
+        <div className="mt-5 flex w-full flex-1 flex-col rounded-xl">
+          {data.data?.description.split("\n").map((l, idx) => {
+            return <p key={idx}>{l}</p>;
+          })}
+        </div>
         <CartFooter item={data.data} />
       </div>
     </div>

@@ -10,7 +10,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useId, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
-import { GlobalModalPortal } from "../components/GlobalModal";
 import SearchWithNavigation from "../components/SearchWithNavigation";
 import { cartStore } from "../logic/common/cartStore";
 import { productsStore } from "../logic/common/productsStore";
@@ -31,13 +30,16 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <Toaster />
+      <Toaster
+        toastOptions={{
+          className: "!bg-base-200 !text-slate-200",
+        }}
+      />
       <div className="container mx-auto flex min-h-screen flex-col">
         <Header />
         <Component {...pageProps} />
         <Footer />
       </div>
-      <GlobalModalPortal />
     </SessionProvider>
   );
 };
@@ -152,19 +154,9 @@ const Header = () => {
                 </div>
               </button>
               <ul
-                className="dropdown-content menu rounded-box w-52 bg-base-100 p-2 shadow"
+                className="border-100 dropdown-content menu rounded-box z-[500] w-52 bg-base-100 p-2 shadow"
                 tabIndex={0}
               >
-                {/* <li>
-                  <Link
-                    href="/history"
-                    onClick={() => {
-                      setResettDropdownKey(resettDropdownKey + 1);
-                    }}
-                  >
-                    <div>Purchase history</div>
-                  </Link>
-                </li> */}
                 <li>
                   <Link
                     href="/account"
@@ -241,7 +233,7 @@ const ProductSearchDropdown = () => {
 
   return (
     <>
-      <div className="dropdown" key={router.asPath}>
+      <div className="border-100 dropdown z-[500]" key={router.asPath}>
         <div className="relative">
           <SearchWithNavigation
             key={resetId}
@@ -263,7 +255,7 @@ const ProductSearchDropdown = () => {
           </div>
         </div>
         <ul
-          className="dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
+          className="border-100 dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow"
           ref={searchListElement}
         >
           {products.status === "loading" && (
@@ -337,7 +329,7 @@ const CategoryDropdown = () => {
 
   return (
     <>
-      <div className={`dropdown`}>
+      <div className={`border-100 dropdown z-[500]`}>
         <div className="flex gap-2">
           <SearchWithNavigation
             key={id}
@@ -357,7 +349,7 @@ const CategoryDropdown = () => {
           />
         </div>
         <ul
-          className={`dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow`}
+          className={` border-100 dropdown-content menu rounded-box mt-2 w-full bg-base-100 p-2 shadow`}
           ref={categoriesRef}
           key={selectedCategory}
         >

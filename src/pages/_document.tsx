@@ -2,10 +2,11 @@ import { Head, Html, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
-    <Html data-theme="dark" style={{ backgroundColor: "#272935" }}>
+    <Html data-theme="mytheme"
+    // style={{ backgroundColor: "#272935" }}
+    >
       <Head />
       <body>
-        <div id="global-modal-placement"></div>
         <Main />
         <NextScript />
       </body>
