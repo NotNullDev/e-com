@@ -5,6 +5,7 @@ import { type AppType } from "next/app";
 import { trpc } from "../utils/trpc";
 
 import dynamic from "next/dynamic";
+import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -29,18 +30,39 @@ const MyApp: AppType<{ session: Session | null }> = ({
   pageProps: { session, ...pageProps },
 }) => {
   return (
-    <SessionProvider session={session}>
-      <Toaster
-        toastOptions={{
-          className: "!bg-base-200 !text-slate-200",
-        }}
-      />
-      <div className="container mx-auto flex min-h-screen flex-col">
-        <Header />
-        <Component {...pageProps} />
-        <Footer />
-      </div>
-    </SessionProvider>
+    <>
+      <Head>
+        <meta property="og:title" content="The title of the page or content" />
+        <meta
+          property="og:description"
+          content="Just for fun"
+        />
+        {/* <meta property="og:image" content="https://example.com/image.jpg" /> */}
+        <meta property="og:url" content="https://e-com.notnulldev.com" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="e-com" />
+
+        <meta name="twitter:title" content="Playground app" />
+        <meta
+          name="twitter:description"
+          content="Just for fun"
+        />
+        <meta name="twitter:image" content="https://example.com/image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
+      <SessionProvider session={session}>
+        <Toaster
+          toastOptions={{
+            className: "!bg-base-200 !text-slate-200",
+          }}
+        />
+        <div className="container mx-auto flex min-h-screen flex-col">
+          <Header />
+          <Component {...pageProps} />
+          <Footer />
+        </div>
+      </SessionProvider>
+    </>
   );
 };
 

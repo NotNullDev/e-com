@@ -110,12 +110,13 @@
     pointer-events: none;
   }
   .embla__slide__number > span {
-    color: var(--brand-primary);
+    color: #424242;
     background-image: linear-gradient(
       45deg,
-      var(--brand-primary),
-      var(--brand-secondary)
+      #424242
+      #454545
     );
+    z-index: 500;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

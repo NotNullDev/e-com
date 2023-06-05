@@ -79,7 +79,7 @@ const CartPage: NextPage = () => {
   }, [success, canceled]);
 
   return (
-    <div className="flex flex-1">
+    <div className="flex flex-1 max-[1050px]:flex-col">
       <div className="flex flex-[2]">
         <div className="flex w-full flex-col gap-4  px-12">
           <h1 className="mb-4 text-3xl">Your cart</h1>

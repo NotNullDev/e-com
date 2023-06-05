@@ -13,12 +13,12 @@ export const ProductCard = ({ product }: SingleProductPreviewProps) => {
     <>
       <Link
         href={"/details/" + product.id ?? 0}
-        className="flex h-[300px] w-[300px] flex-col rounded-xl border border-base-200/50 bg-base-100 shadow-xl"
+        className="flex h-[350px] w-[300px] flex-col rounded-xl border border-base-200/50 bg-base-100 shadow-xl"
       >
         <img
           src={product.previewImageUrl}
           alt="Shoes"
-          className="flex-1 rounded-t-xl object-fill"
+          className="h-[200px] flex-1 rounded-t-xl object-fill"
         />
         <div className="flex h-[150px] flex-col justify-between gap-2 p-4">
           <h2 className="text font-bold">{product.title}</h2>

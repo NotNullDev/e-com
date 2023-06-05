@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef } from "react";
 
 export type NiceButtonProps = {
   className?: string;
@@ -14,7 +14,7 @@ export const NiceButton = ({
   max,
   initial,
 }: NiceButtonProps) => {
-  const [currentVal, setCurrentVal] = useState(initial ?? 1);
+  const currentVal = useRef<number>(initial ?? 1);
 
   return (
     <>
@@ -22,18 +22,17 @@ export const NiceButton = ({
         <button
           className="btm btn-sm text-xl font-bold"
           onClick={() => {
-            if (currentVal > 0) {
-              setCurrentVal((c) => {
-                if (c === 0 || (min && c === min)) {
-                  callback && callback(c);
-                  return c;
-                }
-                const newValue = --c;
-                if (callback) {
-                  callback(newValue);
-                }
-                return newValue;
-              });
+            if (currentVal.current > 0) {
+              const c = currentVal.current;
+              if (c === 0 || (min && c === min)) {
+                callback && callback(c);
+                return c;
+              }
+              const newValue = c - 1;
+              if (callback) {
+                callback(newValue);
+              }
+              currentVal.current = newValue;
             }
           }}
         >
@@ -42,7 +41,7 @@ export const NiceButton = ({
         <input
           className="input  w-32 text-center"
           placeholder="1"
-          value={currentVal}
+          value={currentVal.current}
           onChange={(e) => {
             let newVal: number | string = e.currentTarget.value;
             if (newVal === "") {
@@ -52,26 +51,29 @@ export const NiceButton = ({
             if (!newVal && newVal !== 0) {
               return;
             }
-            setCurrentVal(newVal);
+            currentVal.current = newVal;
             if (callback) {
               callback(newVal);
             }
+            e.currentTarget.focus();
           }}
           onFocus={(e) => e.currentTarget.select()}
         />
         <button
           className="btm btn-sm text-xl font-bold"
           onClick={() => {
-            setCurrentVal((c) => {
-              if (max && c === max) {
+            if (currentVal.current > 0) {
+              const c = currentVal.current;
+              if (c === 0 || (min && c === min)) {
+                callback && callback(c);
                 return c;
               }
-              const newValue = ++c;
+              const newValue = c + 1;
               if (callback) {
                 callback(newValue);
               }
-              return newValue;
-            });
+              currentVal.current = newValue;
+            }
           }}
         >
           +

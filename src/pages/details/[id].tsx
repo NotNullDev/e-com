@@ -35,7 +35,7 @@ export default function ProductDetails() {
 
   return (
     <div className="flex w-full gap-3 max-[1050px]:flex-col">
-      <div className="border-100">
+      <div className="border-100 flex-1">
         {data.status === "success" && (
           <>
             <div className="embla max-h-[400px] w-full bg-base-100">
@@ -65,8 +65,9 @@ export default function ProductDetails() {
 
       <div
         className={clsx(
-          "border-100 flex min-w-[500px] flex-1 flex-col rounded-xl p-4",
-          "min-h-[300px] max-[1050px]:max-w-full"
+          "border-100 flex min-w-[550px] max-w-[550px] flex-1 flex-col rounded-xl p-8",
+          "min-h-[300px] max-[1050px]:max-w-full",
+          "gap-3 overflow-y-auto"
         )}
       >
         <div className="w-full text-center text-3xl font-bold">
@@ -81,7 +82,7 @@ export default function ProductDetails() {
           ))}
         </div>
 
-        <div className="mt-5 flex w-full flex-1 flex-col rounded-xl">
+        <div className="flex max-h-[200px] w-full flex-1 flex-col overflow-y-auto rounded-xl p-6">
           {data.data?.description.split("\n").map((l, idx) => {
             return <p key={idx}>{l}</p>;
           })}
@@ -97,7 +98,7 @@ type CartFooterProps = {
 const CartFooter = ({ item }: CartFooterProps) => {
   const [amount, setAmount] = useState(1);
   return (
-    <div className="flex h-min items-center gap-3 max-[1050px]:justify-end">
+    <div className="flex h-min items-center justify-center gap-3 max-[1050px]:justify-end">
       <div className="flex items-center gap-2">
         <NiceButton
           min={1}

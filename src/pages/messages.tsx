@@ -1,10 +1,8 @@
 import type { Conversation, User } from "@prisma/client";
-import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-hot-toast";
 import create, { useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import SearchWithNavigation from "../components/SearchWithNavigation";
 import { trpc } from "../utils/trpc";
 
 type MessagesPageStore = {
@@ -191,13 +189,13 @@ const NewConversationModal = () => {
 
   return (
     <>
-      <Dialog.Root>
+      {/* <Dialog.Root>
         <Dialog.Trigger asChild>
           <button className="btn-primary btn">Start new</button>
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="absolute inset-0 h-screen w-screen bg-black/30" />
-          <Dialog.Content className="absolute top-1/2 left-1/2 flex h-[50vh] w-[50vw] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl bg-base-200">
+          <Dialog.Content className="absolute left-1/2 top-1/2 flex h-[50vh] w-[50vw] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl bg-base-200">
             <Dialog.Title className="fond-bold p-4 text-xl shadow">
               <h1>New conversation</h1>
               <Dialog.Close>
@@ -296,7 +294,7 @@ const NewConversationModal = () => {
             </div>
           </Dialog.Content>
         </Dialog.Portal>
-      </Dialog.Root>
+      </Dialog.Root> */}
     </>
   );
 };

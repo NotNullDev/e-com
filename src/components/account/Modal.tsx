@@ -44,6 +44,7 @@ const ModalFooter = ({ product }: ModalFooterProps) => {
 export const AccountPageModal = () => {
   const product = accountPageStore((state) => state.selectedProductToDelete);
   const deleteProductMutation = trpc.products.deleteProduct.useMutation();
+  const trpcContext = trpc.useContext();
 
   return (
     <dialog id="account_modal_1" className="modal text-base-content">
