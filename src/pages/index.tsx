@@ -11,6 +11,7 @@ import { trpc } from "../utils/trpc";
 
 const Home: NextPage = () => {
   const resetId = productsStore((state) => state.resetId);
+  const trpcUtils = trpc.useContext();
   const filteredProducts = trpc.products.filtered.useQuery(
     productsStore.getState().filters,
     {
@@ -53,14 +54,27 @@ const Home: NextPage = () => {
             {filteredProducts.status === "success" && (
               <>
                 {filteredProducts.data?.map((p) => (
-                  <ProductCard key={p.id} product={p} />
+                  <ProductCard key={p.id} product={p}/>
                 ))}
               </>
             )}
             {filteredProducts.status === "loading" &&
               [...Array(20)].map((i, idx) => (
-                <SingleProductSkeleton key={idx} />
+                <SingleProductSkeleton key={idx}/>
               ))}
+          </div>
+          <div className="mt-10 flex w-full items-center justify-center">
+            <button
+              className="btn-primary btn"
+              onClick={() => {
+                productsStore.setState((store) => {
+                  store.filters.limit += 20;
+                });
+                trpcUtils.products.invalidate();
+              }}
+            >
+              load more
+            </button>
           </div>
         </div>
       </div>
