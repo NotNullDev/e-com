@@ -10,10 +10,10 @@ async function main() {
 
   const u = await prisma.user.findFirst();
 
-  if (u) {
-    console.log("Database is already populated. Exiting...");
-    return;
-  }
+  // if (u) {
+  //   console.log("Database is already populated. Exiting...");
+  //   return;
+  // }
 
   const initUser = {
     email: "admin@notnulldev.com",
@@ -22,13 +22,13 @@ async function main() {
   } as User;
 
   const insertedInitUser = await prisma.user.upsert({
-    where: { email: initUser.email ?? "" },
+    where: {email: initUser.email ?? ""},
     create: initUser,
     update: initUser,
   });
 
   const createdUsers = await Promise.all(
-    [...Array(500)].map(async (idx) => {
+    [...Array(5)].map(async (idx) => {
       const userEmail = faker.internet.email();
       const userName = faker.name.fullName();
       const roles = faker.helpers.arrayElements(["USER", "SELLER"]);

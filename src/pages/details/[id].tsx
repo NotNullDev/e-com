@@ -2,7 +2,8 @@
 import type { Product } from "@prisma/client";
 import { clsx } from "clsx";
 import useEmblaCarousel from "embla-carousel-react";
-import { useRouter } from "next/router";
+import Link from "next/link";
+import {useRouter} from "next/router";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { NiceButton } from "../../components/NiceButton";
@@ -34,29 +35,39 @@ export default function ProductDetails() {
   }
 
   return (
-    <div className="flex w-full gap-3 max-[1050px]:flex-col">
-      <div className="border-100 flex-1">
+    <div className="flex w-full gap-3  max-[1050px]:flex-col">
+      <div className="border-100 flex flex-1 items-center justify-center">
         {data.status === "success" && (
           <>
-            <div className="embla max-h-[400px] w-full bg-base-100">
-              <div className="embla">
-                <div className="embla__viewport" ref={emblaRef}>
-                  <div className="embla__container">
-                    {data.data?.images.map((i, idx) => (
-                      <div className="embla__slide" key={i}>
-                        <div className="embla__slide__number">
-                          <span>{idx + 1}</span>
-                        </div>
-                        <img
-                          src={i}
-                          className="embla__slide__img w-[600px]"
-                          alt="hello!"
-                        />
-                      </div>
-                    ))}
+            <div className="carousel w-full bg-base-100" ref={emblaRef}>
+              {data.data?.images &&
+                data.data.images.map((i, idx) => (
+                  <div
+                    id={`slide${idx}`}
+                    className="carousel-item relative w-full"
+                    key={i}
+                  >
+                    <img src={i} className="w-full" alt="hello!"/>
+                    <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                      <Link
+                        href={`#slide${
+                          idx === 0 ? data.data.images.length - 1 : idx - 1
+                        }`}
+                        className="btn-circle btn"
+                      >
+                        ❮
+                      </Link>
+                      <Link
+                        href={`#slide${
+                          idx === data.data.images.length - 1 ? 0 : idx + 1
+                        }`}
+                        className="btn-circle btn"
+                      >
+                        ❯
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </div>
+                ))}
             </div>
           </>
         )}

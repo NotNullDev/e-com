@@ -24,7 +24,8 @@ export const NiceButton = ({
           onClick={() => {
             if (currentVal.current > 0) {
               const c = currentVal.current;
-              if (c === 0 || (min && c === min)) {
+              // if (c === 0 || (min && c === min)) {
+              if (c === 0) {
                 callback && callback(c);
                 return c;
               }
@@ -61,19 +62,14 @@ export const NiceButton = ({
         />
         <button
           className="btm btn-sm text-xl font-bold"
-          onClick={() => {
-            if (currentVal.current > 0) {
-              const c = currentVal.current;
-              if (c === 0 || (min && c === min)) {
-                callback && callback(c);
-                return c;
-              }
-              const newValue = c + 1;
-              if (callback) {
-                callback(newValue);
-              }
-              currentVal.current = newValue;
+          onClick={(e) => {
+            const c = currentVal.current;
+            const newValue = c + 1;
+            if (callback) {
+              callback(newValue);
             }
+            currentVal.current = newValue;
+            e.currentTarget.focus();
           }}
         >
           +
