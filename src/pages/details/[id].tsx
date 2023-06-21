@@ -40,18 +40,17 @@ export default function ProductDetails() {
         {data.status === "success" && (
           <>
             <div className="carousel w-full bg-base-100" ref={emblaRef}>
-              {data.data?.images &&
-                data.data.images.map((i, idx) => (
-                  <div
-                    id={`slide${idx}`}
-                    className="carousel-item relative w-full"
-                    key={i}
-                  >
-                    <img src={i} className="w-full" alt="hello!"/>
-                    <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                      <Link
-                        href={`#slide${
-                          idx === 0 ? data.data.images.length - 1 : idx - 1
+              {data?.data?.images && data.data.images.map((i, idx) => (
+                <div
+                  id={`slide${idx}`}
+                  className="carousel-item relative w-full"
+                  key={i}
+                >
+                  <img src={i} className="w-full" alt="hello!"/>
+                  <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                    <Link
+                      href={`#slide${
+                        idx === 0 && data.data ? data.data.images.length - 1 : idx - 1
                         }`}
                         className="btn-circle btn"
                       >
@@ -59,7 +58,7 @@ export default function ProductDetails() {
                       </Link>
                       <Link
                         href={`#slide${
-                          idx === data.data.images.length - 1 ? 0 : idx + 1
+                          data.data && idx === data.data.images.length - 1 ? 0 : idx + 1
                         }`}
                         className="btn-circle btn"
                       >

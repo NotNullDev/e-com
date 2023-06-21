@@ -1,9 +1,5 @@
-import Image from "next/image";
-import { useEffect } from "react";
-import {
-  createProductPageStore,
-  deletePopupStore,
-} from "../../logic/create-products/createProductsPageStore";
+import {useEffect} from "react";
+import {createProductPageStore, deletePopupStore,} from "../../logic/create-products/createProductsPageStore";
 
 export const FilesSelection = () => {
   const files = createProductPageStore((state) => state.files);
@@ -19,6 +15,7 @@ export const FilesSelection = () => {
       <div className="group grid columns-3 grid-cols-4 gap-4">
         {files.map((u, idx) => (
           <label key={idx} className="relative cursor-pointer">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={u.url}
               width={400}
