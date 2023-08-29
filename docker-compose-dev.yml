@@ -22,11 +22,34 @@ services:
       - MINIO_ROOT_PASSWORD=adminpassword
       - MINIO_ACCESS_KEY=oPCkkCrWF9zFgNUG
       - MINIO_SECRET_KEY=vNHFMsgBKYB50cMIIuSIF1vUs65Kp9Sn
+
+  meilisearch:
+    container_name: meilisearch
+    image: getmeili/meilisearch:v0.25.2
+    environment:
+      - http_proxy
+      - https_proxy
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-masterKey}
+      - MEILI_NO_ANALYTICS=${MEILI_NO_ANALYTICS:-true}
+      - MEILI_ENV=${MEILI_ENV:-development}
+      - MEILI_LOG_LEVEL
+      - MEILI_DB_PATH=${MEILI_DB_PATH:-/data.ms}
+    ports:
+      - ${MEILI_PORT:-7700}:7700
+    networks:
+      - e-com
+    volumes:
+      - ./data.ms:/data.ms
+    restart: unless-stopped
+
+
 volumes:
   e-com-db:
     name: e-com-db
   e-com-fs:
     name: e-com-fs
+  e-com-meili-search:
+    name: e-com-meili-search
 
 networks:
   e-com:

@@ -12,12 +12,13 @@ import { trpc } from "../utils/trpc";
 const Home: NextPage = () => {
   const resetId = productsStore((state) => state.resetId);
   const trpcUtils = trpc.useContext();
-  const filteredProducts = trpc.products.filtered.useQuery(
+  const products = productsStore(state => state.products)
+  const {status} = trpc.products.filtered.useQuery(
     productsStore.getState().filters,
     {
       onSuccess: (data) => {
         productsStore.setState((old) => {
-          if (filteredProducts.data) {
+          if (data) {
             old.products = data;
           } else {
             old.products = [];
@@ -26,7 +27,7 @@ const Home: NextPage = () => {
       },
     }
   );
-  const [parent] = useAutoAnimate<HTMLDivElement>();
+  // const [parent] = useAutoAnimate<HTMLDivElement>();
 
   const allCategories = [
     ...Object.keys(Category).filter((c) => isNaN(Number(c))),
@@ -49,16 +50,15 @@ const Home: NextPage = () => {
           </div>
           <div
             className="mt-7 grid grid-cols-2 gap-20 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
-            ref={parent}
           >
-            {filteredProducts.status === "success" && (
+            {status === "success" && (
               <>
-                {filteredProducts.data?.map((p) => (
+                {products?.map((p) => (
                   <ProductCard key={p.id} product={p}/>
                 ))}
               </>
             )}
-            {filteredProducts.status === "loading" &&
+            {status === "loading" &&
               [...Array(20)].map((i, idx) => (
                 <SingleProductSkeleton key={idx}/>
               ))}
@@ -66,12 +66,20 @@ const Home: NextPage = () => {
           <div className="mt-10 flex w-full items-center justify-center">
             <button
               className="btn-primary btn"
-              onClick={() => {
+              onClick={async () => {
                 productsStore.setState((store) => {
                   store.filters.limit += 20;
                 });
-                trpcUtils.products.invalidate();
+
+                const messages = await trpcUtils.products.filtered.fetch({
+                  ...productsStore.getState().filters,
+                  limit: productsStore.getState().filters.limit + 20
+                })
+                productsStore.setState(store => {
+                  store.products.push(...messages ?? [])
+                })
               }}
+              disabled={status === "loading"}
             >
               load more
             </button>
