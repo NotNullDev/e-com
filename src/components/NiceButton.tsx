@@ -2,7 +2,7 @@ import { useRef } from "react";
 
 export type NiceButtonProps = {
   className?: string;
-  callback?: (currentValue: number) => void;
+  callback?: (currentValue: number) => boolean;
   min?: number;
   max?: number;
   initial?: number;
@@ -16,6 +16,17 @@ export const NiceButton = ({
 }: NiceButtonProps) => {
   const currentVal = useRef<number>(initial ?? 1);
 
+  function isWithinRange(val: number) {
+    if (min && val < min) {
+      return false;
+    }
+    if (max && val > max) {
+      return false;
+    }
+
+    return true;
+  }
+
   return (
     <>
       <div className="border-100 flex items-center gap-1">
@@ -24,14 +35,19 @@ export const NiceButton = ({
           onClick={() => {
             if (currentVal.current > 0) {
               const c = currentVal.current;
-              // if (c === 0 || (min && c === min)) {
+              if (!isWithinRange(c - 1)) {
+                return;
+              }
               if (c === 0) {
                 callback && callback(c);
                 return c;
               }
               const newValue = c - 1;
               if (callback) {
-                callback(newValue);
+                const shouldContinue = callback(newValue);
+                if (!shouldContinue) {
+                  return;
+                }
               }
               currentVal.current = newValue;
             }
@@ -52,6 +68,7 @@ export const NiceButton = ({
             if (!newVal && newVal !== 0) {
               return;
             }
+
             currentVal.current = newVal;
             if (callback) {
               callback(newVal);

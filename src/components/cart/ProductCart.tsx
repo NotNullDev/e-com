@@ -16,13 +16,14 @@ export const Product = ({ productInfo }: ProductProps) => {
       <div className="flex items-center gap-4">
         <div className="relative">
           <NiceButton
-            min={1}
+            min={0}
             max={3}
             initial={productInfo.quantity}
             callback={(u) => {
-              if (u === 1 && q === 1) {
+              console.log('omg!', u, q)
+              if (u === 0 && q === 1) {
                 setDeletePopupOpen(true);
-                return;
+                return false;
               }
               // setDeletePopupOpen(false);
               setQ(u);
@@ -34,6 +35,7 @@ export const Product = ({ productInfo }: ProductProps) => {
                   p.quantity = u;
                 }
               });
+              return true;
             }}
           />
           {deletePopupOpen && (

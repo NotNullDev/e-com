@@ -115,6 +115,7 @@ const CartFooter = ({ item }: CartFooterProps) => {
           max={15}
           callback={(u) => {
             setAmount(u);
+            return true;
           }}
         />
         <div className="mr-2 whitespace-nowrap text-xl font-bold">
