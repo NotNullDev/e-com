@@ -21,6 +21,7 @@ export const ProductMetadata = () => {
               createProductPageStore.setState((state) => {
                 state.product.price = p;
               });
+              return true
             }}
           />
         </div>
@@ -34,6 +35,7 @@ export const ProductMetadata = () => {
               createProductPageStore.setState((state) => {
                 state.product.stock = p;
               });
+              return true
             }}
           />
         </div>
@@ -46,6 +48,7 @@ export const ProductMetadata = () => {
               createProductPageStore.setState((state) => {
                 state.product.shippingTime = p;
               });
+              return true
             }}
           />
         </div>

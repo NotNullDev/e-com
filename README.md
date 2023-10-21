@@ -33,3 +33,12 @@ Check the ./docs folder for more information.
 https://raw.githubusercontent.com/technorabilia/portainer-templates/main/lsio/templates/templates-2.0.json
 
 https://raw.githubusercontent.com/Qballjos/portainer_templates/master/Template/template.json
+
+# Search tools
+
+https://github.com/meilisearch/docs-scraper
+https://github.com/algolia/instantsearch
+
+# TODO
+
+- [ ] Deploy to fly.io

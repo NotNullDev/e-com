@@ -39,7 +39,7 @@ services:
     networks:
       - e-com
     volumes:
-      - ./data.ms:/data.ms
+      - e-com-meili-search:/data.ms
     restart: unless-stopped
 
 
