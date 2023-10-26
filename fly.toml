@@ -1,0 +1,19 @@
+# fly.toml app configuration file generated for e-com-nnd on 2023-10-21T22:29:05+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "e-com-nnd"
+primary_region = "waw"
+
+[deploy]
+release_command = "npx prisma db push --skip-generate && npx prisma db seed"
+
+[build]
+
+[http_service]
+internal_port = 3000
+force_https = true
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 0

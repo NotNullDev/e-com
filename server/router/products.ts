@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 import { getPreSignedUrl } from "../common/fileUploader";
 import { protectedProcedure, publicProcedure, router } from "../config/trpc";
+import {eComImagesAdminClient} from "../e-com-images-admin-client";
 
 export const productsRouter = router({
   getHottest: getHottestProducts(),
@@ -26,6 +27,7 @@ export const productsRouter = router({
   upsertProduct: upsertProducts(),
 
   getPreSingedUrlForFileUpload: preSignUrl(),
+  getPreSingedUrlForFileUploadDemo: preSignUrlDemo(),
 
   getConversations: getConversation(),
 });
@@ -91,6 +93,16 @@ function preSignUrl() {
       return {
         presignedurl,
         fileUrl,
+      };
+    });
+}
+
+function preSignUrlDemo() {
+  return protectedProcedure
+    .mutation(async ({ctx, input}) => {
+      const token = await eComImagesAdminClient.getPresignUrl();
+      return {
+        token
       };
     });
 }

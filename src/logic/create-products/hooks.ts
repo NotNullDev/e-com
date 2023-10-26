@@ -11,10 +11,11 @@ import { EXISTING_IMAGE } from "../../utils/CONST";
 import { Converters } from "../../utils/convertes";
 import { trpc } from "../../utils/trpc";
 import { createProductPageStore } from "./createProductsPageStore";
+import {eComImagesClient} from "../../lib/e-com-images-client";
 
 export const useUpsertProduct = () => {
   const createProductMutation = trpc.products.upsertProduct.useMutation();
-  const uploadImagesMutation = useUploadImagesMutation();
+  const uploadImagesMutation = useUploadImagesMutationDemo();
   const trpcContext = trpc.useContext();
   const isUpdating = createProductPageStore((s) => s.isUpdating);
   const router = useRouter();
@@ -122,6 +123,50 @@ export const useUpsertProduct = () => {
   };
 };
 
+export const useUploadImagesMutationDemo = () => {
+  const preSingedUrlMutation =
+    trpc.products.getPreSingedUrlForFileUploadDemo.useMutation();
+
+  const upload = async (images: File[]) => {
+    const result = [];
+    const form = new FormData();
+    for (const image of images) {
+      if (image && image.name !== "") {
+        form.append("files", image);
+      }
+    }
+
+    for (const img of images) {
+      if (img.name === EXISTING_IMAGE) {
+        continue;
+      }
+      const {token} = await preSingedUrlMutation.mutateAsync();
+
+      if (!token) {
+        throw new Error(
+          `Could not get presigned url for image ${img.name} from the file server.`
+        );
+      }
+
+      const imageId = await eComImagesClient.uploadImage(img, token);
+      if (!imageId) {
+        throw new Error(
+          `Could not upload image ${img.name} to the file server.`
+        );
+      }
+
+      const imageUrl = eComImagesClient.getImageUrl(imageId);
+
+      result.push({originalFileName: img.name, fileUrl: imageUrl});
+    }
+    return result;
+  };
+
+  const uploadMutation = useMutation(["uploadImage"], upload);
+
+  return uploadMutation;
+}
+
 export const useUploadImagesMutation = () => {
   const preSingedUrlMutation =
     trpc.products.getPreSingedUrlForFileUpload.useMutation();
@@ -174,13 +219,6 @@ export const useInitProductPage = () => {
     {
       onSuccess: async (data) => {
         if (data) {
-          // createProductPageStore.setState({
-          //   product: {
-          //     ...data,
-          //   },
-          //   files: [],
-          //   previewImageIdentificator: { name: EXISTING_IMAGE, size: 0 },
-          // });
           createProductPageStore.getState().resetStore();
           createProductPageStore.setState((state) => {
             state.product = data;
