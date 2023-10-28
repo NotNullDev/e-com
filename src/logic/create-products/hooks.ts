@@ -167,47 +167,6 @@ export const useUploadImagesMutationDemo = () => {
   return uploadMutation;
 }
 
-export const useUploadImagesMutation = () => {
-  const preSingedUrlMutation =
-    trpc.products.getPreSingedUrlForFileUpload.useMutation();
-
-  const upload = async (images: File[]) => {
-    const result = [];
-    const form = new FormData();
-    for (const image of images) {
-      if (image && image.name !== "") {
-        form.append("files", image);
-      }
-    }
-
-    for (const img of images) {
-      if (img.name === EXISTING_IMAGE) {
-        continue;
-      }
-      const { presignedurl, fileUrl } = await preSingedUrlMutation.mutateAsync({
-        fileName: img.name,
-      });
-
-      const uploadFilesResponse = await fetch(presignedurl, {
-        method: "PUT",
-        body: img,
-      });
-
-      if (!uploadFilesResponse.ok) {
-        throw new Error(
-          `Could not upload image ${img.name} to the file server.`
-        );
-      }
-      result.push({ originalFileName: img.name, fileUrl });
-    }
-    return result;
-  };
-
-  const uploadMutation = useMutation(["uploadImage"], upload);
-
-  return uploadMutation;
-};
-
 export const useInitProductPage = () => {
   const router = useRouter();
   const productId = router.query.id as string;

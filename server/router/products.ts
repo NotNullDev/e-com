@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 import { randomUUID } from "node:crypto";
 import toast from "react-hot-toast";
 import { z } from "zod";
-import { getPreSignedUrl } from "../common/fileUploader";
 import { protectedProcedure, publicProcedure, router } from "../config/trpc";
 import {eComImagesAdminClient} from "../e-com-images-admin-client";
 
@@ -26,7 +25,6 @@ export const productsRouter = router({
 
   upsertProduct: upsertProducts(),
 
-  getPreSingedUrlForFileUpload: preSignUrl(),
   getPreSingedUrlForFileUploadDemo: preSignUrlDemo(),
 
   getConversations: getConversation(),
@@ -64,37 +62,6 @@ function getConversation() {
 
     return conversations as Conversation[];
   });
-}
-
-function preSignUrl() {
-  return protectedProcedure
-    .input(
-      z.object({
-        fileName: z.string(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const user = ctx.session.user;
-      console.log(
-        `User ${user.email} requested presigned url for file upload.`
-      );
-
-      const randomFilename = `${input.fileName}-${randomUUID()}`;
-
-      const presignedurl = await getPreSignedUrl(randomFilename);
-
-      console.log(`Presigned url: ${presignedurl}`);
-      let fileUrl;
-
-      fileUrl = `http://localhost:9000/e-com/${randomFilename}`;
-
-      fileUrl = `https://minio.notnulldev.com/e-com/${randomFilename}`;
-
-      return {
-        presignedurl,
-        fileUrl,
-      };
-    });
 }
 
 function preSignUrlDemo() {
