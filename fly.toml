@@ -7,9 +7,10 @@ app = "e-com-nnd"
 primary_region = "waw"
 
 [deploy]
-release_command = "npx prisma db push --skip-generate && npx prisma db seed"
+release_command = "npx prisma db push --accept-data-loss --skip-generate && npx prisma db seed"
 
 [build]
+dockerfile = "Dockerfile"
 
 [http_service]
 internal_port = 3000
