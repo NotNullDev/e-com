@@ -22,7 +22,7 @@ async function main() {
   } as User;
 
   const insertedInitUser = await prisma.user.upsert({
-    where: {email: initUser.email ?? ""},
+    where: { email: initUser.email ?? "" },
     create: initUser,
     update: initUser,
   });
