@@ -2,7 +2,7 @@ import { faker } from "@faker-js/faker";
 import type { Product, User } from "@prisma/client";
 import { DealType, PrismaClient } from "@prisma/client";
 import { getAllCategoriesAsString } from "../src/utils/enumParser";
-("@prisma/client");
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -10,10 +10,10 @@ async function main() {
 
   const u = await prisma.user.findFirst();
 
-  // if (u) {
-  //   console.log("Database is already populated. Exiting...");
-  //   return;
-  // }
+  if (u) {
+    console.log(" ...");
+    return;
+  }
 
   const initUser = {
     email: "admin@notnulldev.com",
@@ -22,7 +22,7 @@ async function main() {
   } as User;
 
   const insertedInitUser = await prisma.user.upsert({
-    where: {email: initUser.email ?? ""},
+    where: { email: initUser.email ?? "" },
     create: initUser,
     update: initUser,
   });

@@ -2,6 +2,7 @@ name: "e-com"
 services:
   db:
     image: postgres
+    container_name: e-com-db
     env_file:
       - .env
     networks:

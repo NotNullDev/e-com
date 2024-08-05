@@ -43,3 +43,5 @@ yarn-error.log*
 public/images/*
 !public/images/.gitkeep
 .private_rsa
+dbdump.dmp
+data.ms
