@@ -17,6 +17,7 @@ const Home: NextPage = () => {
     {
       onSuccess: (data) => {
         productsStore.setState((old) => {
+          debugger;
           if (data) {
             old.products = data;
           } else {

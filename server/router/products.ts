@@ -330,7 +330,7 @@ function searchForProduct() {
             const query = db.select()
                 .from(product)
                 .where(
-                    and()
+                    and(...filters)
                 )
                 .limit(limit);
 
