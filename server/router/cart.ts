@@ -1,9 +1,9 @@
+import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
+import { product, User, user } from "../../common/db/schema";
+import { db } from "../../src/db/db";
 import type { FullCartItem } from "../../src/logic/common/cartStore";
 import { publicProcedure, router } from "../config/trpc";
-import {db} from "../../src/db/db";
-import {product, User, user} from "../../common/db/schema";
-import {and, eq, inArray} from "drizzle-orm";
 
 export const cartRouter = router({
   getCartData: getCartData(),
@@ -26,49 +26,51 @@ export function getCartData() {
 }
 
 export const _getCartData = async (
-    input: { productId: string; quantity: number }[],
+  input: { productId: string; quantity: number }[]
 ) => {
-    const productIds = input.map((item) => item.productId);
+  const cartResult: CartResponse[] = [];
+  const productIds = input.map((item) => item.productId);
 
+  const products = await db
+    .select({
+      product,
+    })
+    .from(product)
+    .where(inArray(product.id, productIds));
 
-    const result = await db.select({
-        product,
-        userId: user.id
-    }).from(product)
-        .innerJoin(product, eq(user.id, product.id))
-        .where(inArray(product.id, productIds))
+  console.log(`found products`, products, productIds);
 
-    const allSellers = result.map(r => r.userId)
+  const users = await db
+    .selectDistinct({
+      user: user,
+    })
+    .from(user)
+    .innerJoin(product, eq(user.id, product.userId))
+    .where(inArray(product.id, productIds));
 
-    const uniqueSellers = new Set(allSellers);
+  console.log(`found users`, users);
 
-    const response = [...uniqueSellers]
-        .map((sellerId) => {
-            const seller = allSellers.find((s) => s.id === sellerId);
-            if (!seller) {
-                console.warn("Seller not found, ", JSON.stringify(input));
-                return null;
-            }
-            const sellerProducts = foundProducts
-                .filter((p) => p.seller.id === sellerId)
-                .map((p) => {
-                    const cartItem = input.find((i) => i.productId === p.id);
-                    return {
-                        ...p,
-                        productId: p.id,
-                        quantity: cartItem?.quantity ?? 0,
-                    };
-                });
-            return {
-                seller,
-                products: sellerProducts,
-            };
-        })
-        .filter((p) => p) as CartResponse[];
+  for (const seller of users) {
+    const productsForCurrentSeller = products.filter(
+      (p) => p.product.userId === seller.user.id
+    );
 
-    return response;
+    cartResult.push({
+      seller: seller.user,
+      products: productsForCurrentSeller.map((p) => {
+        const quantity =
+          input.find((i) => i.productId === p.product.id)?.quantity ?? 0;
+        return {
+          ...p.product,
+          productId: p.product.id,
+          quantity: quantity,
+        };
+      }),
+    });
+  }
+
+  return cartResult;
 };
-
 
 export type CartResponse = {
   seller: User;
