@@ -10,120 +10,117 @@ import {
 import { db, queryClient } from "../src/db/db";
 
 async function main() {
-  const u = await db.query.user.findFirst();
+  await db.transaction(async (tx) => {
+    const u = await tx.query.user.findFirst();
 
-  if (u) {
-    console.log("There is a user in database, seeding skipped...");
-    return;
-  }
+    if (u) {
+      console.log("There is a user in database, seeding skipped...");
+      return;
+    }
 
-  const initUser: UserNew = {
-    email: "admin@notnulldev.com",
-    name: "NotNullDev",
-    image: "",
-  };
-
-  const insertedInitUser = await db.insert(user).values(initUser);
-
-  const dummyUsers: UserNew[] = [...Array(5)].map((idx) => {
-    const userEmail = faker.internet.email();
-    const userName = faker.name.fullName();
-
-    const userToBeCreated: UserNew = {
-      email: userEmail,
-      name: userName,
+    const initUser: UserNew = {
+      email: "admin@notnulldev.com",
+      name: "NotNullDev",
+      image: "",
     };
 
-    return userToBeCreated;
-  });
+    const insertedInitUser = await tx.insert(user).values(initUser);
 
-  const createdUsers = await db
-    .insert(user)
-    .values(dummyUsers)
-    .onConflictDoUpdate({
-      target: user.email,
-      set: user,
-    })
-    .returning({ id: user.id });
+    const dummyUsers: UserNew[] = [...Array(5)].map((idx) => {
+      const userEmail = faker.internet.email();
+      const userName = faker.name.fullName();
 
-  const createdUsersIds = createdUsers.map((u) => u.id);
+      const userToBeCreated: UserNew = {
+        email: userEmail,
+        name: userName,
+      };
 
-  console.log(`created users with ids ${createdUsersIds.join(",")}`);
-
-  // const productsAmount = 200_000;
-  const productsAmount = 10_000;
-
-  console.log(
-    `Creating ${productsAmount} fake products. It may take a while...`
-  );
-
-  const products = [...Array(productsAmount)].map((idx) => {
-    const id = faker.datatype.uuid();
-    const title = faker.commerce.productName();
-    const price = Number(faker.commerce.price(10, 1500, 2, ""));
-    const description = faker.commerce.productDescription();
-    const categories = faker.helpers.arrayElements(category.enumValues);
-    const stock = faker.datatype.number({
-      min: 1,
-      max: 120,
-    });
-    const selectedDealType = faker.helpers.arrayElement(dealType.enumValues);
-    const previewImageUrl = faker.image.abstract(undefined, undefined, true);
-    const boughtCount = faker.datatype.bigInt({
-      min: 0,
-      max: 60000,
+      return userToBeCreated;
     });
 
-    const shippingTime = faker.datatype.number({
-      min: 0,
-      max: 4,
-    });
+    const createdUsers = await tx
+      .insert(user)
+      .values(dummyUsers)
+      .onConflictDoUpdate({
+        target: user.email,
+        set: user,
+      })
+      .returning({ id: user.id });
 
-    const views = faker.datatype.bigInt({
-      min: 0,
-      max: 5000000,
-    });
+    const createdUsersIds = createdUsers.map((u) => u.id);
 
-    const images = [...Array(10)].map(() =>
-      faker.image.abstract(1920, 1080, true)
+    console.log(`created users with ids ${createdUsersIds.join(",")}`);
+
+    // const productsAmount = 200_000;
+    const productsAmount = 65534; // max amount for one query
+
+    console.log(
+      `Creating ${productsAmount} fake products. It may take a while...`
     );
 
-    const rating = faker.datatype.number({
-      min: 1,
-      max: 5,
-    });
+    for (let i = 0; i < productsAmount; i++) {
+      const id = faker.datatype.uuid();
+      const title = faker.commerce.productName();
+      const price = Number(faker.commerce.price(10, 1500, 2, ""));
+      const description = faker.commerce.productDescription();
+      const categories = faker.helpers.arrayElements(category.enumValues);
+      const stock = faker.datatype.number({
+        min: 1,
+        max: 120,
+      });
+      const selectedDealType = faker.helpers.arrayElement(dealType.enumValues);
+      const previewImageUrl = faker.image.abstract(undefined, undefined, true);
+      const boughtCount = faker.datatype.bigInt({
+        min: 0,
+        max: 60000,
+      });
 
-    // get random user from created users
-    const randomUserId = faker.helpers.arrayElement(createdUsersIds);
+      const shippingTime = faker.datatype.number({
+        min: 0,
+        max: 4,
+      });
 
-    const product: ProductNew = {
-      id,
-      categories,
-      dealType: selectedDealType,
-      description,
-      previewImageUrl,
-      price,
-      stock,
-      title,
-      boughtCount,
-      shippingTime,
-      lastBoughtAt: new Date(),
-      createdAt: new Date(),
-      views,
-      userId: randomUserId,
-      images,
-      rating,
-    };
+      const views = faker.datatype.bigInt({
+        min: 0,
+        max: 5000000,
+      });
 
-    return product;
+      const images = [...Array(10)].map(() =>
+        faker.image.abstract(1920, 1080, true)
+      );
+
+      const rating = faker.datatype.number({
+        min: 1,
+        max: 5,
+      });
+
+      // get random user from created users
+      const randomUserId = faker.helpers.arrayElement(createdUsersIds);
+
+      const productToBeCreated: ProductNew = {
+        id,
+        categories,
+        dealType: selectedDealType,
+        description,
+        previewImageUrl,
+        price,
+        stock,
+        title,
+        boughtCount,
+        shippingTime,
+        lastBoughtAt: new Date(),
+        createdAt: new Date(),
+        views,
+        userId: randomUserId,
+        images,
+        rating,
+      };
+
+      await tx.insert(product).values(productToBeCreated).onConflictDoNothing();
+    }
+
+    console.log(`created ${productsAmount} products.`);
   });
-
-  const createdProducts = await db
-    .insert(product)
-    .values(products)
-    .onConflictDoNothing();
-
-  console.log(`created ${createdProducts.count} products.`);
 }
 
 main().finally(() => {
