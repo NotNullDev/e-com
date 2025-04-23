@@ -1,5 +1,5 @@
-import type { Category } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
+import { Category } from "../../../common/db/schema";
 import { createProductPageStore } from "../../logic/create-products/createProductsPageStore";
 import type { CategorySelectorProps } from "../../logic/create-products/types";
 

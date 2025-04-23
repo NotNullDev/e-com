@@ -1,5 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Category } from "@prisma/client";
 import { type NextPage } from "next";
 import { CategorySelector } from "../components/index/CategorySelect";
 import { ProductCard } from "../components/index/ProductCard";
@@ -8,6 +6,7 @@ import { SortComponent } from "../components/index/SortComponent";
 import { productsStore } from "../logic/common/productsStore";
 
 import { trpc } from "../utils/trpc";
+import {getAllCategoriesAsString} from "../utils/enumParser";
 
 const Home: NextPage = () => {
   const resetId = productsStore((state) => state.resetId);
@@ -30,7 +29,7 @@ const Home: NextPage = () => {
   // const [parent] = useAutoAnimate<HTMLDivElement>();
 
   const allCategories = [
-    ...Object.keys(Category).filter((c) => isNaN(Number(c))),
+    ...Object.keys(getAllCategoriesAsString()).filter((c) => isNaN(Number(c))),
   ];
 
   return (

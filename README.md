@@ -10,14 +10,11 @@
 
 Made with Next.js, TailwindCSS, Prisma, DaisyUI, TRPC and Stripe.
 
-Bootstrapped with create-t3-app.
-
-
-## Dev commands
-
-```bash
-# run dev containers
-docker compose -f ./docker-compose-dev.yml up -d --force-recreate
+# Start project in dev mode
+```shell
+./dev.sh
+# you can do following command to have a clean start
+./dev-clear.sh && ./dev.sh
 ```
 
 openssl genrsa -out private.pem 2048
@@ -36,21 +33,27 @@ https://raw.githubusercontent.com/Qballjos/portainer_templates/master/Template/t
 
 # Search tools
 
+TODO: postgres full text search on products, we don't need to use meilisearch
+
 https://github.com/meilisearch/docs-scraper
 https://github.com/algolia/instantsearch
 
-```shell
-flyctl postgres attach e-com-nnd-db
-docker exec -u postgres e-com-db pg_dump -Fc --no-owner --file=/tmp/dbdump.dmp e-com && docker cp e-com-db:/tmp/dbdump.dmp ./dbdump.dmp
-docker exec -u postgres ea5925e9851a pg_dump -Fc --no-owner --file=/tmp/dbdump.dmp e_com && docker cp ea5925e9851a:/tmp/dbdump.dmp ./dbdump.dmp
-fly ssh -a e-com-nnd-db sftp shell
--- cp ./dbdump.dmp /dbdump.dmp
-fly ssh -a e-com-nnd-db console
-pg_restore -d e_com --no-owner /dbdump.dmp
-pg_restore -h localhost -U e_com_nnd -d e_com_nnd -p 5433 --no-owner /dbdump.dmp
-fly proxy 5432  -a e-com-nnd-db
-```
 
 # TODO
 - [ ] Deploy to fly.io
 
+# Db setup
+
+```bash
+# First run
+
+export DATABASE_URL="postgres://e_com:e_com@nnd-vm-3:5432/e_com?sslmode=disable"
+bun drizzle-kit generate --config=drizzle/drizzle.config.ts
+bun drizzle-kit push --config=drizzle/drizzle.config.ts
+
+# After schema change
+export DATABASE_URL="postgres://e_com:e_com@nnd-vm-3:5432/e_com?sslmode=disable"
+bun drizzle-kit generate --config=drizzle/drizzle.config.ts
+bun drizzle-kit push --config=drizzle/drizzle.config.ts
+
+```

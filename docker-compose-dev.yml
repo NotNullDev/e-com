@@ -43,7 +43,6 @@ services:
       - e-com-meili-search:/data.ms
     restart: unless-stopped
 
-
 volumes:
   e-com-db:
     name: e-com-db

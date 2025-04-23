@@ -1,6 +1,6 @@
-import type {Product} from "@prisma/client";
 import {create} from "zustand";
 import {immer} from "zustand/middleware/immer";
+import {Product} from "../../../common/db/schema";
 
 export type AccountPageStoreType = {
   products: Product[];

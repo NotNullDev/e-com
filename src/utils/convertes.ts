@@ -1,4 +1,4 @@
-import type { Category } from "@prisma/client";
+import {Category} from "../../common/db/schema";
 
 export class Converters {
   static stringToCategory(category: string): Category {

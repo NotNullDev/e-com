@@ -1,5 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-import type { Product } from "@prisma/client";
 import { clsx } from "clsx";
 import useEmblaCarousel from "embla-carousel-react";
 import Link from "next/link";
@@ -10,6 +8,7 @@ import { NiceButton } from "../../components/NiceButton";
 import { cartStore } from "../../logic/common/cartStore";
 import { Converters } from "../../utils/convertes";
 import { trpc } from "../../utils/trpc";
+import {Product} from "../../../common/db/schema";
 
 export default function ProductDetails() {
   const router = useRouter();

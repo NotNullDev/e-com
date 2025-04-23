@@ -1,8 +1,8 @@
-import type { DealType } from "@prisma/client";
 import toast from "react-hot-toast";
 import {immer} from "zustand/middleware/immer";
 import {create} from "zustand";
 import type {CreateProductPageStoreType, SavedFilesMapping} from "./types";
+import {DealType} from "../../../common/db/schema";
 
 export type DeletePopupStoreType = {
   popupOpen: boolean;
@@ -46,7 +46,7 @@ const emptyProductPageStore = {
 };
 
 export const createProductPageStore = create<CreateProductPageStoreType>()(
-  immer((set, get) => {
+  immer((set, get, store) => {
     const createProduct = async (): Promise<boolean> => {
       const product = get().product;
       const previewImageIdentificator = get().previewImageIdentificator;
@@ -116,14 +116,10 @@ export const createProductPageStore = create<CreateProductPageStoreType>()(
     };
 
     const resetStore = () => {
-      set({
-        createProduct,
-        resetStore,
-        ...emptyProductPageStore,
-      });
       deletePopupStore.setState((state) => {
         state.picturesToDeleteIds = [];
       });
+      throw new Error("TODO: reset store state");
     };
 
     return {

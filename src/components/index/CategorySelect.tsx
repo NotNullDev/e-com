@@ -1,6 +1,6 @@
-import type { Category } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
 import { productsStore } from "../../logic/common/productsStore";
+import {Category} from "../../../common/db/schema";
 
 type CategorySelectorProps = {
   category: string;

@@ -1,4 +1,3 @@
-import type {Product} from "@prisma/client";
 import type {NextPage} from "next";
 import {useSession} from "next-auth/react";
 import {useRouter} from "next/router";
@@ -10,6 +9,7 @@ import {SellerProducts} from "../components/cart/ProductsList";
 import {SellerSummary} from "../components/cart/SellerSummary";
 import {cartStore} from "../logic/common/cartStore";
 import {trpc} from "../utils/trpc";
+import {Product} from "../../common/db/schema";
 
 const getSellersFromCartProducts = (cartProducts: Product[]) => {
   const sellers = new Set<string>();

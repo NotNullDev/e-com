@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Stripe } from "stripe";
 import { getServerAuthSession } from "../../../server/common/get-server-auth-session";
-import { prisma } from "../../../server/config/prisma";
 import { _getCartData } from "../../../server/router/cart";
 import type { CartItem } from "../../logic/common/cartStore";
 
@@ -32,10 +31,6 @@ export default async function handler(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  if (!prisma) {
-    return res.status(500).json({ error: "Prisma not initialized" });
-  }
-
   const raw = req.body?.data[0];
 
   if (!raw) {
@@ -56,7 +51,7 @@ export default async function handler(
 
   const user = session.user;
 
-  const r = await _getCartData(boughtItems, prisma);
+  const r = await _getCartData(boughtItems);
 
   console.log("boughtItems: ", boughtItems);
   console.log("CART DATA: ", r);

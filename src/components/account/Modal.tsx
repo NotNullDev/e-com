@@ -1,8 +1,8 @@
-import type { Product } from "@prisma/client";
 import toast from "react-hot-toast";
 import { accountPageStore } from "../../logic/account/accountPageStore";
 import { trpc } from "../../utils/trpc";
 import { GlobalModalController } from "../GlobalModal";
+import {Product} from "../../../common/db/schema";
 
 type ModalFooterProps = {
   product?: Product;

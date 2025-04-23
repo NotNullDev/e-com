@@ -1,9 +1,9 @@
-import type { Product } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { accountPageStore } from "../../logic/account/accountPageStore";
 import ButtonEdit from "../ButtonEdit";
 import ButtonTrash from "../ButtonTrash";
+import {Product} from "../../../common/db/schema";
 
 export type SingleItemPrevProps = {
   product: Product;

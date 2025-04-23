@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
-import type { Product } from "@prisma/client";
 import Link from "next/link";
 import { Rating } from "./RatingComponent";
 import { ProductSticker } from "./StickerComponent";
+import {Product} from "../../../common/db/schema";
 
 type SingleProductPreviewProps = {
   product: Product;

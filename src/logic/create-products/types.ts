@@ -1,4 +1,4 @@
-import type { Category, Product } from "@prisma/client";
+import {Category, Product} from "../../../common/db/schema";
 
 export type ProductModel = {
   title: string;

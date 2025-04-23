@@ -1,8 +1,8 @@
-import type {Product} from "@prisma/client";
 import {create} from "zustand";
 import {persist} from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { productsStore } from "./productsStore";
+import {Product} from "../../../common/db/schema";
 
 export type CartItem = {
   productId: string;

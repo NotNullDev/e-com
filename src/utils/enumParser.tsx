@@ -1,9 +1,7 @@
-import { Category } from "@prisma/client";
+import {category} from "../../common/db/schema";
 
 export function getAllCategoriesAsString() {
-  const allCategories = [
-    ...Object.keys(Category).filter((c) => isNaN(Number(c))),
-  ];
+  const allCategories = category.enumValues;
 
   return allCategories.map((c) => c.replaceAll("_", " "));
 }

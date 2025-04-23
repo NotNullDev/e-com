@@ -1,4 +1,4 @@
-import type { DealType } from "@prisma/client";
+import {DealType} from "../../../common/db/schema";
 
 export type SingleProductStickerProps = {
   dealType: DealType;

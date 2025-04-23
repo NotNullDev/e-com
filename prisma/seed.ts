@@ -53,7 +53,13 @@ async function main() {
 
   console.log(`created user with id ${insertedInitUser.id}`);
 
-  const products = [...Array(200000)].map((idx) => {
+  const productsAmount = 200000;
+
+  console.log(
+    `Creating ${productsAmount} fake products. It may take a while...`
+  );
+
+  const products = [...Array(productsAmount)].map((idx) => {
     const id = faker.datatype.uuid();
     const title = faker.commerce.productName();
     const price = Number(faker.commerce.price(10, 1500, 2, ""));

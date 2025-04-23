@@ -7,25 +7,24 @@ export class EComImagesAdminClient {
     try {
       const response = await fetch(`${this.baseUrl}/images/presign`, {
         headers: {
-          'Authorization': `Bearer ${this.adminKey}`,
-        }
-      })
+          Authorization: `Bearer ${this.adminKey}`,
+        },
+      });
 
       if (!response.ok) {
-        console.log("Failed to get presign url!")
+        console.log("Failed to get presign url!");
         return undefined;
       }
 
       const data = await response.json();
       return data.token;
     } catch (e) {
-      console.error("[EComImagesAdminClient#getPresignUrl] Something went wrong!!!", e);
+      console.error(
+        "[EComImagesAdminClient#getPresignUrl] Something went wrong!!!",
+        e
+      );
     }
   }
-
-  // E_COM_IMAGES_ADMIN_KEY
-  // E_COM_IMAGES_BASE_URL
-  // E_COM_IMAGES_IMAGES_PREFIX
 }
 
 export const eComImagesAdminClient = new EComImagesAdminClient();
