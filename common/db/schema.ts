@@ -1,3 +1,4 @@
+import { InferEnum, InferInsertModel, InferSelectModel } from "drizzle-orm";
 import {
   bigint,
   boolean,
@@ -11,11 +12,10 @@ import {
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
-import { InferSelectModel, InferInsertModel, InferEnum } from 'drizzle-orm'
 
-export const userRole = pgEnum("UserRole", ["ADMIN", "SELLER", "USER"]);
-export const dealType = pgEnum("DealType", ["HOT", "HIT", "NONE"]);
-export const category = pgEnum("Category", [
+export const userRole = pgEnum("user_role", ["ADMIN", "SELLER", "USER"]);
+export const dealType = pgEnum("deal_type", ["HOT", "HIT", "NONE"]);
+export const category = pgEnum("category", [
   "Electronics",
   "Fashion",
   "Sport",
@@ -23,9 +23,9 @@ export const category = pgEnum("Category", [
   "Health",
 ]);
 
-export type Category = InferEnum<typeof category>
-export type DealType = InferEnum<typeof dealType>
-export type UserRole = InferEnum<typeof userRole>
+export type Category = InferEnum<typeof category>;
+export type DealType = InferEnum<typeof dealType>;
+export type UserRole = InferEnum<typeof userRole>;
 
 export const example = pgTable("example", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -40,7 +40,8 @@ export const user = pgTable("user", {
   emailVerified: timestamp("emailVerified"),
   image: text("image"),
 });
-export type User = InferSelectModel<typeof user>
+export type User = InferSelectModel<typeof user>;
+export type UserNew = InferInsertModel<typeof user>;
 
 export const account = pgTable(
   "account",
@@ -92,8 +93,8 @@ export const product = pgTable("product", {
   images: text("images").array().notNull(),
   dealType: dealType("deal_type").notNull(),
   shippingTime: integer("shipping_time").notNull(),
-  views: bigint("views", { mode: "number" }).notNull(),
-  boughtCount: bigint("bought_count", { mode: "number" }).notNull(),
+  views: bigint("views", { mode: "bigint" }).notNull(),
+  boughtCount: bigint("bought_count", { mode: "bigint" }).notNull(),
   lastBoughtAt: timestamp("last_bought_at").defaultNow(),
   rating: integer("rating").notNull(),
   userId: uuid("user_id")
@@ -102,8 +103,8 @@ export const product = pgTable("product", {
   categories: category("categories").array().notNull(),
 });
 
-export type Product = InferSelectModel<typeof product>
-export type ProductNew = InferInsertModel<typeof product>
+export type Product = InferSelectModel<typeof product>;
+export type ProductNew = InferInsertModel<typeof product>;
 
 export const conversation = pgTable("conversation", {
   id: serial("id").primaryKey(),
