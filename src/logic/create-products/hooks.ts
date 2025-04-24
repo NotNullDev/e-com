@@ -7,11 +7,11 @@ import {
   createProductZodValidationObject,
   createProductZodValidationObjectWihtoutImages,
 } from "../../../common/zodValidators";
+import { eComImagesClient } from "../../lib/e-com-images-client";
 import { EXISTING_IMAGE } from "../../utils/CONST";
 import { Converters } from "../../utils/convertes";
 import { trpc } from "../../utils/trpc";
 import { createProductPageStore } from "./createProductsPageStore";
-import {eComImagesClient} from "../../lib/e-com-images-client";
 
 export const useUpsertProduct = () => {
   const createProductMutation = trpc.products.upsertProduct.useMutation();
@@ -140,7 +140,7 @@ export const useUploadImagesMutationDemo = () => {
       if (img.name === EXISTING_IMAGE) {
         continue;
       }
-      const {token} = await preSingedUrlMutation.mutateAsync();
+      const { token } = await preSingedUrlMutation.mutateAsync();
 
       if (!token) {
         throw new Error(
@@ -157,7 +157,7 @@ export const useUploadImagesMutationDemo = () => {
 
       const imageUrl = eComImagesClient.getImageUrl(imageId);
 
-      result.push({originalFileName: img.name, fileUrl: imageUrl});
+      result.push({ originalFileName: img.name, fileUrl: imageUrl });
     }
     return result;
   };
@@ -165,7 +165,7 @@ export const useUploadImagesMutationDemo = () => {
   const uploadMutation = useMutation(["uploadImage"], upload);
 
   return uploadMutation;
-}
+};
 
 export const useInitProductPage = () => {
   const router = useRouter();
@@ -176,6 +176,7 @@ export const useInitProductPage = () => {
       id: productId ?? "",
     },
     {
+      enabled: !!productId,
       onSuccess: async (data) => {
         if (data) {
           createProductPageStore.getState().resetStore();

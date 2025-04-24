@@ -1,8 +1,8 @@
 import toast from "react-hot-toast";
-import {immer} from "zustand/middleware/immer";
-import {create} from "zustand";
-import type {CreateProductPageStoreType, SavedFilesMapping} from "./types";
-import {DealType} from "../../../common/db/schema";
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
+import { DealType } from "../../../common/db/schema";
+import type { CreateProductPageStoreType, SavedFilesMapping } from "./types";
 
 export type DeletePopupStoreType = {
   popupOpen: boolean;
@@ -116,10 +116,14 @@ export const createProductPageStore = create<CreateProductPageStoreType>()(
     };
 
     const resetStore = () => {
+      set({
+        ...emptyProductPageStore,
+        createProduct,
+        resetStore,
+      });
       deletePopupStore.setState((state) => {
         state.picturesToDeleteIds = [];
       });
-      throw new Error("TODO: reset store state");
     };
 
     return {

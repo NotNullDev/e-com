@@ -1,5 +1,8 @@
-import {useEffect} from "react";
-import {createProductPageStore, deletePopupStore,} from "../../logic/create-products/createProductsPageStore";
+import { useEffect } from "react";
+import {
+  createProductPageStore,
+  deletePopupStore,
+} from "../../logic/create-products/createProductsPageStore";
 
 export const FilesSelection = () => {
   const files = createProductPageStore((state) => state.files);
@@ -21,10 +24,9 @@ export const FilesSelection = () => {
               width={400}
               height={200}
               alt="haha"
-              className="col-span-1 h-[200px] w-[400px] bg-cover object-contain bg-center"
+              className="col-span-1 h-[200px] w-[400px] bg-cover bg-center object-contain"
             />
-            <div
-              className="invisible absolute right-0 top-0 m-4 h-[24px] w-[24px] gap-2 rounded group-hover:visible group-active:visible">
+            <div className="invisible absolute right-0 top-0 m-4 h-[24px] w-[24px] gap-2 rounded group-hover:visible group-active:visible">
               <div className="flex w-[100px] flex-nowrap gap-3">
                 <input
                   className="checkbox-primary checkbox"
@@ -61,18 +63,24 @@ export const FilesSelection = () => {
                   hidden
                   id="img-input"
                   onChange={(e) => {
+                    console.log(`aaa`);
+
                     if (!e.currentTarget.files || !e?.currentTarget?.files[0]) {
+                      console.log(`file not provided`);
                       return;
                     }
+
                     const file = e?.currentTarget?.files[0];
-                    if (file && file.type.startsWith("image/")) {
-                      createProductPageStore.setState((state) => {
-                        state.files.push({
-                          url: URL.createObjectURL(file),
-                          file,
-                        });
+                    if (!file) throw new Error("File not found!");
+                    if (!file.type.startsWith("image/"))
+                      throw new Error(`Invalid image type! [${file.type}]`);
+
+                    createProductPageStore.setState((state) => {
+                      state.files.push({
+                        url: URL.createObjectURL(file),
+                        file,
                       });
-                    }
+                    });
                   }}
                 />
               </>

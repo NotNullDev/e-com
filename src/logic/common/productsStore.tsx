@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
-import {create} from "zustand";
-import {immer} from "zustand/middleware/immer";
+import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
+import { Category, Product } from "../../../common/db/schema";
 
 export type ProductsFilters = {
   categoriesIn: Category[];

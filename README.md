@@ -50,9 +50,10 @@ https://github.com/algolia/instantsearch
 export DATABASE_URL="postgres://e_com:e_com@nnd-vm-3:5432/e_com?sslmode=disable"
 bun drizzle-kit generate --config=drizzle/drizzle.config.ts
 bun drizzle-kit push --config=drizzle/drizzle.config.ts
-bun run drizzle/seed.ts
+bun run scripts/seed.ts
 
 # After schema change
+
 export DATABASE_URL="postgres://e_com:e_com@nnd-vm-3:5432/e_com?sslmode=disable"
 bun drizzle-kit generate --config=drizzle/drizzle.config.ts
 bun drizzle-kit push --config=drizzle/drizzle.config.ts

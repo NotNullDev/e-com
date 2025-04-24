@@ -1,4 +1,6 @@
-export {}
+export default function () {
+  return <></>;
+}
 // import { useEffect, useRef, useState } from "react";
 // import { toast } from "react-hot-toast";
 // import create, { useStore } from "zustand";

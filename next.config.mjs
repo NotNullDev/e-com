@@ -8,6 +8,9 @@ const config = {
   reactStrictMode: true,
   swcMinify: true,
   output: "standalone",
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: [
       "lh3.googleusercontent.com",

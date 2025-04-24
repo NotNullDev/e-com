@@ -25,6 +25,7 @@ export function getCartData() {
     });
 }
 
+// TODO: we should only query for required data so we can do performant query
 export const _getCartData = async (
   input: { productId: string; quantity: number }[]
 ) => {
@@ -38,8 +39,6 @@ export const _getCartData = async (
     .from(product)
     .where(inArray(product.id, productIds));
 
-  console.log(`found products`, products, productIds);
-
   const users = await db
     .selectDistinct({
       user: user,
@@ -47,8 +46,6 @@ export const _getCartData = async (
     .from(user)
     .innerJoin(product, eq(user.id, product.userId))
     .where(inArray(product.id, productIds));
-
-  console.log(`found users`, users);
 
   for (const seller of users) {
     const productsForCurrentSeller = products.filter(

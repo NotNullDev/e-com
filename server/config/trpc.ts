@@ -1,4 +1,4 @@
-import {initTRPC, TRPCError} from "@trpc/server";
+import {DefaultErrorShape, initTRPC, TRPCError} from "@trpc/server";
 import superjson from "superjson";
 
 import {type Context} from "./context";
@@ -6,7 +6,21 @@ import {type Context} from "./context";
 const t = initTRPC.context<Context>().create({
     transformer: superjson,
     errorFormatter({shape}) {
-        return shape;
+        shape.data = {
+            httpStatus: 500,
+            code: 'INTERNAL_SERVER_ERROR',
+            path: undefined,
+            stack: undefined
+        };
+        shape.message = ""
+        return {
+            data: {
+                code: 'INTERNAL_SERVER_ERROR',
+                httpStatus: 500
+            },
+            message: '',
+            code: -32603
+        } satisfies DefaultErrorShape;
     },
 });
 

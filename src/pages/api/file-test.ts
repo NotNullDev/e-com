@@ -1,10 +1,10 @@
 import formidable from "formidable";
 import { readFileSync } from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { Category, product } from "../../../common/db/schema";
 import { getServerAuthSession } from "../../../server/common/get-server-auth-session";
+import { db } from "../../db/db";
 import { IMAGE_URL_PREFIX } from "../../utils/CONST";
-import {db} from "../../db/db";
-import {product} from "../../../common/db/schema";
 
 //set bodyparser
 export const config = {
@@ -170,21 +170,24 @@ async function saveFiles({
 
   await Promise.all(fileUploadPromises);
 
-  const created = await db.insert(product).values({
-    title,
-    description,
-    images: files.map((f) => `${IMAGE_URL_PREFIX}/${f.newFilename}`),
-    boughtCount: 0,
-    previewImageUrl: `${IMAGE_URL_PREFIX}/${previewImage.newFilename}`,
-    price,
-    stock,
-    dealType: "NONE",
-    views: 0,
-    rating: 5,
-    shippingTime: shippingTimeDays,
-    categories,
-    userId,
-  }).returning({ id: product.id })
+  const created = await db
+    .insert(product)
+    .values({
+      title,
+      description,
+      images: files.map((f) => `${IMAGE_URL_PREFIX}/${f.newFilename}`),
+      boughtCount: 0n,
+      previewImageUrl: `${IMAGE_URL_PREFIX}/${previewImage.newFilename}`,
+      price,
+      stock,
+      dealType: "NONE",
+      views: 0n,
+      rating: 5,
+      shippingTime: shippingTimeDays,
+      categories,
+      userId,
+    })
+    .returning({ id: product.id });
 
   console.log(`Created product with id ${created[0]?.id}`);
 }
